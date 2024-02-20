@@ -1,75 +1,60 @@
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using OfficeOpenXml;
+using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        string inputFile1 = "path/to/first/file.xlsx";
-        string inputFile2 = "path/to/second/file.xlsx";
-        string outputFile = "path/to/output/file.xlsx";
+        // Provide the file paths
+        string filePath1 = "path_to_file1.xlsx";
+        string filePath2 = "path_to_file2.xlsx";
 
-        CompareExcelFiles(inputFile1, inputFile2, outputFile);
-    }
+        // Open Excel application
+        Excel.Application excelApp = new Excel.Application();
+        excelApp.Visible = true;
 
-    static void CompareExcelFiles(string inputFile1, string inputFile2, string outputFile)
-    {
-        using (var package1 = new ExcelPackage(new FileInfo(inputFile1)))
-        using (var package2 = new ExcelPackage(new FileInfo(inputFile2)))
-        using (var outputPackage = new ExcelPackage())
+        // Open workbooks
+        Excel.Workbook workbook1 = excelApp.Workbooks.Open(filePath1);
+        Excel.Workbook workbook2 = excelApp.Workbooks.Open(filePath2);
+
+        // Get the first worksheet from each workbook
+        Excel.Worksheet worksheet1 = workbook1.Sheets[1];
+        Excel.Worksheet worksheet2 = workbook2.Sheets[1];
+
+        // Find the last row in each worksheet
+        int lastRow1 = worksheet1.Cells[worksheet1.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
+        int lastRow2 = worksheet2.Cells[worksheet2.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
+
+        // Add a new column for the result in the first workbook
+        Excel.Range resultColumn = worksheet1.Cells[1, lastRow1 + 1];
+        resultColumn.Value = "Result";
+
+        // Compare IDs and update the result column
+        for (int row = 2; row <= lastRow1; row++)
         {
-            ExcelWorksheet worksheet1 = package1.Workbook.Worksheets[0];
-            ExcelWorksheet worksheet2 = package2.Workbook.Worksheets[0];
+            string currentID = worksheet1.Cells[row, 1].Value.ToString();
 
-            // Assuming ID is in the first column (column 1)
-            int idColumnIndex = 1;
-
-            // Create a new worksheet in the output file
-            ExcelWorksheet outputWorksheet = outputPackage.Workbook.Worksheets.Add("ComparisonResult");
-
-            // Copy headers from the first input file
-            for (int col = 1; col <= worksheet1.Dimension.Columns; col++)
+            for (int row2 = 2; row2 <= lastRow2; row2++)
             {
-                outputWorksheet.Cells[1, col].Value = worksheet1.Cells[1, col].Value;
-            }
+                string compareID = worksheet2.Cells[row2, 1].Value.ToString();
 
-            // Add a new header for the comparison result
-            outputWorksheet.Cells[1, worksheet1.Dimension.Columns + 1].Value = "Comparison Result";
-
-            // Compare rows based on the ID column
-            for (int row = 2; row <= worksheet1.Dimension.Rows; row++)
-            {
-                int currentId = Convert.ToInt32(worksheet1.Cells[row, idColumnIndex].Value);
-                
-                // Find the corresponding row in the second worksheet based on ID
-                var matchingRow = worksheet2.Cells["A:A"].FirstOrDefault(cell => Convert.ToInt32(cell.Value) == currentId);
-
-                // Add values from the first worksheet
-                for (int col = 1; col <= worksheet1.Dimension.Columns; col++)
+                if (currentID == compareID)
                 {
-                    outputWorksheet.Cells[row, col].Value = worksheet1.Cells[row, col].Value;
-                }
-
-                // Add the comparison result
-                if (matchingRow != null)
-                {
-                    // ID exists in both files
-                    outputWorksheet.Cells[row, worksheet1.Dimension.Columns + 1].Value = "Match";
+                    worksheet1.Cells[row, lastRow1 + 1].Value = "Match";
+                    break;
                 }
                 else
                 {
-                    // ID does not exist in the second file
-                    outputWorksheet.Cells[row, worksheet1.Dimension.Columns + 1].Value = "No Match";
+                    worksheet1.Cells[row, lastRow1 + 1].Value = "No Match";
                 }
             }
-
-            // Save the output file
-            outputPackage.SaveAs(new FileInfo(outputFile));
         }
 
-        Console.WriteLine("Comparison completed. Results saved to: " + outputFile);
+        // Save and close workbooks
+        workbook1.Save();
+        workbook1.Close();
+        workbook2.Close();
+
+        // Quit Excel application
+        excelApp.Quit();
     }
 }
