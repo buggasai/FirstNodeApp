@@ -20,31 +20,40 @@ class Program
         Excel.Worksheet worksheet1 = workbook1.Sheets[1];
         Excel.Worksheet worksheet2 = workbook2.Sheets[1];
 
-        // Find the last row in each worksheet
-        int lastRow1 = worksheet1.Cells[worksheet1.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
-        int lastRow2 = worksheet2.Cells[worksheet2.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
+        // Find the last columns in each worksheet
+        int lastColumn1 = worksheet1.Cells[1, worksheet1.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
+        int lastColumn2 = worksheet2.Cells[1, worksheet2.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
 
-        // Add a new column for the result in the first workbook
-        Excel.Range resultColumn = worksheet1.Cells[1, lastRow1 + 1];
-        resultColumn.Value = "Result";
+        // Add new columns for the results in the first workbook
+        int resultStartColumn = lastColumn1 + 2; // Adjust as needed
+        int resultEndColumn = resultStartColumn + lastColumn2 - 1; // Adjust as needed
 
-        // Compare IDs and update the result column
-        for (int row = 2; row <= lastRow1; row++)
+        for (int col = resultStartColumn; col <= resultEndColumn; col++)
         {
-            string currentID = worksheet1.Cells[row, 1].Value.ToString();
+            Excel.Range resultColumn = worksheet1.Cells[1, col];
+            resultColumn.Value = "Result_" + (col - resultStartColumn + 1);
+        }
 
-            for (int row2 = 2; row2 <= lastRow2; row2++)
+        // Compare each column and update the result columns
+        for (int col = 1; col <= lastColumn1; col++)
+        {
+            for (int col2 = 1; col2 <= lastColumn2; col2++)
             {
-                string compareID = worksheet2.Cells[row2, 1].Value.ToString();
+                // Assuming headers are in the first row, adjust the row index if headers are elsewhere
+                string header1 = worksheet1.Cells[1, col].Value.ToString();
+                string header2 = worksheet2.Cells[1, col2].Value.ToString();
 
-                if (currentID == compareID)
+                if (header1 == header2)
                 {
-                    worksheet1.Cells[row, lastRow1 + 1].Value = "Match";
-                    break;
-                }
-                else
-                {
-                    worksheet1.Cells[row, lastRow1 + 1].Value = "No Match";
+                    // Compare data in the current column
+                    for (int row = 2; row <= worksheet1.Rows.Count; row++)
+                    {
+                        string value1 = worksheet1.Cells[row, col].Value.ToString();
+                        string value2 = worksheet2.Cells[row, col2].Value.ToString();
+
+                        // Update the result column accordingly
+                        worksheet1.Cells[row, resultStartColumn + col2 - 1].Value = (value1 == value2) ? "Match" : "No Match";
+                    }
                 }
             }
         }
