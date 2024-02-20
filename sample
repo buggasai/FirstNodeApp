@@ -1,1 +1,75 @@
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using OfficeOpenXml;
+
+class Program
+{
+    static void Main()
+    {
+        string inputFile1 = "path/to/first/file.xlsx";
+        string inputFile2 = "path/to/second/file.xlsx";
+        string outputFile = "path/to/output/file.xlsx";
+
+        CompareExcelFiles(inputFile1, inputFile2, outputFile);
+    }
+
+    static void CompareExcelFiles(string inputFile1, string inputFile2, string outputFile)
+    {
+        using (var package1 = new ExcelPackage(new FileInfo(inputFile1)))
+        using (var package2 = new ExcelPackage(new FileInfo(inputFile2)))
+        using (var outputPackage = new ExcelPackage())
+        {
+            ExcelWorksheet worksheet1 = package1.Workbook.Worksheets[0];
+            ExcelWorksheet worksheet2 = package2.Workbook.Worksheets[0];
+
+            // Assuming ID is in the first column (column 1)
+            int idColumnIndex = 1;
+
+            // Create a new worksheet in the output file
+            ExcelWorksheet outputWorksheet = outputPackage.Workbook.Worksheets.Add("ComparisonResult");
+
+            // Copy headers from the first input file
+            for (int col = 1; col <= worksheet1.Dimension.Columns; col++)
+            {
+                outputWorksheet.Cells[1, col].Value = worksheet1.Cells[1, col].Value;
+            }
+
+            // Add a new header for the comparison result
+            outputWorksheet.Cells[1, worksheet1.Dimension.Columns + 1].Value = "Comparison Result";
+
+            // Compare rows based on the ID column
+            for (int row = 2; row <= worksheet1.Dimension.Rows; row++)
+            {
+                int currentId = Convert.ToInt32(worksheet1.Cells[row, idColumnIndex].Value);
+                
+                // Find the corresponding row in the second worksheet based on ID
+                var matchingRow = worksheet2.Cells["A:A"].FirstOrDefault(cell => Convert.ToInt32(cell.Value) == currentId);
+
+                // Add values from the first worksheet
+                for (int col = 1; col <= worksheet1.Dimension.Columns; col++)
+                {
+                    outputWorksheet.Cells[row, col].Value = worksheet1.Cells[row, col].Value;
+                }
+
+                // Add the comparison result
+                if (matchingRow != null)
+                {
+                    // ID exists in both files
+                    outputWorksheet.Cells[row, worksheet1.Dimension.Columns + 1].Value = "Match";
+                }
+                else
+                {
+                    // ID does not exist in the second file
+                    outputWorksheet.Cells[row, worksheet1.Dimension.Columns + 1].Value = "No Match";
+                }
+            }
+
+            // Save the output file
+            outputPackage.SaveAs(new FileInfo(outputFile));
+        }
+
+        Console.WriteLine("Comparison completed. Results saved to: " + outputFile);
+    }
+}
