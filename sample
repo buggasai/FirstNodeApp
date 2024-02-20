@@ -1,89 +1,67 @@
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Text;
+using System.Data;
 
 class Program
 {
     static void Main()
     {
-        // Provide the file paths
-        string filePath1 = "path_to_file1.xlsx";
-        string filePath2 = "path_to_file2.xlsx";
+        string filePath = "path_to_your_excel_file.xlsx";
 
-        // Open Excel application
+        DataTable dataTable = ReadExcelToDataTable(filePath);
+
+        // Now you have the data in the DataTable, you can perform further operations.
+        // For example, you can iterate through the rows and columns:
+
+        foreach (DataRow row in dataTable.Rows)
+        {
+            foreach (var item in row.ItemArray)
+            {
+                Console.Write(item + "\t");
+            }
+            Console.WriteLine();
+        }
+    }
+
+    static DataTable ReadExcelToDataTable(string filePath)
+    {
         Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = true;
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
 
-        // Open workbooks
-        Excel.Workbook workbook1 = excelApp.Workbooks.Open(filePath1);
-        Excel.Workbook workbook2 = excelApp.Workbooks.Open(filePath2);
+        DataTable dataTable = new DataTable(worksheet.Name);
 
-        // Get the first worksheet from each workbook
-        Excel.Worksheet worksheet1 = workbook1.Sheets[1];
-        Excel.Worksheet worksheet2 = workbook2.Sheets[1];
+        int columnsCount = worksheet.UsedRange.Columns.Count;
+        int rowsCount = worksheet.UsedRange.Rows.Count;
 
-        // Find the last rows and columns in each worksheet
-        int lastRow1 = worksheet1.Cells[worksheet1.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
-        int lastColumn1 = worksheet1.Cells[1, worksheet1.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
-
-        int lastRow2 = worksheet2.Cells[worksheet2.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
-        int lastColumn2 = worksheet2.Cells[1, worksheet2.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
-
-        // Add a new column for the result in the first workbook
-        int resultStartColumn = lastColumn1 + 2; // Adjust as needed
-        Excel.Range resultColumn = worksheet1.Cells[1, resultStartColumn];
-        resultColumn.Value = "Result";
-
-        // Compare each column and update the result column
-        for (int col1 = 1; col1 <= lastColumn1; col1++)
+        // Adding columns to DataTable
+        for (int col = 1; col <= columnsCount; col++)
         {
-            string header1 = worksheet1.Cells[1, col1].Value.ToString();
-
-            for (int col2 = 1; col2 <= lastColumn2; col2++)
-            {
-                string header2 = worksheet2.Cells[1, col2].Value.ToString();
-
-                if (header1 == header2)
-                {
-                    // Compare data in the current column
-                    for (int row = 2; row <= lastRow1; row++)
-                    {
-                        string value1 = worksheet1.Cells[row, col1].Value.ToString();
-                        string value2 = worksheet2.Cells[row, col2].Value.ToString();
-
-                        // Update the result column accordingly
-                        string result = (value1 == value2) ? "Match" : "No Match";
-                        worksheet1.Cells[row, resultStartColumn].Value = result;
-                    }
-                    break;
-                }
-            }
+            string columnName = (worksheet.Cells[1, col] as Excel.Range).Value.ToString();
+            dataTable.Columns.Add(columnName);
         }
 
-        // Display the result as comma-separated values in a new column
-        int resultCsvColumn = resultStartColumn + 1; // Adjust as needed
-        Excel.Range resultCsvHeader = worksheet1.Cells[1, resultCsvColumn];
-        resultCsvHeader.Value = "Result CSV";
-
-        for (int row = 2; row <= lastRow1; row++)
+        // Adding rows to DataTable
+        for (int row = 2; row <= rowsCount; row++)
         {
-            StringBuilder resultCsv = new StringBuilder();
+            DataRow dataRow = dataTable.NewRow();
 
-            for (int col = resultStartColumn; col <= lastColumn1 + resultStartColumn - 1; col++)
+            for (int col = 1; col <= columnsCount; col++)
             {
-                resultCsv.Append(worksheet1.Cells[row, col].Value.ToString());
-                resultCsv.Append(",");
+                dataRow[col - 1] = (worksheet.Cells[row, col] as Excel.Range).Value;
             }
 
-            // Remove the trailing comma and set the result CSV
-            worksheet1.Cells[row, resultCsvColumn].Value = resultCsv.ToString().TrimEnd(',');
+            dataTable.Rows.Add(dataRow);
         }
 
-        // Save and close workbooks
-        workbook1.Save();
-        workbook1.Close();
-        workbook2.Close();
-
-        // Quit Excel application
+        // Close and quit Excel
+        workbook.Close();
         excelApp.Quit();
+
+        // Release COM objects to avoid memory leaks
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+
+        return dataTable;
     }
 }
