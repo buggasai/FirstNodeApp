@@ -1,4 +1,5 @@
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Text;
 
 class Program
 {
@@ -20,8 +21,11 @@ class Program
         Excel.Worksheet worksheet1 = workbook1.Sheets[1];
         Excel.Worksheet worksheet2 = workbook2.Sheets[1];
 
-        // Find the last columns in each worksheet
+        // Find the last rows and columns in each worksheet
+        int lastRow1 = worksheet1.Cells[worksheet1.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
         int lastColumn1 = worksheet1.Cells[1, worksheet1.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
+
+        int lastRow2 = worksheet2.Cells[worksheet2.Rows.Count, "A"].End[Excel.XlDirection.xlUp].Row;
         int lastColumn2 = worksheet2.Cells[1, worksheet2.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
 
         // Add a new column for the result in the first workbook
@@ -41,17 +45,37 @@ class Program
                 if (header1 == header2)
                 {
                     // Compare data in the current column
-                    for (int row = 2; row <= worksheet1.Rows.Count; row++)
+                    for (int row = 2; row <= lastRow1; row++)
                     {
                         string value1 = worksheet1.Cells[row, col1].Value.ToString();
                         string value2 = worksheet2.Cells[row, col2].Value.ToString();
 
                         // Update the result column accordingly
-                        worksheet1.Cells[row, resultStartColumn].Value = (value1 == value2) ? "Match" : "No Match";
+                        string result = (value1 == value2) ? "Match" : "No Match";
+                        worksheet1.Cells[row, resultStartColumn].Value = result;
                     }
                     break;
                 }
             }
+        }
+
+        // Display the result as comma-separated values in a new column
+        int resultCsvColumn = resultStartColumn + 1; // Adjust as needed
+        Excel.Range resultCsvHeader = worksheet1.Cells[1, resultCsvColumn];
+        resultCsvHeader.Value = "Result CSV";
+
+        for (int row = 2; row <= lastRow1; row++)
+        {
+            StringBuilder resultCsv = new StringBuilder();
+
+            for (int col = resultStartColumn; col <= lastColumn1 + resultStartColumn - 1; col++)
+            {
+                resultCsv.Append(worksheet1.Cells[row, col].Value.ToString());
+                resultCsv.Append(",");
+            }
+
+            // Remove the trailing comma and set the result CSV
+            worksheet1.Cells[row, resultCsvColumn].Value = resultCsv.ToString().TrimEnd(',');
         }
 
         // Save and close workbooks
