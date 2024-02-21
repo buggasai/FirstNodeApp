@@ -1,67 +1,61 @@
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Data;
 
 class Program
 {
     static void Main()
     {
         string filePath = "path_to_your_excel_file.xlsx";
+        int targetRow = 2; // Adjust as needed
+        string targetColumnName = "ColumnName"; // Adjust as needed
 
-        DataTable dataTable = ReadExcelToDataTable(filePath);
-
-        // Now you have the data in the DataTable, you can perform further operations.
-        // For example, you can iterate through the rows and columns:
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            foreach (var item in row.ItemArray)
-            {
-                Console.Write(item + "\t");
-            }
-            Console.WriteLine();
-        }
-    }
-
-    static DataTable ReadExcelToDataTable(string filePath)
-    {
+        // Open Excel application
         Excel.Application excelApp = new Excel.Application();
+        excelApp.Visible = true;
+
+        // Open workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
 
-        DataTable dataTable = new DataTable(worksheet.Name);
+        // Get the column index based on the column name
+        int targetColumn = GetColumnIndex(worksheet, targetColumnName);
 
-        int columnsCount = worksheet.UsedRange.Columns.Count;
-        int rowsCount = worksheet.UsedRange.Rows.Count;
-
-        // Adding columns to DataTable
-        for (int col = 1; col <= columnsCount; col++)
+        if (targetColumn != -1)
         {
-            string columnName = (worksheet.Cells[1, col] as Excel.Range).Value.ToString();
-            dataTable.Columns.Add(columnName);
+            // Get the cell value
+            string cellValue = GetCellValue(worksheet, targetRow, targetColumn);
+
+            // Display the result
+            Console.WriteLine($"Value at Row {targetRow}, Column {targetColumnName}: {cellValue}");
+        }
+        else
+        {
+            Console.WriteLine($"Column {targetColumnName} not found.");
         }
 
-        // Adding rows to DataTable
-        for (int row = 2; row <= rowsCount; row++)
-        {
-            DataRow dataRow = dataTable.NewRow();
-
-            for (int col = 1; col <= columnsCount; col++)
-            {
-                dataRow[col - 1] = (worksheet.Cells[row, col] as Excel.Range).Value;
-            }
-
-            dataTable.Rows.Add(dataRow);
-        }
-
-        // Close and quit Excel
+        // Close workbook
         workbook.Close();
+
+        // Quit Excel application
         excelApp.Quit();
+    }
 
-        // Release COM objects to avoid memory leaks
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+    static int GetColumnIndex(Excel.Worksheet worksheet, string columnName)
+    {
+        for (int col = 1; col <= worksheet.UsedRange.Columns.Count; col++)
+        {
+            string header = (worksheet.Cells[1, col] as Excel.Range).Value.ToString();
 
-        return dataTable;
+            if (header == columnName)
+            {
+                return col;
+            }
+        }
+
+        return -1; // Column not found
+    }
+
+    static string GetCellValue(Excel.Worksheet worksheet, int row, int col)
+    {
+        return (worksheet.Cells[row, col] as Excel.Range).Value.ToString();
     }
 }
