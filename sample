@@ -1,61 +1,43 @@
+using System;
+using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        string filePath = "path_to_your_excel_file.xlsx";
-        int targetRow = 2; // Adjust as needed
-        string targetColumnName = "ColumnName"; // Adjust as needed
+        string sourceFilePath = @"C:\Path\To\Your\SourceFile.xlsx";
+        string destinationFilePath = @"C:\Path\To\Your\DestinationFolder\DestinationFile.xlsx";
 
-        // Open Excel application
+        // Copy the Excel file
+        CopyExcelFile(sourceFilePath, destinationFilePath);
+
+        // Now, you can use Excel interop to work with the copied file if needed
+        // For example, open the copied file
         Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = true;
+        Excel.Workbook workbook = excelApp.Workbooks.Open(destinationFilePath);
 
-        // Open workbook
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
+        // Your Excel manipulation code here
 
-        // Get the column index based on the column name
-        int targetColumn = GetColumnIndex(worksheet, targetColumnName);
-
-        if (targetColumn != -1)
-        {
-            // Get the cell value
-            string cellValue = GetCellValue(worksheet, targetRow, targetColumn);
-
-            // Display the result
-            Console.WriteLine($"Value at Row {targetRow}, Column {targetColumnName}: {cellValue}");
-        }
-        else
-        {
-            Console.WriteLine($"Column {targetColumnName} not found.");
-        }
-
-        // Close workbook
+        // Save and close the workbook
+        workbook.Save();
         workbook.Close();
 
         // Quit Excel application
         excelApp.Quit();
     }
 
-    static int GetColumnIndex(Excel.Worksheet worksheet, string columnName)
+    static void CopyExcelFile(string sourceFilePath, string destinationFilePath)
     {
-        for (int col = 1; col <= worksheet.UsedRange.Columns.Count; col++)
+        try
         {
-            string header = (worksheet.Cells[1, col] as Excel.Range).Value.ToString();
-
-            if (header == columnName)
-            {
-                return col;
-            }
+            // Copy the Excel file using System.IO
+            File.Copy(sourceFilePath, destinationFilePath, true);
+            Console.WriteLine("File copied successfully.");
         }
-
-        return -1; // Column not found
-    }
-
-    static string GetCellValue(Excel.Worksheet worksheet, int row, int col)
-    {
-        return (worksheet.Cells[row, col] as Excel.Range).Value.ToString();
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Error copying file: {ex.Message}");
+        }
     }
 }
