@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
@@ -7,35 +6,99 @@ class Program
     static void Main()
     {
         string sourceFilePath = @"C:\Path\To\Your\SourceFile.xlsx";
-        string destinationFilePath = @"C:\Path\To\Your\DestinationFolder\DestinationFile.xlsx";
+        string destinationFolderPath = @"C:\Path\To\Your\DestinationFolder\";
 
-        // Copy the Excel file
-        CopyExcelFile(sourceFilePath, destinationFilePath);
-
-        // Now, you can use Excel interop to work with the copied file if needed
-        // For example, open the copied file
+        // Open Excel application
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(destinationFilePath);
+        excelApp.Visible = false;
 
-        // Your Excel manipulation code here
+        try
+        {
+            // Open the workbook
+            Excel.Workbook workbook = excelApp.Workbooks.Open(sourceFilePath);
 
-        // Save and close the workbook
-        workbook.Save();
-        workbook.Close();
+            // Create a copy of the workbook
+            Excel.Workbook copiedWorkbook = workbook.Copy();
 
-        // Quit Excel application
-        excelApp.Quit();
+            // Close the original workbook without saving changes
+            workbook.Close(false);
+
+            // Generate a new file name for the copied workbook
+            string destinationFilePath = destinationFolderPath + "CopiedFile_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
+
+            // Save the copied workbook to the destination folder
+            copiedWorkbook.SaveAs(destinationFilePath);
+
+            // Close the copied workbook
+            copiedWorkbook.Close();
+
+            Console.WriteLine("File copied successfully to: " + destinationFilePath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+        finally
+        {
+            // Quit Excel application
+            excelApp.Quit();
+        }
+    }
+}
+
+
+
+
+using System;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        string sourceFilePath = @"C:\Path\To\Your\SourceFile.xlsx";
+        string destinationFolderPath = @"C:\Path\To\Your\DestinationFolder\";
+        string destinationFileName = "DestinationFile.xlsx";
+
+        // Copy the Excel file to the destination folder
+        CopyExcelFile(sourceFilePath, destinationFolderPath, destinationFileName);
+
+        Console.WriteLine("File copied successfully.");
     }
 
-    static void CopyExcelFile(string sourceFilePath, string destinationFilePath)
+    static void CopyExcelFile(string sourceFilePath, string destinationFolderPath, string destinationFileName)
     {
         try
         {
-            // Copy the Excel file using System.IO
-            File.Copy(sourceFilePath, destinationFilePath, true);
-            Console.WriteLine("File copied successfully.");
+            // Create Excel Application
+            Excel.Application excelApp = new Excel.Application();
+            excelApp.Visible = false;
+
+            // Open the source workbook
+            Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+
+            // Add a new workbook to copy the source workbook
+            Excel.Workbook destinationWorkbook = excelApp.Workbooks.Add();
+
+            // Copy each sheet from the source workbook to the destination workbook
+            foreach (Excel.Worksheet sourceSheet in sourceWorkbook.Sheets)
+            {
+                sourceSheet.Copy(After: destinationWorkbook.Sheets[destinationWorkbook.Sheets.Count]);
+            }
+
+            // Save the destination workbook to the specified location
+            string destinationFilePath = Path.Combine(destinationFolderPath, destinationFileName);
+            destinationWorkbook.SaveAs(destinationFilePath);
+
+            // Close workbooks without saving changes
+            sourceWorkbook.Close(false);
+            destinationWorkbook.Close(false);
+
+            // Quit Excel application
+            excelApp.Quit();
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
             Console.WriteLine($"Error copying file: {ex.Message}");
         }
