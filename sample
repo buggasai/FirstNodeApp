@@ -1,1 +1,3 @@
-string xpathExpression = "//label[contains(text(), '" + labelText + "')]/following-sibling::text()[contains(., 'Live') and contains(., 'after')]";
+string xpathExpression = "//label[starts-with(text(), '" + beforeText + "') and contains(text(), 'Live') and contains(text(), '" + afterText + "')]";
+
+     
