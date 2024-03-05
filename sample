@@ -1,4 +1,3 @@
-// Assuming you have references to Microsoft.Office.Interop.Excel
 using Excel = Microsoft.Office.Interop.Excel;
 
 // Open the Excel files
@@ -14,16 +13,9 @@ Excel.Range range1 = worksheet1.UsedRange.Columns[1];
 Excel.Range newColumn1 = range1.Offset[0, range1.Columns.Count + 1];
 newColumn1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
 
-// Use VLOOKUP
-foreach (Excel.Range cell in range1)
-{
-    int row = cell.Row;
-    string uniqueKey = cell.Value.ToString();
-
-    // Assuming VLOOKUP range is in column B of the second workbook
-    string formula = "=VLOOKUP(" + uniqueKey + ", [" + workbook2.Name + "]Sheet1!$A:$B, 2, FALSE)";
-    worksheet1.Cells[row, newColumn1.Column].Formula = formula;
-}
+// Assuming VLOOKUP range is in column B of the second workbook
+string formula = "=VLOOKUP(" + range1.Address + ", [" + workbook2.Name + "]Sheet1!$A:$B, 2, FALSE)";
+newColumn1.Formula = formula;
 
 // Save and close the workbooks
 workbook1.Save();
