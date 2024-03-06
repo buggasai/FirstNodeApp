@@ -1,4 +1,4 @@
-2121
+qq
 using System.Data;
 using System.Linq;
 
@@ -22,39 +22,43 @@ class Program
         targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
         targetDataTable.Rows.Add(4, "NewPerson");   // Difference
 
-        // Create a list to store columns to be added
-        var columnsToAdd = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToList();
+        // Display differences between DataTables
+        DisplayDifferences(sourceDataTable, targetDataTable);
+    }
 
-        // Add additional column to the source DataTable for differences
-        sourceDataTable.Columns.Add("Difference", typeof(string));
-
-        // Retrieve column names dynamically excluding columns not in the table
-        string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>()
-            .Where(col => targetDataTable.Columns.Contains(col.ColumnName))
-            .Select(col => col.ColumnName)
-            .ToArray();
-
-        // Iterate through each row in the source DataTable
-        foreach (DataRow sourceRow in sourceDataTable.Rows)
+    static void DisplayDifferences(DataTable sourceDataTable, DataTable targetDataTable)
+    {
+        // Iterate through each column in the source DataTable
+        foreach (DataColumn sourceColumn in sourceDataTable.Columns)
         {
-            // Find the corresponding row in the target DataTable
-            DataRow targetRow = targetDataTable.AsEnumerable()
-                .SingleOrDefault(row => columnsToCompare.All(col => sourceRow[col].Equals(row[col])));
+            // Skip if the target DataTable does not contain the column
+            if (!targetDataTable.Columns.Contains(sourceColumn.ColumnName))
+            {
+                Console.WriteLine($"Column '{sourceColumn.ColumnName}' not found in the target DataTable");
+                continue;
+            }
 
-            // Create a comma-separated string of differences
-            string diffValue = targetRow != null
-                ? string.Join(", ", columnsToCompare.Where(col => !sourceRow[col].Equals(targetRow[col])))
-                : string.Empty;
+            // Compare values column by column
+            var differences = from sourceRow in sourceDataTable.AsEnumerable()
+                              join targetRow in targetDataTable.AsEnumerable()
+                              on sourceRow.Field<object>(sourceColumn.ColumnName) equals targetRow.Field<object>(sourceColumn.ColumnName)
+                              into joined
+                              from targetRow in joined.DefaultIfEmpty()
+                              where targetRow == null || !sourceRow[sourceColumn.ColumnName].Equals(targetRow[sourceColumn.ColumnName])
+                              select new
+                              {
+                                  SourceValue = sourceRow[sourceColumn.ColumnName],
+                                  TargetValue = targetRow?.Field<object>(sourceColumn.ColumnName),
+                                  RowIndex = sourceDataTable.Rows.IndexOf(sourceRow) + 1
+                              };
 
-            // Update the Differences column in the source DataTable
-            sourceRow.SetField("Difference", diffValue);
-        }
+            // Display differences for the current column
+            Console.WriteLine($"Differences in '{sourceColumn.ColumnName}':");
+            foreach (var diff in differences)
+            {
+                Console.WriteLine($"- Row {diff.RowIndex}: Source='{diff.SourceValue}', Target='{diff.TargetValue ?? "N/A"}'");
+            }
 
-        // Display the result
-        foreach (DataRow row in sourceDataTable.Rows)
-        {
-            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}");
-            Console.WriteLine($"Difference: {row["Difference"]}");
             Console.WriteLine();
         }
     }
