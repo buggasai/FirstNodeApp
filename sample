@@ -1,4 +1,31 @@
-  static void DisplayAndAddDifferenceColumnUsingLINQ(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
+sss
+
+class Program
+{
+    static void Main()
+    {
+        // Sample source DataTable
+        DataTable sourceDataTable = new DataTable();
+        sourceDataTable.Columns.Add("empno", typeof(int));
+        sourceDataTable.Columns.Add("Name", typeof(string));
+        sourceDataTable.Rows.Add(1, "John");
+        sourceDataTable.Rows.Add(2, "Jane");
+        sourceDataTable.Rows.Add(3, "Doe");
+
+        // Sample target DataTable with differences
+        DataTable targetDataTable = new DataTable();
+        targetDataTable.Columns.Add("empno", typeof(int));
+        targetDataTable.Columns.Add("Name", typeof(string));
+        targetDataTable.Columns.Add("Age", typeof(int)); // Unmatched column
+        targetDataTable.Rows.Add(1, "John");
+        targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
+        targetDataTable.Rows.Add(4, "NewPerson");   // Difference
+
+        // Compare rows based on 'empno' using LINQ and get the remaining and unmatched column names dynamically
+        DisplayAndAddDifferenceColumnUsingLINQ(sourceDataTable, targetDataTable, "empno");
+    }
+
+    static void DisplayAndAddDifferenceColumnUsingLINQ(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
     {
         // Skip if the comparison column is not found in both DataTables
         if (!sourceDataTable.Columns.Contains(comparisonColumn) || !targetDataTable.Columns.Contains(comparisonColumn))
@@ -7,11 +34,23 @@
             return;
         }
 
-        // Get the remaining column names dynamically
+        // Get the remaining and unmatched column names dynamically
         var remainingColumnNames = sourceDataTable.Columns.Cast<DataColumn>()
-            .Where(col => col.ColumnName != comparisonColumn)
+            .Where(col => col.ColumnName != comparisonColumn && targetDataTable.Columns.Contains(col.ColumnName))
             .Select(col => col.ColumnName)
             .ToArray();
+
+        var unmatchedColumnNamesInSource = sourceDataTable.Columns.Cast<DataColumn>()
+            .Where(col => col.ColumnName != comparisonColumn && !targetDataTable.Columns.Contains(col.ColumnName))
+            .Select(col => col.ColumnName)
+            .ToArray();
+
+        var unmatchedColumnNamesInTarget = targetDataTable.Columns.Cast<DataColumn>()
+            .Where(col => col.ColumnName != comparisonColumn && !sourceDataTable.Columns.Contains(col.ColumnName))
+            .Select(col => col.ColumnName)
+            .ToArray();
+
+        var allUnmatchedColumnNames = unmatchedColumnNamesInSource.Concat(unmatchedColumnNamesInTarget).Distinct().ToArray();
 
         // Add a new column to the source DataTable for differences
         sourceDataTable.Columns.Add($"Difference_{comparisonColumn}", typeof(string));
@@ -37,7 +76,7 @@
             {
                 sourceDataTable.Rows.Cast<DataRow>()
                     .Single(row => row.ItemArray.SequenceEqual(diff.SourceRow.ItemArray))
-                    .SetField($"Difference_{comparisonColumn}", GetDifferenceStringUsingLINQ(diff.SourceRow, remainingColumnNames, diff.TargetRow));
+                    .SetField($"Difference_{comparisonColumn}", GetDifferenceStringUsingLINQ(diff.SourceRow, remainingColumnNames, diff.TargetRow, allUnmatchedColumnNames));
             }
         }
 
@@ -55,12 +94,23 @@
         }
     }
 
-    static string GetDifferenceStringUsingLINQ(DataRow sourceRow, string[] remainingColumns, DataRow targetRow)
+    static string GetDifferenceStringUsingLINQ(DataRow sourceRow, string[] remainingColumns, DataRow targetRow, string[] unmatchedColumns)
     {
         // Compare values for the remaining columns using LINQ
         var differences = remainingColumns
             .Where(col => !sourceRow.Field<object>(col).Equals(targetRow?.Field<object>(col)))
             .Select(col => $"{col}: Source='{sourceRow[col]}', Target='{targetRow?.Field<object>(col) ?? "N/A"}'");
 
+        // Append unmatched columns from source
+        differences = differences.Concat(unmatchedColumns
+            .Where(col => sourceRow.Table.Columns.Contains(col))
+            .Select(col => $"{col}: Source='{sourceRow[col]}', Target='N/A'"));
+
+        // Append unmatched columns from target
+        differences = differences.Concat(unmatchedColumns
+            .Where(col => targetRow != null && targetRow.Table.Columns.Contains(col))
+            .Select(col => $"{col}: Source='N/A', Target='{targetRow[col]}'"));
+
         return string.Join(", ", differences);
     }
+}
