@@ -6,31 +6,34 @@ class Program
 {
     static void Main()
     {
-        // Sample DataTable
-        DataTable dataTable = new DataTable();
-        dataTable.Columns.Add("ID", typeof(int));
-        dataTable.Columns.Add("Name", typeof(string));
-        dataTable.Rows.Add(1, "John");
-        dataTable.Rows.Add(2, "Jane");
-        dataTable.Rows.Add(3, "Doe");
+        // Sample System.Data.DataTable
+        System.Data.DataTable systemDataTable = new System.Data.DataTable();
+        systemDataTable.Columns.Add("ID", typeof(int));
+        systemDataTable.Columns.Add("Name", typeof(string));
+        systemDataTable.Rows.Add(1, "John");
+        systemDataTable.Rows.Add(2, "Jane");
+        systemDataTable.Rows.Add(3, "Doe");
 
-        // Save DataTable to Excel file
-        SaveDataTableToExcel(dataTable, "output.xlsx");
+        // Save System.Data.DataTable to Excel file
+        SaveSystemDataTableToExcel(systemDataTable, "output_system.xlsx");
+
+        // Sample Microsoft.Office.Interop.Excel.DataTable (if such type exists)
+        // Microsoft.Office.Interop.Excel.DataTable excelDataTable = new Microsoft.Office.Interop.Excel.DataTable();
     }
 
-    static void SaveDataTableToExcel(DataTable dataTable, string filePath)
+    static void SaveSystemDataTableToExcel(System.Data.DataTable dataTable, string filePath)
     {
         var excelApp = new Application();
         var workbook = excelApp.Workbooks.Add();
         var worksheet = (Worksheet)workbook.Worksheets[1];
 
-        // Write DataTable headers to Excel
+        // Write System.Data.DataTable headers to Excel
         for (int i = 1; i <= dataTable.Columns.Count; i++)
         {
             worksheet.Cells[1, i] = dataTable.Columns[i - 1].ColumnName;
         }
 
-        // Write DataTable rows to Excel
+        // Write System.Data.DataTable rows to Excel
         for (int i = 0; i < dataTable.Rows.Count; i++)
         {
             for (int j = 0; j < dataTable.Columns.Count; j++)
