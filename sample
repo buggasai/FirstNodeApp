@@ -32,8 +32,7 @@ class Program
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
                           on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
-                          equals columnsToCompare.Select(col => targetRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => sourceRow.Field<object>(col)))
-                          into joined
+                          equals true into joined
                           from targetRow in joined.DefaultIfEmpty()
                           select new
                           {
@@ -45,4 +44,22 @@ class Program
         // Update the Differences column in the source DataTable
         foreach (var diff in differences)
         {
-    
+            DataRow sourceRow = sourceDataTable.AsEnumerable()
+                .Single(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.Values[col])));
+
+            string differencesString = diff.TargetValues != null
+                ? string.Join(", ", columnsToCompare
+                    .Where(col => !sourceRow[col].Equals(diff.TargetValues[col]))
+                    .Select(col => $"{col}: {sourceRow[col]} -> {diff.TargetValues[col]}"))
+                : "Not in target";
+
+            sourceRow.SetField("Differences", differencesString);
+        }
+
+        // Display the result
+        foreach (DataRow row in sourceDataTable.Rows)
+        {
+            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}, Differences: {row["Differences"]}");
+        }
+    }
+}
