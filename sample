@@ -1,5 +1,49 @@
-static bool IsDataTableEmpty(DataTable dataTable)
+using System;
+using System.Data;
+using Microsoft.Office.Interop.Excel;
+
+class Program
+{
+    static void Main()
     {
-        // Check if the DataTable is null or has zero rows
-        return dataTable == null || dataTable.Rows.Count == 0;
+        // Sample DataTable
+        DataTable dataTable = new DataTable();
+        dataTable.Columns.Add("ID", typeof(int));
+        dataTable.Columns.Add("Name", typeof(string));
+        dataTable.Rows.Add(1, "John");
+        dataTable.Rows.Add(2, "Jane");
+        dataTable.Rows.Add(3, "Doe");
+
+        // Convert DataTable to Excel
+        ConvertDataTableToExcel(dataTable, "output.xlsx");
     }
+
+    static void ConvertDataTableToExcel(DataTable dataTable, string filePath)
+    {
+        var excelApp = new Application();
+        var workbook = excelApp.Workbooks.Add();
+        var worksheet = (Worksheet)workbook.Worksheets[1];
+
+        // Write DataTable headers to Excel
+        for (int i = 1; i <= dataTable.Columns.Count; i++)
+        {
+            worksheet.Cells[1, i] = dataTable.Columns[i - 1].ColumnName;
+        }
+
+        // Write DataTable rows to Excel
+        for (int i = 0; i < dataTable.Rows.Count; i++)
+        {
+            for (int j = 0; j < dataTable.Columns.Count; j++)
+            {
+                worksheet.Cells[i + 2, j + 1] = dataTable.Rows[i][j];
+            }
+        }
+
+        // Save the workbook
+        workbook.SaveAs(filePath);
+        workbook.Close();
+        excelApp.Quit();
+
+        Console.WriteLine($"Excel file saved at: {filePath}");
+    }
+}
