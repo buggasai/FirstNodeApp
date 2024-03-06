@@ -1,4 +1,4 @@
-a1
+11
 using System;
 using System.Data;
 using System.Linq;
@@ -26,11 +26,8 @@ class Program
         // Create a list to store columns to be added
         var columnsToAdd = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToList();
 
-        // Add additional columns to the source DataTable for differences
-        foreach (var column in columnsToAdd)
-        {
-            sourceDataTable.Columns.Add($"{column}_Diff", typeof(string));
-        }
+        // Add additional column to the source DataTable for differences
+        sourceDataTable.Columns.Add("Difference", typeof(string));
 
         // Retrieve column names dynamically excluding columns not in the table
         string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>()
@@ -39,47 +36,37 @@ class Program
             .ToArray();
 
         // Use LINQ to compare and concatenate differences
-        var differences = sourceDataTable.AsEnumerable()
-            .GroupJoin(targetDataTable.AsEnumerable(),
-                       sourceRow => columnsToCompare.Select(col => sourceRow[col]),
-                       targetRow => columnsToCompare.Select(col => targetRow[col]),
-                       (sourceRow, targetRows) => new { SourceRow = sourceRow, TargetRows = targetRows.ToList() })
-            .SelectMany(result => result.TargetRows.DefaultIfEmpty(),
-                        (result, targetRow) => new
-                        {
-                            SourceValues = columnsToCompare.ToDictionary(col => col, col => result.SourceRow[col]),
-                            TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
-                            IsDifferent = targetRow == null || columnsToCompare.Any(col => !result.SourceRow[col].Equals(targetRow?.Field<object>(col)))
-                        });
+        var differences = from sourceRow in sourceDataTable.AsEnumerable()
+                          join targetRow in targetDataTable.AsEnumerable()
+                          on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
+                          into joined
+                          from targetRow in joined.DefaultIfEmpty()
+                          select new
+                          {
+                              SourceValues = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
+                              TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
+                              IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
+                          };
 
-        // Update the differences columns in the source DataTable
+        // Update the differences column in the source DataTable
         foreach (var diff in differences)
         {
             DataRow sourceRow = sourceDataTable.Rows.Cast<DataRow>()
                 .SingleOrDefault(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.SourceValues[col])));
 
-            foreach (var col in columnsToCompare)
-            {
-                string diffColumnName = $"{col}_Diff";
-                string diffValue = diff.IsDifferent
-                    ? $"{diff.SourceValues[col]} -> {(diff.TargetValues != null ? diff.TargetValues[col] : "N/A")}"
-                    : string.Empty;
+            // Create a comma-separated string of differences
+            string diffValue = diff.IsDifferent
+                ? string.Join(", ", columnsToCompare.Where(col => !diff.SourceValues[col].Equals(diff.TargetValues?.GetValueOrDefault(col))))
+                : string.Empty;
 
-                sourceRow?.SetField(diffColumnName, diffValue);
-            }
+            sourceRow?.SetField("Difference", diffValue);
         }
 
         // Display the result
         foreach (DataRow row in sourceDataTable.Rows)
         {
             Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}");
-
-            foreach (var col in columnsToCompare)
-            {
-                string diffColumnName = $"{col}_Diff";
-                Console.WriteLine($"{diffColumnName}: {row[diffColumnName]}");
-            }
-
+            Console.WriteLine($"Difference: {row["Difference"]}");
             Console.WriteLine();
         }
     }
