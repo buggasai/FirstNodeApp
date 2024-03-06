@@ -1,4 +1,4 @@
-static void DisplayDifferences(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
+static void DisplayAndAddColumnForDifferences(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
     {
         // Skip if the comparison column is not found in both DataTables
         if (!sourceDataTable.Columns.Contains(comparisonColumn) || !targetDataTable.Columns.Contains(comparisonColumn))
@@ -6,6 +6,9 @@ static void DisplayDifferences(DataTable sourceDataTable, DataTable targetDataTa
             Console.WriteLine($"Column '{comparisonColumn}' not found in one or both DataTables");
             return;
         }
+
+        // Add a new column to the source DataTable for differences
+        sourceDataTable.Columns.Add($"Difference_{comparisonColumn}", typeof(string));
 
         // Compare rows based on the specified column ('empno')
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
@@ -21,6 +24,17 @@ static void DisplayDifferences(DataTable sourceDataTable, DataTable targetDataTa
                               IsDifferent = targetRow == null || !sourceRow.ItemArray.SequenceEqual(targetRow.ItemArray)
                           };
 
+        // Update the new column in the source DataTable
+        foreach (var diff in differences)
+        {
+            if (diff.IsDifferent)
+            {
+                sourceDataTable.Rows.Cast<DataRow>()
+                    .Single(row => row.ItemArray.SequenceEqual(diff.SourceRow.ItemArray))
+                    .SetField($"Difference_{comparisonColumn}", string.Join(", ", diff.SourceRow.ItemArray));
+            }
+        }
+
         // Display differences for the specified column
         Console.WriteLine($"Differences based on '{comparisonColumn}':");
         foreach (var diff in differences)
@@ -29,6 +43,7 @@ static void DisplayDifferences(DataTable sourceDataTable, DataTable targetDataTa
             {
                 Console.WriteLine($"- Source Row: {string.Join(", ", diff.SourceRow.ItemArray)}");
                 Console.WriteLine($"  Target Row: {diff.TargetRow?.ItemArray.Aggregate("", (s, v) => s + (s == "" ? "" : ", ") + v)}");
+                Console.WriteLine($"  Difference: {diff.SourceRow.Field<string>($"Difference_{comparisonColumn}")}");
                 Console.WriteLine();
             }
         }
