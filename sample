@@ -1,46 +1,78 @@
-public static (DataTable table1, DataTable table2, string differenceColumns) CompareDataTables(DataTable table1, DataTable table2)
+using System;
+using System.Data;
+using System.Linq;
+
+class Program
 {
-    // Get common columns
-    var commonColumns = table1.Columns.Cast<DataColumn>()
-                               .Intersect(table2.Columns.Cast<DataColumn>(), new DataColumnEqualityComparer())
-                               .Select(c => c.ColumnName).ToList();
-
-    // Add difference columns
-    foreach (var col in commonColumns)
+    static void Main()
     {
-        table1.Columns.Add($"Diff_{col}", typeof(bool));
-        table2.Columns.Add($"Diff_{col}", typeof(bool));
+        // Sample source DataTable
+        DataTable sourceDataTable = new DataTable();
+        sourceDataTable.Columns.Add("ID", typeof(int));
+        sourceDataTable.Columns.Add("Name", typeof(string));
+        sourceDataTable.Rows.Add(1, "John");
+        sourceDataTable.Rows.Add(2, "Jane");
+        sourceDataTable.Rows.Add(3, "Doe");
 
-        for (int i = 0; i < table1.Rows.Count; i++)
+        // Sample target DataTable with differences
+        DataTable targetDataTable = new DataTable();
+        targetDataTable.Columns.Add("ID", typeof(int));
+        targetDataTable.Columns.Add("Name", typeof(string));
+        targetDataTable.Rows.Add(1, "John");
+        targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
+        targetDataTable.Rows.Add(4, "NewPerson");   // Difference
+
+        // Add additional columns to the source DataTable for differences
+        foreach (DataColumn column in sourceDataTable.Columns)
         {
-            table1.Rows[i]["Diff_" + col] = !table1.Rows[i][col].Equals(table2.Rows[i][col]);
-            table2.Rows[i]["Diff_" + col] = !table1.Rows[i][col].Equals(table2.Rows[i][col]);
+            sourceDataTable.Columns.Add($"{column.ColumnName}_Diff", typeof(string));
         }
-    }
 
-    // Get all column names including difference columns
-    var allColumns = table1.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
-    allColumns.AddRange(table2.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList());
+        // Retrieve column names dynamically
+        string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
 
-    // Filter difference columns and format as comma-separated string
-    var differenceColumns = string.Join(", ", allColumns.Where(col => col.StartsWith("Diff_")));
-    if (string.IsNullOrEmpty(differenceColumns))
-    {
-        differenceColumns = "No differences found";
-    }
+        // Use LINQ to compare and concatenate differences
+        var differences = from targetRow in targetDataTable.AsEnumerable()
+                          join sourceRow in sourceDataTable.AsEnumerable()
+                          on columnsToCompare.Select(col => targetRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => sourceRow.Field<object>(col)))
+                          equals true into joined
+                          from sourceRow in joined.DefaultIfEmpty()
+                          select new
+                          {
+                              Values = columnsToCompare.ToDictionary(col => col, col => sourceRow?.Field<object>(col)),
+                              TargetValues = columnsToCompare.ToDictionary(col => col, col => targetRow.Field<object>(col)),
+                              IsDifferent = sourceRow == null || columnsToCompare.Any(col => !targetRow[col].Equals(sourceRow.Field<object>(col)))
+                          };
 
-    return (table1, table2, differenceColumns);
-}
+        // Update the differences columns in the source DataTable
+        foreach (var diff in differences)
+        {
+            DataRow sourceRow = sourceDataTable.AsEnumerable()
+                .Single(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.Values[col])));
 
-public class DataColumnEqualityComparer : IEqualityComparer<DataColumn>
-{
-    public bool Equals(DataColumn x, DataColumn y)
-    {
-        return x.ColumnName == y.ColumnName && x.DataType == y.DataType;
-    }
+            foreach (var col in columnsToCompare)
+            {
+                string diffColumnName = $"{col}_Diff";
+                string diffValue = diff.IsDifferent
+                    ? $"{diff.Values[col]} -> {diff.TargetValues[col]}"
+                    : string.Empty;
 
-    public int GetHashCode(DataColumn obj)
-    {
-        return obj.ColumnName.GetHashCode() ^ obj.DataType.GetHashCode();
+                sourceRow.SetField(diffColumnName, diffValue);
+            }
+        }
+
+        // Display the result
+        foreach (DataRow row in sourceDataTable.Rows)
+        {
+            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}");
+
+            foreach (var col in columnsToCompare)
+            {
+                string diffColumnName = $"{col}_Diff";
+                Console.WriteLine($"{diffColumnName}: {row[diffColumnName]}");
+            }
+
+            Console.WriteLine();
+        }
     }
 }
