@@ -1,116 +1,49 @@
-sss
+using System;
+using System.Data;
+using Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        // Sample source DataTable
-        DataTable sourceDataTable = new DataTable();
-        sourceDataTable.Columns.Add("empno", typeof(int));
-        sourceDataTable.Columns.Add("Name", typeof(string));
-        sourceDataTable.Rows.Add(1, "John");
-        sourceDataTable.Rows.Add(2, "Jane");
-        sourceDataTable.Rows.Add(3, "Doe");
+        // Sample DataTable
+        DataTable dataTable = new DataTable();
+        dataTable.Columns.Add("ID", typeof(int));
+        dataTable.Columns.Add("Name", typeof(string));
+        dataTable.Rows.Add(1, "John");
+        dataTable.Rows.Add(2, "Jane");
+        dataTable.Rows.Add(3, "Doe");
 
-        // Sample target DataTable with differences
-        DataTable targetDataTable = new DataTable();
-        targetDataTable.Columns.Add("empno", typeof(int));
-        targetDataTable.Columns.Add("Name", typeof(string));
-        targetDataTable.Columns.Add("Age", typeof(int)); // Unmatched column
-        targetDataTable.Rows.Add(1, "John");
-        targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
-        targetDataTable.Rows.Add(4, "NewPerson");   // Difference
-
-        // Compare rows based on 'empno' using LINQ and get the remaining and unmatched column names dynamically
-        DisplayAndAddDifferenceColumnUsingLINQ(sourceDataTable, targetDataTable, "empno");
+        // Save DataTable to Excel file
+        SaveDataTableToExcel(dataTable, "output.xlsx");
     }
 
-    static void DisplayAndAddDifferenceColumnUsingLINQ(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
+    static void SaveDataTableToExcel(DataTable dataTable, string filePath)
     {
-        // Skip if the comparison column is not found in both DataTables
-        if (!sourceDataTable.Columns.Contains(comparisonColumn) || !targetDataTable.Columns.Contains(comparisonColumn))
+        var excelApp = new Application();
+        var workbook = excelApp.Workbooks.Add();
+        var worksheet = (Worksheet)workbook.Worksheets[1];
+
+        // Write DataTable headers to Excel
+        for (int i = 1; i <= dataTable.Columns.Count; i++)
         {
-            Console.WriteLine($"Column '{comparisonColumn}' not found in one or both DataTables");
-            return;
+            worksheet.Cells[1, i] = dataTable.Columns[i - 1].ColumnName;
         }
 
-        // Get the remaining and unmatched column names dynamically
-        var remainingColumnNames = sourceDataTable.Columns.Cast<DataColumn>()
-            .Where(col => col.ColumnName != comparisonColumn && targetDataTable.Columns.Contains(col.ColumnName))
-            .Select(col => col.ColumnName)
-            .ToArray();
-
-        var unmatchedColumnNamesInSource = sourceDataTable.Columns.Cast<DataColumn>()
-            .Where(col => col.ColumnName != comparisonColumn && !targetDataTable.Columns.Contains(col.ColumnName))
-            .Select(col => col.ColumnName)
-            .ToArray();
-
-        var unmatchedColumnNamesInTarget = targetDataTable.Columns.Cast<DataColumn>()
-            .Where(col => col.ColumnName != comparisonColumn && !sourceDataTable.Columns.Contains(col.ColumnName))
-            .Select(col => col.ColumnName)
-            .ToArray();
-
-        var allUnmatchedColumnNames = unmatchedColumnNamesInSource.Concat(unmatchedColumnNamesInTarget).Distinct().ToArray();
-
-        // Add a new column to the source DataTable for differences
-        sourceDataTable.Columns.Add($"Difference_{comparisonColumn}", typeof(string));
-
-        // Use LINQ to compare rows based on the specified column ('empno')
-        var differences = from sourceRow in sourceDataTable.AsEnumerable()
-                          join targetRow in targetDataTable.AsEnumerable()
-                          on sourceRow.Field<object>(comparisonColumn) equals targetRow.Field<object>(comparisonColumn)
-                          into joined
-                          from targetRow in joined.DefaultIfEmpty()
-                          where targetRow == null || !sourceRow.ItemArray.SequenceEqual(targetRow.ItemArray)
-                          select new
-                          {
-                              SourceRow = sourceRow,
-                              TargetRow = targetRow,
-                              IsDifferent = targetRow == null || !sourceRow.ItemArray.SequenceEqual(targetRow.ItemArray)
-                          };
-
-        // Update the new column in the source DataTable
-        foreach (var diff in differences)
+        // Write DataTable rows to Excel
+        for (int i = 0; i < dataTable.Rows.Count; i++)
         {
-            if (diff.IsDifferent)
+            for (int j = 0; j < dataTable.Columns.Count; j++)
             {
-                sourceDataTable.Rows.Cast<DataRow>()
-                    .Single(row => row.ItemArray.SequenceEqual(diff.SourceRow.ItemArray))
-                    .SetField($"Difference_{comparisonColumn}", GetDifferenceStringUsingLINQ(diff.SourceRow, remainingColumnNames, diff.TargetRow, allUnmatchedColumnNames));
+                worksheet.Cells[i + 2, j + 1] = dataTable.Rows[i][j];
             }
         }
 
-        // Display differences for the specified column
-        Console.WriteLine($"Differences based on '{comparisonColumn}':");
-        foreach (var diff in differences)
-        {
-            if (diff.IsDifferent)
-            {
-                Console.WriteLine($"- Source Row: {string.Join(", ", diff.SourceRow.ItemArray)}");
-                Console.WriteLine($"  Target Row: {diff.TargetRow?.ItemArray.Aggregate("", (s, v) => s + (s == "" ? "" : ", ") + v)}");
-                Console.WriteLine($"  Difference: {diff.SourceRow.Field<string>($"Difference_{comparisonColumn}")}");
-                Console.WriteLine();
-            }
-        }
-    }
+        // Save the workbook
+        workbook.SaveAs(filePath);
+        workbook.Close();
+        excelApp.Quit();
 
-    static string GetDifferenceStringUsingLINQ(DataRow sourceRow, string[] remainingColumns, DataRow targetRow, string[] unmatchedColumns)
-    {
-        // Compare values for the remaining columns using LINQ
-        var differences = remainingColumns
-            .Where(col => !sourceRow.Field<object>(col).Equals(targetRow?.Field<object>(col)))
-            .Select(col => $"{col}: Source='{sourceRow[col]}', Target='{targetRow?.Field<object>(col) ?? "N/A"}'");
-
-        // Append unmatched columns from source
-        differences = differences.Concat(unmatchedColumns
-            .Where(col => sourceRow.Table.Columns.Contains(col))
-            .Select(col => $"{col}: Source='{sourceRow[col]}', Target='N/A'"));
-
-        // Append unmatched columns from target
-        differences = differences.Concat(unmatchedColumns
-            .Where(col => targetRow != null && targetRow.Table.Columns.Contains(col))
-            .Select(col => $"{col}: Source='N/A', Target='{targetRow[col]}'"));
-
-        return string.Join(", ", differences);
+        Console.WriteLine($"Excel file saved at: {filePath}");
     }
 }
