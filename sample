@@ -1,4 +1,5 @@
- using System;
+change
+using System;
 using System.Data;
 using System.Linq;
 
@@ -41,13 +42,13 @@ class Program
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
                           on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
-                          equals true into joined
+                          into joined
                           from targetRow in joined.DefaultIfEmpty()
                           select new
                           {
                               SourceValues = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
                               TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
-                              IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
+                              IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow?.Field<object>(col)))
                           };
 
         // Update the differences columns in the source DataTable
