@@ -1,52 +1,5 @@
-using System;
-using System.Data;
-using Microsoft.Office.Interop.Excel;
-
-class Program
-{
-    static void Main()
+static bool IsDataTableEmpty(DataTable dataTable)
     {
-        // Sample System.Data.DataTable
-        System.Data.DataTable systemDataTable = new System.Data.DataTable();
-        systemDataTable.Columns.Add("ID", typeof(int));
-        systemDataTable.Columns.Add("Name", typeof(string));
-        systemDataTable.Rows.Add(1, "John");
-        systemDataTable.Rows.Add(2, "Jane");
-        systemDataTable.Rows.Add(3, "Doe");
-
-        // Save System.Data.DataTable to Excel file
-        SaveSystemDataTableToExcel(systemDataTable, "output_system.xlsx");
-
-        // Sample Microsoft.Office.Interop.Excel.DataTable (if such type exists)
-        // Microsoft.Office.Interop.Excel.DataTable excelDataTable = new Microsoft.Office.Interop.Excel.DataTable();
+        // Check if the DataTable is null or has zero rows
+        return dataTable == null || dataTable.Rows.Count == 0;
     }
-
-    static void SaveSystemDataTableToExcel(System.Data.DataTable dataTable, string filePath)
-    {
-        var excelApp = new Application();
-        var workbook = excelApp.Workbooks.Add();
-        var worksheet = (Worksheet)workbook.Worksheets[1];
-
-        // Write System.Data.DataTable headers to Excel
-        for (int i = 1; i <= dataTable.Columns.Count; i++)
-        {
-            worksheet.Cells[1, i] = dataTable.Columns[i - 1].ColumnName;
-        }
-
-        // Write System.Data.DataTable rows to Excel
-        for (int i = 0; i < dataTable.Rows.Count; i++)
-        {
-            for (int j = 0; j < dataTable.Columns.Count; j++)
-            {
-                worksheet.Cells[i + 2, j + 1] = dataTable.Rows[i][j];
-            }
-        }
-
-        // Save the workbook
-        workbook.SaveAs(filePath);
-        workbook.Close();
-        excelApp.Quit();
-
-        Console.WriteLine($"Excel file saved at: {filePath}");
-    }
-}
