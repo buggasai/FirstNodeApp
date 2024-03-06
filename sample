@@ -1,27 +1,54 @@
-using Excel = Microsoft.Office.Interop.Excel;
+using System;
+using System.Data;
+using System.Linq;
 
-// Open the Excel files
-Excel.Application excelApp = new Excel.Application();
-Excel.Workbook workbook1 = excelApp.Workbooks.Open("Path\\to\\File1.xlsx");
-Excel.Workbook workbook2 = excelApp.Workbooks.Open("Path\\to\\File2.xlsx");
+class Program
+{
+    static void Main()
+    {
+        // Sample source DataTable
+        DataTable sourceDataTable = new DataTable();
+        sourceDataTable.Columns.Add("ID", typeof(int));
+        sourceDataTable.Columns.Add("Name", typeof(string));
+        sourceDataTable.Rows.Add(1, "John");
+        sourceDataTable.Rows.Add(2, "Jane");
+        sourceDataTable.Rows.Add(3, "Doe");
 
-// Assuming your unique key is in column A
-Excel.Worksheet worksheet1 = (Excel.Worksheet)workbook1.Worksheets[1];
-Excel.Range range1 = worksheet1.UsedRange.Columns[1];
+        // Sample target DataTable with differences
+        DataTable targetDataTable = new DataTable();
+        targetDataTable.Columns.Add("ID", typeof(int));
+        targetDataTable.Columns.Add("Name", typeof(string));
+        targetDataTable.Rows.Add(1, "John");
+        targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
+        targetDataTable.Rows.Add(4, "NewPerson");   // Difference
 
-// Insert a new column for VLOOKUP results
-Excel.Range newColumn1 = range1.Offset[0, range1.Columns.Count + 1];
-newColumn1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+        // Add a column to mark differences in the source DataTable
+        sourceDataTable.Columns.Add("IsDifferent", typeof(bool));
 
-// Assuming VLOOKUP range is in column B of the second workbook
-string formula = "=VLOOKUP(" + range1.Address + ", [" + workbook2.Name + "]Sheet1!$A:$B, 2, FALSE)";
-newColumn1.Formula = formula;
+        // Use LINQ to compare and mark differences
+        var differences = from sourceRow in sourceDataTable.AsEnumerable()
+                          join targetRow in targetDataTable.AsEnumerable()
+                          on sourceRow.Field<int>("ID") equals targetRow.Field<int>("ID") into joined
+                          from targetRow in joined.DefaultIfEmpty()
+                          select new
+                          {
+                              ID = sourceRow.Field<int>("ID"),
+                              Name = sourceRow.Field<string>("Name"),
+                              IsDifferent = targetRow == null || !sourceRow["Name"].Equals(targetRow["Name"])
+                          };
 
-// Save and close the workbooks
-workbook1.Save();
-workbook2.Save();
-workbook1.Close();
-workbook2.Close();
+        // Update the IsDifferent column in the source DataTable
+        foreach (var diff in differences)
+        {
+            DataRow sourceRow = sourceDataTable.AsEnumerable()
+                .Single(row => row.Field<int>("ID") == diff.ID);
+            sourceRow.SetField("IsDifferent", diff.IsDifferent);
+        }
 
-// Quit Excel application
-excelApp.Quit();
+        // Display the result
+        foreach (DataRow row in sourceDataTable.Rows)
+        {
+            Console.WriteLine($"ID: {row["ID"]}, Name: {row["Name"]}, IsDifferent: {row["IsDifferent"]}");
+        }
+    }
+}
