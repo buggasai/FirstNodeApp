@@ -22,13 +22,13 @@ class Program
         targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
         targetDataTable.Rows.Add(4, "NewPerson");   // Difference
 
-        // Add a column to mark differences at the end of the source DataTable
-        sourceDataTable.Columns.Add("IsDifferent", typeof(bool));
+        // Add a column to store differences as a comma-separated string
+        sourceDataTable.Columns.Add("Differences", typeof(string));
 
         // Retrieve column names dynamically
         string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
 
-        // Use LINQ to compare and mark differences
+        // Use LINQ to compare and concatenate differences
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
                           on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
@@ -40,18 +40,23 @@ class Program
                               IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
                           };
 
-        // Update the IsDifferent column in the source DataTable
+        // Update the Differences column in the source DataTable
         foreach (var diff in differences)
         {
             DataRow sourceRow = sourceDataTable.AsEnumerable()
                 .Single(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.Values[col])));
-            sourceRow.SetField("IsDifferent", diff.IsDifferent);
+            
+            string differencesString = string.Join(", ", columnsToCompare
+                .Where(col => !sourceRow[col].Equals(diff.Values[col]))
+                .Select(col => $"{col}: {sourceRow[col]} -> {diff.Values[col]}"));
+
+            sourceRow.SetField("Differences", differencesString);
         }
 
         // Display the result
         foreach (DataRow row in sourceDataTable.Rows)
         {
-            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}, IsDifferent: {row["IsDifferent"]}");
+            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}, Differences: {row["Differences"]}");
         }
     }
 }
