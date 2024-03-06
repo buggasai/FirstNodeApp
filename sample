@@ -1,4 +1,4 @@
-11
+12
 using System;
 using System.Data;
 using System.Linq;
@@ -37,15 +37,13 @@ class Program
 
         // Use LINQ to compare and concatenate differences
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
-                          join targetRow in targetDataTable.AsEnumerable()
-                          on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
-                          into joined
-                          from targetRow in joined.DefaultIfEmpty()
+                          from targetRow in targetDataTable.AsEnumerable()
+                          where columnsToCompare.All(col => sourceRow.Field<object>(col).Equals(targetRow.Field<object>(col)))
                           select new
                           {
                               SourceValues = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
-                              TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
-                              IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
+                              TargetValues = columnsToCompare.ToDictionary(col => col, col => targetRow[col]),
+                              IsDifferent = columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
                           };
 
         // Update the differences column in the source DataTable
@@ -56,7 +54,7 @@ class Program
 
             // Create a comma-separated string of differences
             string diffValue = diff.IsDifferent
-                ? string.Join(", ", columnsToCompare.Where(col => !diff.SourceValues[col].Equals(diff.TargetValues?.GetValueOrDefault(col))))
+                ? string.Join(", ", columnsToCompare.Where(col => !diff.SourceValues[col].Equals(diff.TargetValues[col])))
                 : string.Empty;
 
             sourceRow?.SetField("Difference", diffValue);
