@@ -32,32 +32,26 @@ class Program
         string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
 
         // Use LINQ to compare and concatenate differences
-        var differences = from targetRow in targetDataTable.AsEnumerable()
-                          join sourceRow in sourceDataTable.AsEnumerable()
-                          on columnsToCompare.Select(col => targetRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => sourceRow.Field<object>(col)))
-                          equals true into joined
-                          from sourceRow in joined.DefaultIfEmpty()
-                          select new
-                          {
-                              Values = columnsToCompare.ToDictionary(col => col, col => sourceRow?.Field<object>(col)),
-                              TargetValues = columnsToCompare.ToDictionary(col => col, col => targetRow.Field<object>(col)),
-                              IsDifferent = sourceRow == null || columnsToCompare.Any(col => !targetRow[col].Equals(sourceRow.Field<object>(col)))
-                          };
+        var differences = from row in sourceDataTable.AsEnumerable().Concat(targetDataTable.AsEnumerable())
+                          group row by columnsToCompare.Select(col => row.Field<object>(col)).ToArray() into grouped
+                          where grouped.Count() == 1
+                          from row in grouped
+                          select row;
 
         // Update the differences columns in the source DataTable
-        foreach (var diff in differences)
+        foreach (var diffRow in differences)
         {
-            DataRow sourceRow = sourceDataTable.AsEnumerable()
-                .Single(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.Values[col])));
+            DataRow sourceRow = sourceDataTable.Rows.Contains(diffRow.ItemArray) ? sourceDataTable.Rows.Find(diffRow.ItemArray) : null;
+            DataRow targetRow = targetDataTable.Rows.Contains(diffRow.ItemArray) ? targetDataTable.Rows.Find(diffRow.ItemArray) : null;
 
             foreach (var col in columnsToCompare)
             {
                 string diffColumnName = $"{col}_Diff";
-                string diffValue = diff.IsDifferent
-                    ? $"{diff.Values[col]} -> {diff.TargetValues[col]}"
+                string diffValue = (sourceRow != null && targetRow != null && !sourceRow[col].Equals(targetRow[col]))
+                    ? $"{sourceRow[col]} -> {targetRow[col]}"
                     : string.Empty;
 
-                sourceRow.SetField(diffColumnName, diffValue);
+                sourceRow?.SetField(diffColumnName, diffValue);
             }
         }
 
