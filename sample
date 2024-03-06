@@ -22,10 +22,13 @@ class Program
         targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
         targetDataTable.Rows.Add(4, "NewPerson");   // Difference
 
+        // Create a list to store columns to be added
+        var columnsToAdd = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToList();
+
         // Add additional columns to the source DataTable for differences
-        foreach (DataColumn column in sourceDataTable.Columns)
+        foreach (var column in columnsToAdd)
         {
-            sourceDataTable.Columns.Add($"{column.ColumnName}_Diff", typeof(string));
+            sourceDataTable.Columns.Add($"{column}_Diff", typeof(string));
         }
 
         // Retrieve column names dynamically excluding columns not in the table
