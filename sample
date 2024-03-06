@@ -32,31 +32,17 @@ class Program
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
                           on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
-                          equals true into joined
+                          equals columnsToCompare.Select(col => targetRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => sourceRow.Field<object>(col)))
+                          into joined
                           from targetRow in joined.DefaultIfEmpty()
                           select new
                           {
                               Values = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
+                              TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
                               IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
                           };
 
         // Update the Differences column in the source DataTable
         foreach (var diff in differences)
         {
-            DataRow sourceRow = sourceDataTable.AsEnumerable()
-                .Single(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.Values[col])));
-            
-            string differencesString = string.Join(", ", columnsToCompare
-                .Where(col => !sourceRow[col].Equals(diff.Values[col]))
-                .Select(col => $"{col}: {sourceRow[col]} -> {diff.Values[col]}"));
-
-            sourceRow.SetField("Differences", differencesString);
-        }
-
-        // Display the result
-        foreach (DataRow row in sourceDataTable.Rows)
-        {
-            Console.WriteLine($"Values: {string.Join(", ", columnsToCompare.Select(col => $"{col}: {row[col]}"))}, Differences: {row["Differences"]}");
-        }
-    }
-}
+    
