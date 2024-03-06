@@ -1,4 +1,4 @@
-change
+a1
 using System;
 using System.Data;
 using System.Linq;
@@ -39,17 +39,18 @@ class Program
             .ToArray();
 
         // Use LINQ to compare and concatenate differences
-        var differences = from sourceRow in sourceDataTable.AsEnumerable()
-                          join targetRow in targetDataTable.AsEnumerable()
-                          on columnsToCompare.Select(col => sourceRow.Field<object>(col)).SequenceEqual(columnsToCompare.Select(col => targetRow.Field<object>(col)))
-                          into joined
-                          from targetRow in joined.DefaultIfEmpty()
-                          select new
-                          {
-                              SourceValues = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
-                              TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
-                              IsDifferent = targetRow == null || columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow?.Field<object>(col)))
-                          };
+        var differences = sourceDataTable.AsEnumerable()
+            .GroupJoin(targetDataTable.AsEnumerable(),
+                       sourceRow => columnsToCompare.Select(col => sourceRow[col]),
+                       targetRow => columnsToCompare.Select(col => targetRow[col]),
+                       (sourceRow, targetRows) => new { SourceRow = sourceRow, TargetRows = targetRows.ToList() })
+            .SelectMany(result => result.TargetRows.DefaultIfEmpty(),
+                        (result, targetRow) => new
+                        {
+                            SourceValues = columnsToCompare.ToDictionary(col => col, col => result.SourceRow[col]),
+                            TargetValues = targetRow != null ? columnsToCompare.ToDictionary(col => col, col => targetRow[col]) : null,
+                            IsDifferent = targetRow == null || columnsToCompare.Any(col => !result.SourceRow[col].Equals(targetRow?.Field<object>(col)))
+                        });
 
         // Update the differences columns in the source DataTable
         foreach (var diff in differences)
