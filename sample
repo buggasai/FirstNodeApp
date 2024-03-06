@@ -1,5 +1,4 @@
-21
-using System.Collections.Generic;
+2121
 using System.Data;
 using System.Linq;
 
@@ -35,29 +34,20 @@ class Program
             .Select(col => col.ColumnName)
             .ToArray();
 
-        // Use LINQ to compare and concatenate differences
-        var differences = from sourceRow in sourceDataTable.AsEnumerable()
-                          from targetRow in targetDataTable.AsEnumerable()
-                          where columnsToCompare.All(col => sourceRow.Field<object>(col).Equals(targetRow.Field<object>(col)))
-                          select new
-                          {
-                              SourceValues = columnsToCompare.ToDictionary(col => col, col => sourceRow[col]),
-                              TargetValues = columnsToCompare.ToDictionary(col => col, col => targetRow[col]),
-                              IsDifferent = columnsToCompare.Any(col => !sourceRow[col].Equals(targetRow[col]))
-                          };
-
-        // Update the differences column in the source DataTable
-        foreach (var diff in differences)
+        // Iterate through each row in the source DataTable
+        foreach (DataRow sourceRow in sourceDataTable.Rows)
         {
-            DataRow sourceRow = sourceDataTable.Rows.Cast<DataRow>()
-                .SingleOrDefault(row => columnsToCompare.All(col => row.Field<object>(col).Equals(diff.SourceValues[col])));
+            // Find the corresponding row in the target DataTable
+            DataRow targetRow = targetDataTable.AsEnumerable()
+                .SingleOrDefault(row => columnsToCompare.All(col => sourceRow[col].Equals(row[col])));
 
             // Create a comma-separated string of differences
-            string diffValue = diff.IsDifferent
-                ? string.Join(", ", columnsToCompare.Where(col => !diff.SourceValues[col].Equals(diff.TargetValues[col])))
+            string diffValue = targetRow != null
+                ? string.Join(", ", columnsToCompare.Where(col => !sourceRow[col].Equals(targetRow[col])))
                 : string.Empty;
 
-            sourceRow?.SetField("Difference", diffValue);
+            // Update the Differences column in the source DataTable
+            sourceRow.SetField("Difference", diffValue);
         }
 
         // Display the result
