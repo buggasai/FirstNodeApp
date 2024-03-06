@@ -1,4 +1,4 @@
-static void DisplayAndAddColumnForDifferences(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
+  static void DisplayAndAddDifferenceColumnUsingLINQ(DataTable sourceDataTable, DataTable targetDataTable, string comparisonColumn)
     {
         // Skip if the comparison column is not found in both DataTables
         if (!sourceDataTable.Columns.Contains(comparisonColumn) || !targetDataTable.Columns.Contains(comparisonColumn))
@@ -7,10 +7,16 @@ static void DisplayAndAddColumnForDifferences(DataTable sourceDataTable, DataTab
             return;
         }
 
+        // Get the remaining column names dynamically
+        var remainingColumnNames = sourceDataTable.Columns.Cast<DataColumn>()
+            .Where(col => col.ColumnName != comparisonColumn)
+            .Select(col => col.ColumnName)
+            .ToArray();
+
         // Add a new column to the source DataTable for differences
         sourceDataTable.Columns.Add($"Difference_{comparisonColumn}", typeof(string));
 
-        // Compare rows based on the specified column ('empno')
+        // Use LINQ to compare rows based on the specified column ('empno')
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
                           on sourceRow.Field<object>(comparisonColumn) equals targetRow.Field<object>(comparisonColumn)
@@ -31,7 +37,7 @@ static void DisplayAndAddColumnForDifferences(DataTable sourceDataTable, DataTab
             {
                 sourceDataTable.Rows.Cast<DataRow>()
                     .Single(row => row.ItemArray.SequenceEqual(diff.SourceRow.ItemArray))
-                    .SetField($"Difference_{comparisonColumn}", string.Join(", ", diff.SourceRow.ItemArray));
+                    .SetField($"Difference_{comparisonColumn}", GetDifferenceStringUsingLINQ(diff.SourceRow, remainingColumnNames, diff.TargetRow));
             }
         }
 
@@ -47,4 +53,14 @@ static void DisplayAndAddColumnForDifferences(DataTable sourceDataTable, DataTab
                 Console.WriteLine();
             }
         }
+    }
+
+    static string GetDifferenceStringUsingLINQ(DataRow sourceRow, string[] remainingColumns, DataRow targetRow)
+    {
+        // Compare values for the remaining columns using LINQ
+        var differences = remainingColumns
+            .Where(col => !sourceRow.Field<object>(col).Equals(targetRow?.Field<object>(col)))
+            .Select(col => $"{col}: Source='{sourceRow[col]}', Target='{targetRow?.Field<object>(col) ?? "N/A"}'");
+
+        return string.Join(", ", differences);
     }
