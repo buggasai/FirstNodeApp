@@ -28,8 +28,11 @@ class Program
             sourceDataTable.Columns.Add($"{column.ColumnName}_Diff", typeof(string));
         }
 
-        // Retrieve column names dynamically
-        string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>().Select(col => col.ColumnName).ToArray();
+        // Retrieve column names dynamically excluding columns not in the table
+        string[] columnsToCompare = sourceDataTable.Columns.Cast<DataColumn>()
+            .Where(col => targetDataTable.Columns.Contains(col.ColumnName))
+            .Select(col => col.ColumnName)
+            .ToArray();
 
         // Use LINQ to compare and concatenate differences
         var differences = from row in sourceDataTable.AsEnumerable().Concat(targetDataTable.AsEnumerable())
