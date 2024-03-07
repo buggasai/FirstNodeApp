@@ -6,20 +6,34 @@ class Program
     static void Main()
     {
         string filePath = "YourFilePath.xlsx";  // Replace with the path to your Excel file
-        InsertDataInFirstRow(filePath);
+        AddDataInFirstAndSecondRows(filePath);
     }
 
-    static void InsertDataInFirstRow(string filePath)
+    static void AddDataInFirstAndSecondRows(string filePath)
     {
         var excelApp = new Application();
         var workbook = excelApp.Workbooks.Open(filePath);
         var worksheet = (Worksheet)workbook.Sheets[1];
 
+        // Get the used range to determine the number of existing rows
+        var usedRange = worksheet.UsedRange;
+        int existingRowCount = usedRange.Rows.Count;
+
+        // Shift existing rows downwards
+        usedRange.Insert(XlInsertShiftDirection.xlShiftDown, XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
+
         // Insert data into the first row
-        string[] rowData = { "Header1", "Header2", "Header3" };  // Replace with your data
-        for (int col = 1; col <= rowData.Length; col++)
+        string[] firstRowData = { "Header1", "Header2", "Header3" };  // Replace with your data
+        for (int col = 1; col <= firstRowData.Length; col++)
         {
-            worksheet.Cells[1, col] = rowData[col - 1];
+            worksheet.Cells[1, col] = firstRowData[col - 1];
+        }
+
+        // Insert data into the second row
+        string[] secondRowData = { "Data1", "Data2", "Data3" };  // Replace with your data
+        for (int col = 1; col <= secondRowData.Length; col++)
+        {
+            worksheet.Cells[2, col] = secondRowData[col - 1];
         }
 
         // Save and close the workbook
@@ -27,6 +41,6 @@ class Program
         workbook.Close();
         excelApp.Quit();
 
-        Console.WriteLine("Data inserted in the first row and changes saved.");
+        Console.WriteLine("Data added in the first and second rows, existing rows shifted downwards, and changes saved.");
     }
 }
