@@ -15,32 +15,32 @@ class Program
         var workbook = excelApp.Workbooks.Open(filePath);
         var worksheet = (Worksheet)workbook.Sheets[1];
 
-        // Get the used range to determine the number of existing rows
-        var usedRange = worksheet.UsedRange;
-        int existingRowCount = usedRange.Rows.Count;
-
-        // Shift existing rows downwards
-        usedRange.Insert(XlInsertShiftDirection.xlShiftDown, XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
-
         // Insert data into the first row
         string[] firstRowData = { "Header1", "Header2", "Header3" };  // Replace with your data
-        for (int col = 1; col <= firstRowData.Length; col++)
-        {
-            worksheet.Cells[1, col] = firstRowData[col - 1];
-        }
+        InsertDataInRow(worksheet, 1, firstRowData);
 
         // Insert data into the second row
         string[] secondRowData = { "Data1", "Data2", "Data3" };  // Replace with your data
-        for (int col = 1; col <= secondRowData.Length; col++)
-        {
-            worksheet.Cells[2, col] = secondRowData[col - 1];
-        }
+        InsertDataInRow(worksheet, 2, secondRowData);
 
         // Save and close the workbook
         workbook.Save();
         workbook.Close();
         excelApp.Quit();
 
-        Console.WriteLine("Data added in the first and second rows, existing rows shifted downwards, and changes saved.");
+        Console.WriteLine("Data added in the first and second rows, and changes saved.");
+    }
+
+    static void InsertDataInRow(Worksheet worksheet, int rowIndex, string[] rowData)
+    {
+        // Shift existing rows downwards starting from the specified row
+        var range = worksheet.Rows[rowIndex + ":" + rowIndex];
+        range.Insert(XlInsertShiftDirection.xlShiftDown, XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
+
+        // Insert data into the specified row
+        for (int col = 1; col <= rowData.Length; col++)
+        {
+            worksheet.Cells[rowIndex, col] = rowData[col - 1];
+        }
     }
 }
