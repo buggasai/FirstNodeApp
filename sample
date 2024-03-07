@@ -6,38 +6,27 @@ class Program
     static void Main()
     {
         string filePath = "YourFilePath.xlsx";  // Replace with the path to your Excel file
-        RetrieveAndDeleteRows(filePath);
+        InsertDataInFirstRow(filePath);
     }
 
-    static void RetrieveAndDeleteRows(string filePath)
+    static void InsertDataInFirstRow(string filePath)
     {
         var excelApp = new Application();
         var workbook = excelApp.Workbooks.Open(filePath);
         var worksheet = (Worksheet)workbook.Sheets[1];
 
-        // Retrieve data from the first two rows
-        var range = worksheet.Range["A1", "Z2"];
-        object[,] data = (object[,])range.Value;
-
-        // Process the retrieved data
-        Console.WriteLine("Retrieved Data:");
-        for (int row = 1; row <= 2; row++)
+        // Insert data into the first row
+        string[] rowData = { "Header1", "Header2", "Header3" };  // Replace with your data
+        for (int col = 1; col <= rowData.Length; col++)
         {
-            for (int col = 1; col <= range.Columns.Count; col++)
-            {
-                Console.Write($"{data[row, col]}\t");
-            }
-            Console.WriteLine();
+            worksheet.Cells[1, col] = rowData[col - 1];
         }
-
-        // Delete the first two rows
-        range.Delete(XlDeleteShiftDirection.xlShiftUp);
 
         // Save and close the workbook
         workbook.Save();
         workbook.Close();
         excelApp.Quit();
 
-        Console.WriteLine("First two rows deleted and changes saved.");
+        Console.WriteLine("Data inserted in the first row and changes saved.");
     }
 }
