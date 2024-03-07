@@ -6,41 +6,27 @@ class Program
     static void Main()
     {
         string filePath = "YourFilePath.xlsx";  // Replace with the path to your Excel file
-        AddDataInFirstAndSecondRows(filePath);
+        DeleteRows(filePath, 1, 2);
     }
 
-    static void AddDataInFirstAndSecondRows(string filePath)
+    static void DeleteRows(string filePath, int startRow, int endRow)
     {
         var excelApp = new Application();
         var workbook = excelApp.Workbooks.Open(filePath);
         var worksheet = (Worksheet)workbook.Sheets[1];
 
-        // Insert data into the first row
-        string[] firstRowData = { "Header1", "Header2", "Header3" };  // Replace with your data
-        InsertDataInRow(worksheet, 1, firstRowData);
+        // Calculate the last row to delete
+        int lastRow = Math.Min(endRow, worksheet.Rows.Count);
 
-        // Insert data into the second row
-        string[] secondRowData = { "Data1", "Data2", "Data3" };  // Replace with your data
-        InsertDataInRow(worksheet, 2, secondRowData);
+        // Delete rows starting from the specified row until the end
+        var range = worksheet.Rows[startRow + ":" + lastRow];
+        range.Delete(XlDeleteShiftDirection.xlShiftUp);
 
         // Save and close the workbook
         workbook.Save();
         workbook.Close();
         excelApp.Quit();
 
-        Console.WriteLine("Data added in the first and second rows, and changes saved.");
-    }
-
-    static void InsertDataInRow(Worksheet worksheet, int rowIndex, string[] rowData)
-    {
-        // Shift existing rows downwards starting from the specified row
-        var range = worksheet.Rows[rowIndex + ":" + rowIndex];
-        range.Insert(XlInsertShiftDirection.xlShiftDown, XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
-
-        // Insert data into the specified row
-        for (int col = 1; col <= rowData.Length; col++)
-        {
-            worksheet.Cells[rowIndex, col] = rowData[col - 1];
-        }
+        Console.WriteLine($"Rows {startRow} to {lastRow} deleted, and changes saved.");
     }
 }
