@@ -5,28 +5,24 @@ class Program
 {
     static void Main()
     {
-        string filePath = "YourFilePath.xlsx";  // Replace with the path to your Excel file
-        DeleteRows(filePath, 1, 2);
+        string remoteFilePath = "RemoteFilePath.xlsx";  // Replace with the remote path to your Excel file
+        string localFilePath = "LocalFilePath.xlsx";    // Replace with the local path where you want to save the file
+
+        SaveExcelToLocal(remoteFilePath, localFilePath);
     }
 
-    static void DeleteRows(string filePath, int startRow, int endRow)
+    static void SaveExcelToLocal(string remoteFilePath, string localFilePath)
     {
         var excelApp = new Application();
-        var workbook = excelApp.Workbooks.Open(filePath);
-        var worksheet = (Worksheet)workbook.Sheets[1];
+        var workbook = excelApp.Workbooks.Open(remoteFilePath);
 
-        // Calculate the last row to delete
-        int lastRow = Math.Min(endRow, worksheet.Rows.Count);
+        // Save the workbook to the local path
+        workbook.SaveAs(localFilePath);
 
-        // Delete rows starting from the specified row until the end
-        var range = worksheet.Rows[startRow + ":" + lastRow];
-        range.Delete(XlDeleteShiftDirection.xlShiftUp);
-
-        // Save and close the workbook
-        workbook.Save();
+        // Close the workbook and Excel application
         workbook.Close();
         excelApp.Quit();
 
-        Console.WriteLine($"Rows {startRow} to {lastRow} deleted, and changes saved.");
+        Console.WriteLine($"Excel file saved to: {localFilePath}");
     }
 }
