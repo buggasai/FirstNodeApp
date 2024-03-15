@@ -1,28 +1,46 @@
 using System;
-using Microsoft.Office.Interop.Excel;
+using System.Data;
+using System.Linq;
 
 class Program
 {
     static void Main()
     {
-        string remoteFilePath = "RemoteFilePath.xlsx";  // Replace with the remote path to your Excel file
-        string localFilePath = "LocalFilePath.xlsx";    // Replace with the local path where you want to save the file
+        DataTable dataTable = CreateDataTable();
 
-        SaveExcelToLocal(remoteFilePath, localFilePath);
+        int rowIndex = 2; // Specify the row index to delete up to (exclusive)
+
+        DeleteRowsUntilIndex(dataTable, rowIndex);
+
+        // Display the modified DataTable
+        foreach (DataRow row in dataTable.Rows)
+        {
+            Console.WriteLine(string.Join(", ", row.ItemArray));
+        }
     }
 
-    static void SaveExcelToLocal(string remoteFilePath, string localFilePath)
+    static DataTable CreateDataTable()
     {
-        var excelApp = new Application();
-        var workbook = excelApp.Workbooks.Open(remoteFilePath);
+        DataTable dataTable = new DataTable();
+        dataTable.Columns.Add("ID", typeof(int));
+        dataTable.Columns.Add("Name", typeof(string));
 
-        // Save the workbook to the local path
-        workbook.SaveAs(localFilePath);
+        dataTable.Rows.Add(1, "John");
+        dataTable.Rows.Add(2, "Jane");
+        dataTable.Rows.Add(3, "Doe");
 
-        // Close the workbook and Excel application
-        workbook.Close();
-        excelApp.Quit();
+        return dataTable;
+    }
 
-        Console.WriteLine($"Excel file saved to: {localFilePath}");
+    static void DeleteRowsUntilIndex(DataTable dataTable, int rowIndex)
+    {
+        // Create a range of row indices up to the specified rowIndex
+        var indicesToDelete = Enumerable.Range(0, Math.Min(rowIndex, dataTable.Rows.Count));
+
+        // Convert the range to a list and iterate through each index to remove the rows
+        indicesToDelete.ToList().ForEach(index =>
+        {
+            dataTable.Rows.RemoveAt(0); // Remove the row at the current index
+        });
     }
 }
