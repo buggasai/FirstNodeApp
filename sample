@@ -51,8 +51,8 @@ class Program
             return;
         }
 
-        // Remove existing header row
-        dataTable.Rows.RemoveAt(0);
+        // Remove all rows up to the specified row index (including header)
+        dataTable.Rows.Clear();
 
         // Assign values of the specified row index as column names
         DataRow newHeaderRow = dataTable.Rows[newHeaderRowIndex - 1];
