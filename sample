@@ -1,48 +1,48 @@
 using System;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Data;
 
 class Program
 {
     static void Main(string[] args)
     {
         string filePath = "path_to_your_excel_file.xlsx";
-        string newColumnName = "NewColumn"; // Specify the new column name
-
-        // Sample DataTable
-        DataTable dataTable = new DataTable();
-        dataTable.Columns.Add("ID", typeof(int));
-        dataTable.Columns.Add("Name", typeof(string));
-        dataTable.Rows.Add(101, "John");
-        dataTable.Rows.Add(102, "Doe");
-
+        string searchValue = "Value1"; // Specify the value you want to find
+        
         // Create an Excel application object
         Excel.Application excelApp = new Excel.Application();
         excelApp.Visible = true; // Make Excel visible (for demonstration)
-
+        
         // Open the Excel file
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
         Excel.Worksheet worksheet = workbook.Worksheets[1]; // Assuming you're working with the first worksheet
-
-        // Determine the last column index
-        int lastColumnIndex = worksheet.Cells[1, worksheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column;
-
-        // Insert a new column at the end of the existing columns
-        Excel.Range range = (Excel.Range)worksheet.Cells[1, lastColumnIndex + 1];
-        range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
-
-        // Set the new column header
-        worksheet.Cells[1, lastColumnIndex + 1] = newColumnName;
-
-        // Get the values from the DataTable and insert them into the new column
-        for (int i = 0; i < dataTable.Rows.Count; i++)
+        
+        // Find the row index based on the search value
+        int rowIndex = FindRowIndexByValue(worksheet, searchValue);
+        
+        if (rowIndex == -1)
         {
-            worksheet.Cells[i + 2, lastColumnIndex + 1] = dataTable.Rows[i][0]; // Inserting first column value
+            Console.WriteLine($"Value '{searchValue}' not found in the worksheet.");
         }
-
+        else
+        {
+            Console.WriteLine($"Row index of value '{searchValue}': {rowIndex}");
+        }
+        
         // Close the workbook and quit Excel application
-        workbook.Save();
         workbook.Close();
         excelApp.Quit();
+    }
+    
+    static int FindRowIndexByValue(Excel.Worksheet worksheet, string value)
+    {
+        Excel.Range usedRange = worksheet.UsedRange;
+        foreach (Excel.Range cell in usedRange.Cells)
+        {
+            if (cell.Value2 != null && cell.Value2.ToString() == value)
+            {
+                return cell.Row;
+            }
+        }
+        return -1; // Value not found
     }
 }
