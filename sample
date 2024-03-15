@@ -5,8 +5,7 @@ class Program
     static void Main(string[] args)
     {
         string filePath = "path_to_your_excel_file.xlsx";
-        int columnIndex = 1; // Specify the index where you want to insert the new column (1-based index)
-        int rowIndex = 3; // Specify the row index where you want to insert the new column (1-based index)
+        string columnName = "empid"; // Specify the column name
         
         // Create an Excel application object
         Excel.Application excelApp = new Excel.Application();
@@ -16,28 +15,54 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
         Excel.Worksheet worksheet = workbook.Worksheets[1]; // Assuming you're working with the first worksheet
         
-        // Insert a new column at the specified index
-        Excel.Range range = (Excel.Range)worksheet.Cells[rowIndex, columnIndex];
-        range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
-        
-        // Set the column values from the DataTable
-        // Assuming you have a DataTable named 'dataTable' containing the values to be inserted
-        
-        // Iterate over the rows of the DataTable
-        for (int i = 0; i < dataTable.Rows.Count; i++)
+        // Find the column index based on the column name
+        int columnIndex = FindColumnIndex(worksheet, columnName);
+        if (columnIndex == -1)
         {
-            // Get the value from the DataTable
-            object value = dataTable.Rows[i]["ColumnName"]; // Replace "ColumnName" with the actual column name
-            
-            // Set the value in the Excel worksheet
-            worksheet.Cells[rowIndex + i, columnIndex] = value;
+            Console.WriteLine($"Column '{columnName}' not found.");
+            return;
         }
         
-        // Save and close the workbook
-        workbook.Save();
-        workbook.Close();
+        // Find the row index based on the empid value (for example, "123")
+        int rowIndex = FindRowIndexByValue(worksheet, columnIndex, "123"); // Specify the empid value to search
         
-        // Quit Excel application
+        if (rowIndex == -1)
+        {
+            Console.WriteLine($"Value not found in column '{columnName}'.");
+        }
+        else
+        {
+            Console.WriteLine($"Row index of value '123' in column '{columnName}': {rowIndex}");
+        }
+        
+        // Close the workbook and quit Excel application
+        workbook.Close();
         excelApp.Quit();
+    }
+    
+    static int FindColumnIndex(Excel.Worksheet worksheet, string columnName)
+    {
+        Excel.Range firstRow = worksheet.Rows[1]; // Assuming the column names are in the first row
+        foreach (Excel.Range cell in firstRow.Cells)
+        {
+            if (cell.Value2.ToString() == columnName)
+            {
+                return cell.Column;
+            }
+        }
+        return -1; // Column not found
+    }
+    
+    static int FindRowIndexByValue(Excel.Worksheet worksheet, int columnIndex, string value)
+    {
+        Excel.Range column = worksheet.Columns[columnIndex];
+        foreach (Excel.Range cell in column.Cells)
+        {
+            if (cell.Value2.ToString() == value)
+            {
+                return cell.Row;
+            }
+        }
+        return -1; // Value not found
     }
 }
