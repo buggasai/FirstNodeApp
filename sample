@@ -1,6 +1,5 @@
 using System;
 using System.Data;
-using System.Linq;
 
 class Program
 {
@@ -8,15 +7,24 @@ class Program
     {
         DataTable dataTable = CreateDataTable();
 
-        int headerRowIndex = 2; // Specify the index of the header row (1-based index)
-        int rowIndexToDeleteUpTo = 3; // Specify the row index to delete up to (exclusive)
+        int newHeaderRowIndex = 3; // Specify the index of the new header row (1-based index)
 
-        DeleteRowsUpToHeader(dataTable, headerRowIndex, rowIndexToDeleteUpTo);
+        MakeRowAsHeader(dataTable, newHeaderRowIndex);
 
         // Display the modified DataTable
+        foreach (DataColumn column in dataTable.Columns)
+        {
+            Console.Write(column.ColumnName + "\t");
+        }
+        Console.WriteLine();
+
         foreach (DataRow row in dataTable.Rows)
         {
-            Console.WriteLine(string.Join(", ", row.ItemArray));
+            foreach (var item in row.ItemArray)
+            {
+                Console.Write(item + "\t");
+            }
+            Console.WriteLine();
         }
     }
 
@@ -26,8 +34,8 @@ class Program
         dataTable.Columns.Add("ID", typeof(int));
         dataTable.Columns.Add("Name", typeof(string));
 
-        dataTable.Rows.Add(1, "Header1"); // Add header row
-        dataTable.Rows.Add(2, "Header2"); // Add header row
+        dataTable.Rows.Add(1, "Header1");
+        dataTable.Rows.Add(2, "Header2");
         dataTable.Rows.Add(3, "John");
         dataTable.Rows.Add(4, "Jane");
         dataTable.Rows.Add(5, "Doe");
@@ -35,18 +43,22 @@ class Program
         return dataTable;
     }
 
-    static void DeleteRowsUpToHeader(DataTable dataTable, int headerRowIndex, int rowIndexToDeleteUpTo)
+    static void MakeRowAsHeader(DataTable dataTable, int newHeaderRowIndex)
     {
-        // Calculate the starting index to delete rows
-        int startIndex = Math.Min(headerRowIndex - 1, rowIndexToDeleteUpTo - 1); // Ensure start index is within bounds
-
-        // Create a range of row indices up to the specified rowIndex
-        var indicesToDelete = Enumerable.Range(0, Math.Min(rowIndexToDeleteUpTo, dataTable.Rows.Count) - startIndex);
-
-        // Convert the range to a list and iterate through each index to remove the corresponding rows
-        indicesToDelete.ToList().ForEach(index =>
+        if (newHeaderRowIndex < 1 || newHeaderRowIndex > dataTable.Rows.Count)
         {
-            dataTable.Rows.RemoveAt(startIndex); // Remove the row at the current index
-        });
+            Console.WriteLine("Invalid new header row index.");
+            return;
+        }
+
+        // Remove existing header row
+        dataTable.Rows.RemoveAt(0);
+
+        // Assign values of the specified row index as column names
+        DataRow newHeaderRow = dataTable.Rows[newHeaderRowIndex - 1];
+        foreach (DataColumn column in dataTable.Columns)
+        {
+            column.ColumnName = newHeaderRow[column.Ordinal].ToString();
+        }
     }
 }
