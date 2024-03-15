@@ -51,14 +51,17 @@ class Program
             return;
         }
 
-        // Remove all rows up to the specified row index (including header)
-        dataTable.Rows.Clear();
+        // Remove rows up to the specified row index (including header)
+        for (int i = dataTable.Rows.Count - 1; i >= newHeaderRowIndex - 1; i--)
+        {
+            dataTable.Rows.RemoveAt(i);
+        }
 
         // Assign values of the specified row index as column names
         DataRow newHeaderRow = dataTable.Rows[newHeaderRowIndex - 1];
-        foreach (DataColumn column in dataTable.Columns)
+        for (int i = 0; i < dataTable.Columns.Count; i++)
         {
-            column.ColumnName = newHeaderRow[column.Ordinal].ToString();
+            dataTable.Columns[i].ColumnName = newHeaderRow[i].ToString();
         }
     }
 }
