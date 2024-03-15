@@ -1,67 +1,43 @@
-using System;
-using System.Data;
+using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        DataTable dataTable = CreateDataTable();
-
-        int newHeaderRowIndex = 3; // Specify the index of the new header row (1-based index)
-
-        MakeRowAsHeader(dataTable, newHeaderRowIndex);
-
-        // Display the modified DataTable
-        foreach (DataColumn column in dataTable.Columns)
+        string filePath = "path_to_your_excel_file.xlsx";
+        int columnIndex = 1; // Specify the index where you want to insert the new column (1-based index)
+        int rowIndex = 3; // Specify the row index where you want to insert the new column (1-based index)
+        
+        // Create an Excel application object
+        Excel.Application excelApp = new Excel.Application();
+        excelApp.Visible = true; // Make Excel visible (for demonstration)
+        
+        // Open the Excel file
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet worksheet = workbook.Worksheets[1]; // Assuming you're working with the first worksheet
+        
+        // Insert a new column at the specified index
+        Excel.Range range = (Excel.Range)worksheet.Cells[rowIndex, columnIndex];
+        range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
+        
+        // Set the column values from the DataTable
+        // Assuming you have a DataTable named 'dataTable' containing the values to be inserted
+        
+        // Iterate over the rows of the DataTable
+        for (int i = 0; i < dataTable.Rows.Count; i++)
         {
-            Console.Write(column.ColumnName + "\t");
+            // Get the value from the DataTable
+            object value = dataTable.Rows[i]["ColumnName"]; // Replace "ColumnName" with the actual column name
+            
+            // Set the value in the Excel worksheet
+            worksheet.Cells[rowIndex + i, columnIndex] = value;
         }
-        Console.WriteLine();
-
-        foreach (DataRow row in dataTable.Rows)
-        {
-            foreach (var item in row.ItemArray)
-            {
-                Console.Write(item + "\t");
-            }
-            Console.WriteLine();
-        }
-    }
-
-    static DataTable CreateDataTable()
-    {
-        DataTable dataTable = new DataTable();
-        dataTable.Columns.Add("ID", typeof(int));
-        dataTable.Columns.Add("Name", typeof(string));
-
-        dataTable.Rows.Add(1, "Header1");
-        dataTable.Rows.Add(2, "Header2");
-        dataTable.Rows.Add(3, "John");
-        dataTable.Rows.Add(4, "Jane");
-        dataTable.Rows.Add(5, "Doe");
-
-        return dataTable;
-    }
-
-    static void MakeRowAsHeader(DataTable dataTable, int newHeaderRowIndex)
-    {
-        if (newHeaderRowIndex < 1 || newHeaderRowIndex > dataTable.Rows.Count)
-        {
-            Console.WriteLine("Invalid new header row index.");
-            return;
-        }
-
-        // Remove rows up to the specified row index (including header)
-        for (int i = dataTable.Rows.Count - 1; i >= newHeaderRowIndex - 1; i--)
-        {
-            dataTable.Rows.RemoveAt(i);
-        }
-
-        // Assign values of the specified row index as column names
-        DataRow newHeaderRow = dataTable.Rows[newHeaderRowIndex - 1];
-        for (int i = 0; i < dataTable.Columns.Count; i++)
-        {
-            dataTable.Columns[i].ColumnName = newHeaderRow[i].ToString();
-        }
+        
+        // Save and close the workbook
+        workbook.Save();
+        workbook.Close();
+        
+        // Quit Excel application
+        excelApp.Quit();
     }
 }
