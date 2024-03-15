@@ -8,9 +8,10 @@ class Program
     {
         DataTable dataTable = CreateDataTable();
 
-        int rowIndex = 2; // Specify the row index to delete up to (exclusive)
+        int headerRowIndex = 2; // Specify the index of the header row (1-based index)
+        int rowIndexToDeleteUpTo = 3; // Specify the row index to delete up to (exclusive)
 
-        DeleteRowsUntilIndex(dataTable, rowIndex);
+        DeleteRowsUpToHeader(dataTable, headerRowIndex, rowIndexToDeleteUpTo);
 
         // Display the modified DataTable
         foreach (DataRow row in dataTable.Rows)
@@ -25,22 +26,27 @@ class Program
         dataTable.Columns.Add("ID", typeof(int));
         dataTable.Columns.Add("Name", typeof(string));
 
-        dataTable.Rows.Add(1, "John");
-        dataTable.Rows.Add(2, "Jane");
-        dataTable.Rows.Add(3, "Doe");
+        dataTable.Rows.Add(1, "Header1"); // Add header row
+        dataTable.Rows.Add(2, "Header2"); // Add header row
+        dataTable.Rows.Add(3, "John");
+        dataTable.Rows.Add(4, "Jane");
+        dataTable.Rows.Add(5, "Doe");
 
         return dataTable;
     }
 
-    static void DeleteRowsUntilIndex(DataTable dataTable, int rowIndex)
+    static void DeleteRowsUpToHeader(DataTable dataTable, int headerRowIndex, int rowIndexToDeleteUpTo)
     {
-        // Create a range of row indices up to the specified rowIndex
-        var indicesToDelete = Enumerable.Range(0, Math.Min(rowIndex, dataTable.Rows.Count));
+        // Calculate the starting index to delete rows
+        int startIndex = Math.Min(headerRowIndex - 1, rowIndexToDeleteUpTo - 1); // Ensure start index is within bounds
 
-        // Convert the range to a list and iterate through each index to remove the rows
+        // Create a range of row indices up to the specified rowIndex
+        var indicesToDelete = Enumerable.Range(0, Math.Min(rowIndexToDeleteUpTo, dataTable.Rows.Count) - startIndex);
+
+        // Convert the range to a list and iterate through each index to remove the corresponding rows
         indicesToDelete.ToList().ForEach(index =>
         {
-            dataTable.Rows.RemoveAt(0); // Remove the row at the current index
+            dataTable.Rows.RemoveAt(startIndex); // Remove the row at the current index
         });
     }
 }
