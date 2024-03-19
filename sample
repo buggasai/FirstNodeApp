@@ -1,1 +1,14 @@
-//div[@class='your_class_name' and .//span[text()='some text']]
+static string GetDifferenceString(DataRow sourceRow, DataRow targetRow, string[] columns)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        foreach (string col in columns)
+        {
+            if (!object.Equals(sourceRow[col], targetRow[col]))
+            {
+                stringBuilder.Append($"{col}: {sourceRow[col]} -> {targetRow[col]}, ");
+            }
+        }
+
+        return stringBuilder.ToString().TrimEnd(',', ' '); // Remove trailing comma and space
+    }
