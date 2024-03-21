@@ -22,23 +22,25 @@ class Program
         targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
         targetDataTable.Rows.Add(4, "NewPerson");   // Difference
 
-        // Compare the DataTables and display the differences comma-separated
+        // Specify the column to compare
+        string columnNameToCompare = "ID";
+
+        // Compare the DataTables based on the specified column
         var differences = from sourceRow in sourceDataTable.AsEnumerable()
                           join targetRow in targetDataTable.AsEnumerable()
-                          on sourceDataTable.Columns.Cast<DataColumn>().Select(col => sourceRow[col])
-                          equals targetDataTable.Columns.Cast<DataColumn>().Select(col => targetRow?.Field<object>(col.ColumnName)) // Add null check here
-                          into joined
+                          on sourceRow.Field<int>(columnNameToCompare) equals targetRow.Field<int>(columnNameToCompare) into joined
                           from targetRow in joined.DefaultIfEmpty()
-                          where targetRow == null || !sourceRow.ItemArray.SequenceEqual(targetRow.ItemArray)
                           select new
                           {
                               SourceValues = string.Join(", ", sourceRow.ItemArray),
-                              TargetValues = targetRow != null ? string.Join(", ", targetRow.ItemArray) : "Not found in target"
+                              TargetValues = targetRow != null ? string.Join(", ", targetRow.ItemArray) : "Not found in target",
+                              Difference = sourceRow.ItemArray.SequenceEqual(targetRow?.ItemArray ?? Enumerable.Repeat<object>(null, sourceDataTable.Columns.Count)) ? "" : "Difference detected"
                           };
 
+        // Display the differences
         foreach (var diff in differences)
         {
-            Console.WriteLine($"Difference: Source [{diff.SourceValues}], Target [{diff.TargetValues}]");
+            Console.WriteLine($"Difference: Source [{diff.SourceValues}], Target [{diff.TargetValues}], Difference [{diff.Difference}]");
         }
     }
 }
