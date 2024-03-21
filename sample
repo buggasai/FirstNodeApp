@@ -1,14 +1,44 @@
-static string GetDifferenceString(DataRow sourceRow, DataRow targetRow, string[] columns)
+using System;
+using System.Data;
+using System.Linq;
+
+class Program
+{
+    static void Main()
     {
-        StringBuilder stringBuilder = new StringBuilder();
+        // Sample source DataTable
+        DataTable sourceDataTable = new DataTable();
+        sourceDataTable.Columns.Add("ID", typeof(int));
+        sourceDataTable.Columns.Add("Name", typeof(string));
+        sourceDataTable.Rows.Add(1, "John");
+        sourceDataTable.Rows.Add(2, "Jane");
+        sourceDataTable.Rows.Add(3, "Doe");
 
-        foreach (string col in columns)
+        // Sample target DataTable with differences
+        DataTable targetDataTable = new DataTable();
+        targetDataTable.Columns.Add("ID", typeof(int));
+        targetDataTable.Columns.Add("Name", typeof(string));
+        targetDataTable.Rows.Add(1, "John");
+        targetDataTable.Rows.Add(2, "JaneUpdated"); // Difference
+        targetDataTable.Rows.Add(4, "NewPerson");   // Difference
+
+        // Compare the DataTables and display the differences comma-separated
+        var differences = from sourceRow in sourceDataTable.AsEnumerable()
+                          join targetRow in targetDataTable.AsEnumerable()
+                          on sourceDataTable.Columns.Cast<DataColumn>().Select(col => sourceRow[col])
+                          equals targetDataTable.Columns.Cast<DataColumn>().Select(col => targetRow?.Field<object>(col.ColumnName)) // Add null check here
+                          into joined
+                          from targetRow in joined.DefaultIfEmpty()
+                          where targetRow == null || !sourceRow.ItemArray.SequenceEqual(targetRow.ItemArray)
+                          select new
+                          {
+                              SourceValues = string.Join(", ", sourceRow.ItemArray),
+                              TargetValues = targetRow != null ? string.Join(", ", targetRow.ItemArray) : "Not found in target"
+                          };
+
+        foreach (var diff in differences)
         {
-            if (!object.Equals(sourceRow[col], targetRow[col]))
-            {
-                stringBuilder.Append($"{col}: {sourceRow[col]} -> {targetRow[col]}, ");
-            }
+            Console.WriteLine($"Difference: Source [{diff.SourceValues}], Target [{diff.TargetValues}]");
         }
-
-        return stringBuilder.ToString().TrimEnd(',', ' '); // Remove trailing comma and space
     }
+}
