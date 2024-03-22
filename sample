@@ -32,15 +32,26 @@ class Program
                           from targetRow in joined.DefaultIfEmpty()
                           select new
                           {
-                              SourceValues = string.Join(", ", sourceRow.ItemArray),
-                              TargetValues = targetRow != null ? string.Join(", ", targetRow.ItemArray) : "Not found in target",
-                              Difference = sourceRow.ItemArray.SequenceEqual(targetRow?.ItemArray ?? Enumerable.Repeat<object>(null, sourceDataTable.Columns.Count)) ? "" : "Difference detected"
+                              SourceRow = sourceRow,
+                              TargetRow = targetRow,
+                              Difference = targetRow == null ? "Not found in target" :
+                                  sourceRow.Field<string>("Name") != targetRow.Field<string>("Name") ? $"Name mismatch: {sourceRow.Field<string>("Name")} != {targetRow.Field<string>("Name")}" : null
                           };
 
-        // Display the differences
+        // Add a new column to the source DataTable to store differences
+        sourceDataTable.Columns.Add("Difference", typeof(string));
+
+        // Update the source DataTable with differences
         foreach (var diff in differences)
         {
-            Console.WriteLine($"Difference: Source [{diff.SourceValues}], Target [{diff.TargetValues}], Difference [{diff.Difference}]");
+            diff.SourceRow.SetField("Difference", diff.Difference);
+        }
+
+        // Display the updated source DataTable with differences
+        Console.WriteLine("Source DataTable with Differences:");
+        foreach (DataRow row in sourceDataTable.Rows)
+        {
+            Console.WriteLine(string.Join(", ", row.ItemArray));
         }
     }
 }
