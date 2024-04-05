@@ -1,1 +1,88 @@
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Excel = Microsoft.Office.Interop.Excel;
+
+class Program
+{
+    static void Main()
+    {
+        // Path to the notepad file
+        string notepadFilePath = "path/to/notepad.txt";
+
+        // Path to the existing Excel file
+        string excelFilePath = "path/to/excel.xlsx";
+
+        // Read lines from the notepad file
+        List<string> lines = ReadLinesFromNotepad(notepadFilePath);
+
+        // Initialize Excel application
+        Excel.Application excelApp = new Excel.Application();
+        excelApp.Visible = true;
+
+        // Open existing Excel file
+        Excel.Workbook workbook = excelApp.Workbooks.Open(excelFilePath);
+        Excel.Worksheet worksheet = workbook.ActiveSheet;
+
+        // Find the last column in the worksheet
+        int lastColumn = worksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Column;
+
+        // Insert new column at the last position
+        Excel.Range range = (Excel.Range)worksheet.Cells[1, lastColumn + 1];
+        range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+
+        // Add line numbers to the new column
+        Excel.Range lineNumberRange = worksheet.Cells[1, lastColumn];
+        for (int i = 0; i < lines.Count; i++)
+        {
+            // Parse line number from each line
+            string lineNumber = lines[i];
+
+            // Check if the line number is a duplicate
+            if (lines.IndexOf(lineNumber) != i)
+            {
+                // Append comma-separated line number if duplicate
+                lineNumberRange.Value += ", " + lineNumber;
+            }
+            else
+            {
+                lineNumberRange.Value += lineNumber;
+            }
+
+            // Move to the next row
+            lineNumberRange = lineNumberRange.Offset[1, 0];
+        }
+
+        // Save changes and close Excel
+        workbook.Save();
+        workbook.Close();
+        excelApp.Quit();
+
+        // Release Excel objects from memory
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+    }
+
+    static List<string> ReadLinesFromNotepad(string filePath)
+    {
+        List<string> lines = new List<string>();
+        try
+        {
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error reading lines from notepad file: " + ex.Message);
+        }
+        return lines;
+    }
+}
