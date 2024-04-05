@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
@@ -29,18 +28,32 @@ class Program
         // Find the last column in the worksheet
         int lastColumn = worksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Column;
 
+        // Find the column index of "SlNo"
+        int slNoColumnIndex = FindColumnIndex(worksheet, "SlNo");
+
+        if (slNoColumnIndex == -1)
+        {
+            Console.WriteLine("Column 'SlNo' not found in the Excel sheet.");
+            return;
+        }
+
         // Insert new column at the last position
         Excel.Range range = (Excel.Range)worksheet.Cells[1, lastColumn + 1];
         range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
 
         // Add line numbers to the new column
-        Excel.Range lineNumberRange = worksheet.Cells[1, lastColumn];
         foreach (var kvp in lineNumbers)
         {
-            lineNumberRange.Value += kvp.Value + Environment.NewLine;
-
-            // Move to the next row
-            lineNumberRange = lineNumberRange.Offset[1, 0];
+            int slNoRow = FindRowByValue(worksheet, slNoColumnIndex, kvp.Key.ToString());
+            if (slNoRow != -1)
+            {
+                Excel.Range cell = worksheet.Cells[slNoRow, lastColumn];
+                cell.Value = kvp.Value;
+            }
+            else
+            {
+                Console.WriteLine($"'SlNo' value {kvp.Key} not found in the Excel sheet.");
+            }
         }
 
         // Save changes and close Excel
@@ -87,5 +100,31 @@ class Program
             Console.WriteLine("Error reading line numbers from notepad file: " + ex.Message);
         }
         return lineNumbers;
+    }
+
+    static int FindColumnIndex(Excel.Worksheet worksheet, string columnName)
+    {
+        Excel.Range headerRow = worksheet.Rows[1];
+        foreach (Excel.Range cell in headerRow.Cells)
+        {
+            if (cell.Value != null && cell.Value.ToString().Equals(columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return cell.Column;
+            }
+        }
+        return -1; // Column not found
+    }
+
+    static int FindRowByValue(Excel.Worksheet worksheet, int columnIndex, string value)
+    {
+        Excel.Range columnRange = worksheet.Columns[columnIndex];
+        foreach (Excel.Range cell in columnRange.Cells)
+        {
+            if (cell.Value != null && cell.Value.ToString().Equals(value, StringComparison.OrdinalIgnoreCase))
+            {
+                return cell.Row;
+            }
+        }
+        return -1; // Value not found
     }
 }
