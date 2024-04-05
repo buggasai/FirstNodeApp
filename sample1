@@ -1,7 +1,8 @@
-
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Linq;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
@@ -14,8 +15,8 @@ class Program
         // Path to the existing Excel file
         string excelFilePath = "path/to/excel.xlsx";
 
-        // Read lines from the notepad file
-        List<string> lines = ReadLinesFromNotepad(notepadFilePath);
+        // Read line numbers from the notepad file
+        Dictionary<int, string> lineNumbers = ReadLineNumbersFromNotepad(notepadFilePath);
 
         // Initialize Excel application
         Excel.Application excelApp = new Excel.Application();
@@ -34,21 +35,9 @@ class Program
 
         // Add line numbers to the new column
         Excel.Range lineNumberRange = worksheet.Cells[1, lastColumn];
-        for (int i = 0; i < lines.Count; i++)
+        foreach (var kvp in lineNumbers)
         {
-            // Parse line number from each line
-            string lineNumber = lines[i];
-
-            // Check if the line number is a duplicate
-            if (lines.IndexOf(lineNumber) != i)
-            {
-                // Append comma-separated line number if duplicate
-                lineNumberRange.Value += ", " + lineNumber;
-            }
-            else
-            {
-                lineNumberRange.Value += lineNumber;
-            }
+            lineNumberRange.Value += kvp.Value + Environment.NewLine;
 
             // Move to the next row
             lineNumberRange = lineNumberRange.Offset[1, 0];
@@ -65,9 +54,9 @@ class Program
         System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
     }
 
-    static List<string> ReadLinesFromNotepad(string filePath)
+    static Dictionary<int, string> ReadLineNumbersFromNotepad(string filePath)
     {
-        List<string> lines = new List<string>();
+        Dictionary<int, string> lineNumbers = new Dictionary<int, string>();
         try
         {
             using (StreamReader sr = new StreamReader(filePath))
@@ -75,14 +64,28 @@ class Program
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    lines.Add(line);
+                    // Extract the line number using regular expression
+                    Match match = Regex.Match(line, @"line no (\d+)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        int lineNumber = int.Parse(match.Groups[1].Value);
+                        if (lineNumbers.ContainsKey(lineNumber))
+                        {
+                            // Append to existing line number with comma separator
+                            lineNumbers[lineNumber] += ", " + lineNumber;
+                        }
+                        else
+                        {
+                            lineNumbers[lineNumber] = lineNumber.ToString();
+                        }
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error reading lines from notepad file: " + ex.Message);
+            Console.WriteLine("Error reading line numbers from notepad file: " + ex.Message);
         }
-        return lines;
+        return lineNumbers;
     }
 }
