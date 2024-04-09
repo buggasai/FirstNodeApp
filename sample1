@@ -25,9 +25,6 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(excelFilePath);
         Excel.Worksheet worksheet = workbook.ActiveSheet;
 
-        // Find the last column in the worksheet
-        int lastColumn = worksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell).Column;
-
         // Find the column index of "SlNo"
         int slNoColumnIndex = FindColumnIndex(worksheet, "SlNo");
 
@@ -37,24 +34,8 @@ class Program
             return;
         }
 
-        // Insert new column at the last position
-        Excel.Range range = (Excel.Range)worksheet.Cells[1, lastColumn + 1];
-        range.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
-
-        // Add line numbers to the new column
-        foreach (var kvp in lineNumbers)
-        {
-            int slNoRow = FindRowByValue(worksheet, slNoColumnIndex, kvp.Key.ToString());
-            if (slNoRow != -1)
-            {
-                Excel.Range cell = worksheet.Cells[slNoRow, lastColumn];
-                cell.Value = kvp.Value;
-            }
-            else
-            {
-                Console.WriteLine($"'SlNo' value {kvp.Key} not found in the Excel sheet.");
-            }
-        }
+        // Delete rows that do not match the lineNumbers
+        DeleteRowsNotInLineNumbers(worksheet, slNoColumnIndex, lineNumbers);
 
         // Save changes and close Excel
         workbook.Save();
@@ -115,16 +96,23 @@ class Program
         return -1; // Column not found
     }
 
-    static int FindRowByValue(Excel.Worksheet worksheet, int columnIndex, string value)
+    static void DeleteRowsNotInLineNumbers(Excel.Worksheet worksheet, int columnIndex, Dictionary<int, string> lineNumbers)
     {
-        Excel.Range columnRange = worksheet.Columns[columnIndex];
-        foreach (Excel.Range cell in columnRange.Cells)
+        Excel.Range usedRange = worksheet.UsedRange;
+        int rowCount = usedRange.Rows.Count;
+
+        for (int i = rowCount; i >= 2; i--) // Start from row 2 (excluding header row)
         {
-            if (cell.Value != null && cell.Value.ToString().Equals(value, StringComparison.OrdinalIgnoreCase))
+            Excel.Range cell = (Excel.Range)worksheet.Cells[i, columnIndex];
+            if (cell.Value != null && int.TryParse(cell.Value.ToString(), out int slNo))
             {
-                return cell.Row;
+                if (!lineNumbers.ContainsKey(slNo))
+                {
+                    // Delete the entire row if SlNo is not in lineNumbers
+                    Excel.Range rowToDelete = (Excel.Range)worksheet.Rows[i];
+                    rowToDelete.Delete();
+                }
             }
         }
-        return -1; // Value not found
     }
 }
