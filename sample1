@@ -1,118 +1,67 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        // Path to the notepad file
-        string notepadFilePath = "path/to/notepad.txt";
-
-        // Path to the existing Excel file
-        string excelFilePath = "path/to/excel.xlsx";
-
-        // Read line numbers from the notepad file
-        Dictionary<int, string> lineNumbers = ReadLineNumbersFromNotepad(notepadFilePath);
-
         // Initialize Excel application
         Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = true;
+        excelApp.Visible = true; // Make Excel visible (for demonstration purposes)
 
-        // Open existing Excel file
-        Excel.Workbook workbook = excelApp.Workbooks.Open(excelFilePath);
-        Excel.Worksheet worksheet = workbook.ActiveSheet;
+        // Open an existing workbook
+        string workbookPath = @"C:\Path\To\Your\Workbook.xlsx";
+        Excel.Workbook workbook = excelApp.Workbooks.Open(workbookPath);
 
-        // Find the column index of "SlNo"
-        int slNoColumnIndex = FindColumnIndex(worksheet, "SlNo");
+        // Get the desired worksheet (e.g., first worksheet)
+        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1]; // Assuming it's the first sheet
 
-        if (slNoColumnIndex == -1)
-        {
-            Console.WriteLine("Column 'SlNo' not found in the Excel sheet.");
-            return;
-        }
-
-        // Delete rows that do not match the lineNumbers
-        DeleteRowsNotInLineNumbers(worksheet, slNoColumnIndex, lineNumbers);
-
-        // Save changes and close Excel
-        workbook.Save();
-        workbook.Close();
-        excelApp.Quit();
-
-        // Release Excel objects from memory
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-    }
-
-    static Dictionary<int, string> ReadLineNumbersFromNotepad(string filePath)
-    {
-        Dictionary<int, string> lineNumbers = new Dictionary<int, string>();
         try
         {
-            using (StreamReader sr = new StreamReader(filePath))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    // Extract the line number using regular expression
-                    Match match = Regex.Match(line, @"line no (\d+)", RegexOptions.IgnoreCase);
-                    if (match.Success)
-                    {
-                        int lineNumber = int.Parse(match.Groups[1].Value);
-                        if (lineNumbers.ContainsKey(lineNumber))
-                        {
-                            // Append to existing line number with comma separator
-                            lineNumbers[lineNumber] += ", " + lineNumber;
-                        }
-                        else
-                        {
-                            lineNumbers[lineNumber] = lineNumber.ToString();
-                        }
-                    }
-                }
-            }
+            // Shift existing rows down to make space for the new row
+            Excel.Range firstRow = worksheet.Rows[1];
+            firstRow.Insert(Excel.XlInsertShiftDirection.xlShiftDown);
+
+            // Insert data into the new first row
+            worksheet.Cells[1, 1].Value = "New Data 1"; // Insert data into first column
+            worksheet.Cells[1, 2].Value = "New Data 2"; // Insert data into second column
+            worksheet.Cells[1, 3].Value = "New Data 3"; // Insert data into third column
+
+            Console.WriteLine("New row inserted at the first row successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error reading line numbers from notepad file: " + ex.Message);
+            Console.WriteLine("Error: " + ex.Message);
         }
-        return lineNumbers;
+        finally
+        {
+            // Save and close the workbook
+            workbook.Save(); // Save changes
+            workbook.Close(); // Close workbook
+            excelApp.Quit(); // Quit Excel application
+
+            // Release COM objects to properly clean up Excel resources
+            ReleaseObject(worksheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
     }
 
-    static int FindColumnIndex(Excel.Worksheet worksheet, string columnName)
+    // Helper method to release COM objects
+    static void ReleaseObject(object obj)
     {
-        Excel.Range headerRow = worksheet.Rows[1];
-        foreach (Excel.Range cell in headerRow.Cells)
+        try
         {
-            if (cell.Value != null && cell.Value.ToString().Equals(columnName, StringComparison.OrdinalIgnoreCase))
-            {
-                return cell.Column;
-            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
         }
-        return -1; // Column not found
-    }
-
-    static void DeleteRowsNotInLineNumbers(Excel.Worksheet worksheet, int columnIndex, Dictionary<int, string> lineNumbers)
-    {
-        Excel.Range usedRange = worksheet.UsedRange;
-        int rowCount = usedRange.Rows.Count;
-
-        for (int i = rowCount; i >= 2; i--) // Start from row 2 (excluding header row)
+        catch (Exception ex)
         {
-            Excel.Range cell = (Excel.Range)worksheet.Cells[i, columnIndex];
-            if (cell.Value != null && int.TryParse(cell.Value.ToString(), out int slNo))
-            {
-                if (!lineNumbers.ContainsKey(slNo))
-                {
-                    // Delete the entire row if SlNo is not in lineNumbers
-                    Excel.Range rowToDelete = (Excel.Range)worksheet.Rows[i];
-                    rowToDelete.Delete();
-                }
-            }
+            obj = null;
+            Console.WriteLine("Error releasing COM object: " + ex.Message);
+        }
+        finally
+        {
+            GC.Collect(); // Force garbage collection
         }
     }
 }
