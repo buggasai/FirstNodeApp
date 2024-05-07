@@ -1,67 +1,44 @@
-using Excel = Microsoft.Office.Interop.Excel;
+using System;
+using System.Diagnostics;
+using System.Windows.Automation;
 
 class Program
 {
     static void Main()
     {
-        // Initialize Excel application
-        Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = true; // Make Excel visible (for demonstration purposes)
+        // Specify the path to the application executable
+        string applicationPath = @"C:\Path\To\Your\Application.exe";
 
-        // Open an existing workbook
-        string workbookPath = @"C:\Path\To\Your\Workbook.xlsx";
-        Excel.Workbook workbook = excelApp.Workbooks.Open(workbookPath);
+        // Launch the application
+        Process process = Process.Start(applicationPath);
 
-        // Get the desired worksheet (e.g., first worksheet)
-        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1]; // Assuming it's the first sheet
+        // Wait for the application to load
+        process.WaitForInputIdle();
 
-        try
+        // Find the element to click (e.g., a button)
+        AutomationElement rootElement = AutomationElement.FromHandle(process.MainWindowHandle);
+        AutomationElement buttonElement = FindElementByAutomationId(rootElement, "myButton");
+
+        // Perform a click action on the button
+        if (buttonElement != null)
         {
-            // Shift existing rows down to make space for the new row
-            Excel.Range firstRow = worksheet.Rows[1];
-            firstRow.Insert(Excel.XlInsertShiftDirection.xlShiftDown);
+            InvokePattern invokePattern = buttonElement.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+            invokePattern?.Invoke();
 
-            // Insert data into the new first row
-            worksheet.Cells[1, 1].Value = "New Data 1"; // Insert data into first column
-            worksheet.Cells[1, 2].Value = "New Data 2"; // Insert data into second column
-            worksheet.Cells[1, 3].Value = "New Data 3"; // Insert data into third column
-
-            Console.WriteLine("New row inserted at the first row successfully.");
+            Console.WriteLine("Button clicked successfully.");
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine("Button not found.");
         }
-        finally
-        {
-            // Save and close the workbook
-            workbook.Save(); // Save changes
-            workbook.Close(); // Close workbook
-            excelApp.Quit(); // Quit Excel application
 
-            // Release COM objects to properly clean up Excel resources
-            ReleaseObject(worksheet);
-            ReleaseObject(workbook);
-            ReleaseObject(excelApp);
-        }
+        // Close the application
+        process.CloseMainWindow();
     }
 
-    // Helper method to release COM objects
-    static void ReleaseObject(object obj)
+    static AutomationElement FindElementByAutomationId(AutomationElement parentElement, string automationId)
     {
-        try
-        {
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-            obj = null;
-        }
-        catch (Exception ex)
-        {
-            obj = null;
-            Console.WriteLine("Error releasing COM object: " + ex.Message);
-        }
-        finally
-        {
-            GC.Collect(); // Force garbage collection
-        }
+        Condition condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
+        return parentElement.FindFirst(TreeScope.Descendants, condition);
     }
 }
