@@ -1,5 +1,4 @@
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
 using FlaUI.Core.Tools;
 
 namespace FlaUIExample
@@ -12,17 +11,41 @@ namespace FlaUIExample
             var app = Application.Launch("YourApplication.exe");
             var mainWindow = app.GetMainWindow();
 
-            // Find the ComboBox by its automation id
-            var comboBox = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("comboBox1")).AsComboBox();
+            // Find the panel by its automation id
+            var panel = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("panel1"));
 
-            // Find the item by its name
-            var item = comboBox.Items.Find(item => item.Name == "ItemName");
-
-            // Select the item
-            item.Select();
+            // Check if the panel has a column named "PESEL"
+            bool hasPESELColumn = CheckForColumn(panel, "PESEL");
 
             // Close the application when done
             app.Close();
+        }
+
+        static bool CheckForColumn(AutomationElement panel, string columnName)
+        {
+            // Iterate through the child elements of the panel
+            foreach (var child in panel.FindAllChildren())
+            {
+                // Check if the child element is a data grid
+                if (child.ControlType == FlaUI.Core.Definitions.ControlType.DataGrid)
+                {
+                    // Get the headers of the data grid
+                    var headers = child.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Header));
+
+                    // Iterate through the headers to check if the column name exists
+                    foreach (var header in headers)
+                    {
+                        if (header.Name == columnName)
+                        {
+                            // Column found
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // Column not found
+            return false;
         }
     }
 }
