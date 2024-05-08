@@ -1,1 +1,28 @@
-Hi
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
+using FlaUI.Core.Tools;
+
+namespace FlaUIExample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Start your application and get the main window
+            var app = Application.Launch("YourApplication.exe");
+            var mainWindow = app.GetMainWindow();
+
+            // Find the ComboBox by its automation id
+            var comboBox = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("comboBox1")).AsComboBox();
+
+            // Find the item by its name
+            var item = comboBox.Items.Find(item => item.Name == "ItemName");
+
+            // Select the item
+            item.Select();
+
+            // Close the application when done
+            app.Close();
+        }
+    }
+}
