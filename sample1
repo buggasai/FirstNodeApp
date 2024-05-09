@@ -9,32 +9,37 @@ var app = Application.Attach("YourApplicationName");
 // Find the main window
 var mainWindow = app.GetMainWindow();
 
+// Define a method to explore child elements recursively
+void ExploreElements(AutomationElement parentElement)
+{
+    // Access child elements within the parent element
+    var childElements = parentElement.FindAllChildren();
+
+    foreach (var childElement in childElements)
+    {
+        // Inspect properties of each child element
+        string name = childElement.Properties.Name.ValueOrDefault;
+        string automationId = childElement.Properties.AutomationId.ValueOrDefault;
+        string controlType = childElement.ControlType.ToString();
+
+        // Print out properties for debugging
+        Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
+
+        // Recursively explore child elements if the control type is Pane
+        if (childElement.ControlType == ControlType.Pane)
+        {
+            ExploreElements(childElement);
+        }
+    }
+}
+
 // Find the first level of pane element
 var mainPane = mainWindow.FindFirstChild(x => x.ByControlType(ControlType.Pane));
 
 if (mainPane != null)
 {
-    // Find nested pane elements under the main pane
-    var nestedPanes = mainPane.FindAllDescendants(x => x.ByControlType(ControlType.Pane));
-
-    foreach (var nestedPane in nestedPanes)
-    {
-        // Access child elements within the nested pane
-        var childElements = nestedPane.FindAllChildren();
-
-        foreach (var childElement in childElements)
-        {
-            // Inspect properties of each child element
-            string name = childElement.Properties.Name.ValueOrDefault;
-            string automationId = childElement.Properties.AutomationId.ValueOrDefault;
-            string controlType = childElement.ControlType.ToString();
-
-            // Print out properties for debugging
-            Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
-
-            // You can further explore child elements, access their properties, and interact with them as needed
-        }
-    }
+    // Explore child elements recursively starting from the main pane
+    ExploreElements(mainPane);
 }
 else
 {
