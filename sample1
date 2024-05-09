@@ -12,18 +12,4 @@ namespace FlaUIExample
             var mainWindow = app.GetMainWindow();
 
             // Find the list by its automation id
-            var list = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("list1"));
-
-            // Iterate through the list items
-            foreach (var listItem in list.FindAllChildren())
-            {
-                // Access properties or perform actions on each list item
-                var listItemName = listItem.Name;
-                // Do something with the listItemName
-            }
-
-            // Close the application when done
-            app.Close();
-        }
-    }
-}
+            var list = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("
