@@ -19,26 +19,20 @@ if (mainPane != null)
 
     foreach (var nestedPane in nestedPanes)
     {
-        // Find document elements under each nested pane
-        var documents = nestedPane.FindAllDescendants(x => x.ByControlType(ControlType.Document));
+        // Access child elements within the nested pane
+        var childElements = nestedPane.FindAllChildren();
 
-        foreach (var document in documents)
+        foreach (var childElement in childElements)
         {
-            // Access child elements within the document
-            var childElements = document.FindAllChildren();
+            // Inspect properties of each child element
+            string name = childElement.Properties.Name.ValueOrDefault;
+            string automationId = childElement.Properties.AutomationId.ValueOrDefault;
+            string controlType = childElement.ControlType.ToString();
 
-            foreach (var childElement in childElements)
-            {
-                // Inspect properties of each child element
-                string name = childElement.Properties.Name.ValueOrDefault;
-                string automationId = childElement.Properties.AutomationId.ValueOrDefault;
-                string controlType = childElement.ControlType.ToString();
+            // Print out properties for debugging
+            Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
 
-                // Print out properties for debugging
-                Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
-
-                // You can further explore child elements, access their properties, and interact with them as needed
-            }
+            // You can further explore child elements, access their properties, and interact with them as needed
         }
     }
 }
