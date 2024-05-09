@@ -19,9 +19,15 @@ if (pane != null)
 
     foreach (var childElement in childElements)
     {
-        // You can further filter child elements here based on their properties
-        // For example, you can check if a child element is of type Button, Text, etc.
-        // And then access their properties accordingly
+        // Inspect properties of each child element
+        string name = childElement.Properties.Name.ValueOrDefault;
+        string automationId = childElement.Properties.AutomationId.ValueOrDefault;
+        string controlType = childElement.ControlType.ToString();
+
+        // Print out properties for debugging
+        Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
+
+        // You can further explore child elements, access their properties, and interact with them as needed
     }
 }
 else
