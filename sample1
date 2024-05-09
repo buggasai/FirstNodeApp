@@ -12,4 +12,25 @@ namespace FlaUIExample
             var mainWindow = app.GetMainWindow();
 
             // Find the list by its automation id
-            var list = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("
+            var list = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("list1"));
+
+            // Find the first list item
+            var firstListItem = list.FindFirstChild();
+
+            // Check if the first list item's name is "PESEL"
+            if (firstListItem.Name == "PESEL")
+            {
+                // The list item "PESEL" is at the top of the list
+                // Do something
+            }
+            else
+            {
+                // The list item "PESEL" is not at the top of the list
+                // Do something else
+            }
+
+            // Close the application when done
+            app.Close();
+        }
+    }
+}
