@@ -9,28 +9,40 @@ var app = Application.Attach("YourApplicationName");
 // Find the main window
 var mainWindow = app.GetMainWindow();
 
-// Find the pane element
-var pane = mainWindow.FindFirstChild(x => x.ByControlType(ControlType.Pane));
+// Find the first level of pane element
+var mainPane = mainWindow.FindFirstChild(x => x.ByControlType(ControlType.Pane));
 
-if (pane != null)
+if (mainPane != null)
 {
-    // Access child elements within the pane
-    var childElements = pane.FindAllChildren();
+    // Find nested pane elements under the main pane
+    var nestedPanes = mainPane.FindAllDescendants(x => x.ByControlType(ControlType.Pane));
 
-    foreach (var childElement in childElements)
+    foreach (var nestedPane in nestedPanes)
     {
-        // Inspect properties of each child element
-        string name = childElement.Properties.Name.ValueOrDefault;
-        string automationId = childElement.Properties.AutomationId.ValueOrDefault;
-        string controlType = childElement.ControlType.ToString();
+        // Find document elements under each nested pane
+        var documents = nestedPane.FindAllDescendants(x => x.ByControlType(ControlType.Document));
 
-        // Print out properties for debugging
-        Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
+        foreach (var document in documents)
+        {
+            // Access child elements within the document
+            var childElements = document.FindAllChildren();
 
-        // You can further explore child elements, access their properties, and interact with them as needed
+            foreach (var childElement in childElements)
+            {
+                // Inspect properties of each child element
+                string name = childElement.Properties.Name.ValueOrDefault;
+                string automationId = childElement.Properties.AutomationId.ValueOrDefault;
+                string controlType = childElement.ControlType.ToString();
+
+                // Print out properties for debugging
+                Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
+
+                // You can further explore child elements, access their properties, and interact with them as needed
+            }
+        }
     }
 }
 else
 {
-    Console.WriteLine("Pane element not found.");
+    Console.WriteLine("Main pane element not found.");
 }
