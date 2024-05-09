@@ -1,36 +1,30 @@
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Conditions;
+using FlaUI.Core.Definitions;
 using FlaUI.Core.Tools;
 
-namespace FlaUIExample
+// Attach to the running application
+var app = Application.Attach("YourApplicationName");
+
+// Find the main window
+var mainWindow = app.GetMainWindow();
+
+// Find the pane element
+var pane = mainWindow.FindFirstChild(x => x.ByControlType(ControlType.Pane));
+
+if (pane != null)
 {
-    class Program
+    // Access child elements within the pane
+    var childElements = pane.FindAllChildren();
+
+    foreach (var childElement in childElements)
     {
-        static void Main(string[] args)
-        {
-            // Start your application and get the main window
-            var app = Application.Launch("YourApplication.exe");
-            var mainWindow = app.GetMainWindow();
-
-            // Find the list by its automation id
-            var list = mainWindow.FindFirstDescendant(cf => cf.ByAutomationId("list1"));
-
-            // Find the first list item
-            var firstListItem = list.FindFirstChild();
-
-            // Check if the first list item's name is "PESEL"
-            if (firstListItem.Name == "PESEL")
-            {
-                // The list item "PESEL" is at the top of the list
-                // Do something
-            }
-            else
-            {
-                // The list item "PESEL" is not at the top of the list
-                // Do something else
-            }
-
-            // Close the application when done
-            app.Close();
-        }
+        // You can further filter child elements here based on their properties
+        // For example, you can check if a child element is of type Button, Text, etc.
+        // And then access their properties accordingly
     }
+}
+else
+{
+    Console.WriteLine("Pane element not found.");
 }
