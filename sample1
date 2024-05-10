@@ -16,30 +16,31 @@ class Program
             // Check if the Group was found
             if (group != null)
             {
-                // Find the Text control within the Group
-                var textControl = group.FindFirstDescendant(cf => cf.ByText("Text Control Name")); // Replace "Text Control Name" with the actual name of the Text control
+                // Find all child elements within the Group
+                var children = group.FindAllChildren();
 
-                // Check if the Text control was found
-                if (textControl != null)
+                // Loop through each child element
+                foreach (var child in children)
                 {
-                    // Find the associated Edit control (assuming it's the next sibling)
-                    var editControl = textControl.NextSibling.FindFirstChild(cf => cf.ByControlType(ControlType.Edit));
+                    // Check if the child is a Text control
+                    if (child.Properties.Name == "Text Control Name") // Replace "Text Control Name" with the actual name of the Text control within the Group
+                    {
+                        // Find the associated Edit control (assuming it's the next child element)
+                        var editControl = children.FirstOrDefault(c => c.Properties.Name == "Edit Control Name"); // Replace "Edit Control Name" with the actual name of the Edit control associated with the Text control
 
-                    // Check if the Edit control was found
-                    if (editControl != null)
-                    {
-                        // Get the value of the Edit control
-                        string editValue = editControl.AsTextBox().Text;
-                        Console.WriteLine($"Edit Value: {editValue}");
+                        // Check if the Edit control was found
+                        if (editControl != null)
+                        {
+                            // Get the value of the Edit control
+                            string editValue = editControl.AsTextBox().Text;
+                            Console.WriteLine($"Edit Value: {editValue}");
+                            break; // Exit the loop since we found the Edit control associated with the Text control
+                        }
+                        else
+                        {
+                            Console.WriteLine("Edit control not found associated with the Text control.");
+                        }
                     }
-                    else
-                    {
-                        Console.WriteLine("Edit control not found associated with the Text control.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Text control not found within the Group.");
                 }
             }
             else
