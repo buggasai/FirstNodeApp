@@ -1,6 +1,7 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using System.Collections.Generic;
 
 class Program
 {
@@ -9,6 +10,9 @@ class Program
         // Create a FlaUI automation object
         using (var automation = new UIA3Automation())
         {
+            // Dictionary to store key-value pairs of child names and edit values
+            var childEditValues = new Dictionary<string, string>();
+
             // Find the window or container that contains the Group
             var window = automation.GetDesktop(); // Example: Use GetDesktop() to search the entire desktop
             var group = window.FindFirstDescendant(cf => cf.ByText("Group Name")); // Replace "Group Name" with the actual name of the Group
@@ -23,18 +27,20 @@ class Program
                 foreach (var child in children)
                 {
                     // Check if the child is a Text control
-                    if (child.Properties.Name == "Text Control Name") // Replace "Text Control Name" with the actual name of the Text control within the Group
+                    if (child.Properties.ControlType == ControlType.Text) // Check if it's a Text control
                     {
                         // Find the associated Edit control (assuming it's the next child element)
-                        var editControl = children.FirstOrDefault(c => c.Properties.Name == "Edit Control Name"); // Replace "Edit Control Name" with the actual name of the Edit control associated with the Text control
+                        var editControl = children.FirstOrDefault(c => c.Properties.ControlType == ControlType.Edit); // Find the corresponding Edit control
 
                         // Check if the Edit control was found
                         if (editControl != null)
                         {
                             // Get the value of the Edit control
                             string editValue = editControl.AsTextBox().Text;
-                            Console.WriteLine($"Edit Value: {editValue}");
-                            break; // Exit the loop since we found the Edit control associated with the Text control
+
+                            // Add the key-value pair to the dictionary
+                            childEditValues[child.Properties.Name] = editValue;
+                            Console.WriteLine($"Added key-value pair: Key='{child.Properties.Name}', Value='{editValue}'");
                         }
                         else
                         {
