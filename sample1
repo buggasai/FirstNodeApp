@@ -1,7 +1,12 @@
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Definitions;
+using System;
 using System.Collections.Generic;
+
+// Define a class representing the object
+public class ChildEditValue
+{
+    public string Key { get; set; }
+    public string Value { get; set; }
+}
 
 class Program
 {
@@ -10,8 +15,8 @@ class Program
         // Create a FlaUI automation object
         using (var automation = new UIA3Automation())
         {
-            // Dictionary to store key-value pairs of child names and edit values
-            var childEditValues = new Dictionary<string, string>();
+            // List to store objects representing key-value pairs
+            var childEditValuesList = new List<ChildEditValue>();
 
             // Find the window or container that contains the Group
             var window = automation.GetDesktop(); // Example: Use GetDesktop() to search the entire desktop
@@ -38,17 +43,16 @@ class Program
                             // Get the value of the Edit control
                             string editValue = editControl.AsTextBox().Text;
 
-                            // Check if the value is not a duplicate
-                            if (!childEditValues.ContainsValue(editValue))
+                            // Create an object representing the key-value pair
+                            var childEditValue = new ChildEditValue
                             {
-                                // Add the key-value pair to the dictionary
-                                childEditValues[child.Properties.Name] = editValue;
-                                Console.WriteLine($"Added key-value pair: Key='{child.Properties.Name}', Value='{editValue}'");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Skipping duplicate value: '{editValue}'");
-                            }
+                                Key = child.Properties.Name,
+                                Value = editValue
+                            };
+
+                            // Add the object to the list
+                            childEditValuesList.Add(childEditValue);
+                            Console.WriteLine($"Added object to list: Key='{childEditValue.Key}', Value='{childEditValue.Value}'");
                         }
                         else
                         {
