@@ -1,47 +1,41 @@
+using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Conditions;
 using FlaUI.Core.Definitions;
-using FlaUI.Core.Tools;
 
-// Attach to the running application
-var app = Application.Attach("YourApplicationName");
-
-// Find the main window
-var mainWindow = app.GetMainWindow();
-
-// Define a method to explore child elements recursively
-void ExploreElements(AutomationElement parentElement)
+class Program
 {
-    // Access child elements within the parent element
-    var childElements = parentElement.FindAllChildren();
-
-    foreach (var childElement in childElements)
+    static void Main()
     {
-        // Inspect properties of each child element
-        string name = childElement.Properties.Name.ValueOrDefault;
-        string automationId = childElement.Properties.AutomationId.ValueOrDefault;
-        string controlType = childElement.ControlType.ToString();
-
-        // Print out properties for debugging
-        Console.WriteLine($"Name: {name}, AutomationId: {automationId}, ControlType: {controlType}");
-
-        // Recursively explore child elements if the control type is Pane
-        if (childElement.ControlType == ControlType.Pane)
+        // Create a FlaUI automation object
+        using (var automation = new UIA3Automation())
         {
-            ExploreElements(childElement);
+            // Find the window with the specified title
+            var condition = new PropertyCondition(AutomationElementIdentifiers.NameProperty, "TheadwaitDiallogwindow");
+            var window = automation.GetDesktop().FindFirst(TreeScope.Children, condition);
+
+            // Check if the window was found
+            if (window != null)
+            {
+                // Find the textbox element in the window
+                var textBox = window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit));
+
+                // Check if the textbox was found
+                if (textBox != null)
+                {
+                    // Get the value of the textbox
+                    string textBoxValue = textBox.Patterns.Value.Pattern.Value;
+                    Console.WriteLine($"Textbox Value: {textBoxValue}");
+                }
+                else
+                {
+                    Console.WriteLine("Textbox not found in the window.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Window not found.");
+            }
         }
     }
-}
-
-// Find the first level of pane element
-var mainPane = mainWindow.FindFirstChild(x => x.ByControlType(ControlType.Pane));
-
-if (mainPane != null)
-{
-    // Explore child elements recursively starting from the main pane
-    ExploreElements(mainPane);
-}
-else
-{
-    Console.WriteLine("Main pane element not found.");
 }
