@@ -10,31 +10,28 @@ class Program
         // Create a FlaUI automation object
         using (var automation = new UIA3Automation())
         {
+            // Find all windows on the desktop
+            var desktop = automation.GetDesktop();
+            var windows = desktop.FindAll(TreeScope.Children, Condition.TrueCondition);
+
+            // Print titles of all windows found on the desktop (for debugging)
+            foreach (var window in windows)
+            {
+                Console.WriteLine($"Window Title: {window.Properties.Name}");
+            }
+
             // Find the window with the specified title
-            var condition = new PropertyCondition(PropertyId.Name, "TheadwaitDiallogwindow");
-            var window = automation.GetDesktop().FindFirst(TreeScope.Children, condition);
+            var condition = new PropertyCondition(AutomationObjectIds.NameProperty, "TheadwaitDiallogwindow");
+            var window = desktop.FindFirst(TreeScope.Children, condition);
 
             // Check if the window was found
             if (window != null)
             {
-                // Find the textbox element in the window
-                var textBox = window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit));
-
-                // Check if the textbox was found
-                if (textBox != null)
-                {
-                    // Get the value of the textbox
-                    string textBoxValue = textBox.AsTextBox().Text;
-                    Console.WriteLine($"Textbox Value: {textBoxValue}");
-                }
-                else
-                {
-                    Console.WriteLine("Textbox not found in the window.");
-                }
+                // Continue with the rest of the code
             }
             else
             {
-                Console.WriteLine("Window not found.");
+                Console.WriteLine("Window not found. Make sure the application is running and the window is open.");
             }
         }
     }
