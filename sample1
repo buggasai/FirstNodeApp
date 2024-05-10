@@ -1,6 +1,5 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.AutomationElements.Infrastructure;
 using FlaUI.Core.Conditions;
 using FlaUI.Core.Definitions;
 
@@ -12,7 +11,7 @@ class Program
         using (var automation = new UIA3Automation())
         {
             // Find the window with the specified title
-            var condition = new PropertyCondition(AutomationObjectIds.NameProperty, "TheadwaitDiallogwindow");
+            var condition = new PropertyCondition(PropertyId.Name, "TheadwaitDiallogwindow");
             var window = automation.GetDesktop().FindFirst(TreeScope.Children, condition);
 
             // Check if the window was found
