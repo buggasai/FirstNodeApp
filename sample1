@@ -1,38 +1,28 @@
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Conditions;
-using FlaUI.Core.Definitions;
-
-class Program
+// Assuming you have a reference to the Group element stored in a variable called 'groupElement'
+var textElements = groupElement.FindFirstDescendants(cf => cf.ControlType == ControlType.Text);
+foreach (var textElement in textElements)
 {
-    static void Main()
+    // Access the Text property of the Text element
+    var textValue = textElement.Name; // You can also use .Text property depending on the implementation
+
+    // Compare the textValue with your desired text
+    if (textValue == "Your desired text")
     {
-        // Create a FlaUI automation object
-        using (var automation = new UIA3Automation())
-        {
-            // Find all windows on the desktop
-            var desktop = automation.GetDesktop();
-            var windows = desktop.FindAll(TreeScope.Children, Condition.TrueCondition);
-
-            // Print titles of all windows found on the desktop (for debugging)
-            foreach (var window in windows)
-            {
-                Console.WriteLine($"Window Title: {window.Properties.Name}");
-            }
-
-            // Find the window with the specified title
-            var condition = new PropertyCondition(AutomationObjectIds.NameProperty, "TheadwaitDiallogwindow");
-            var window = desktop.FindFirst(TreeScope.Children, condition);
-
-            // Check if the window was found
-            if (window != null)
-            {
-                // Continue with the rest of the code
-            }
-            else
-            {
-                Console.WriteLine("Window not found. Make sure the application is running and the window is open.");
-            }
-        }
+        // Text match found!
+        break;
     }
+}
+// Assuming the loop identified a match and you're inside the loop
+var siblingEdit = textElement.FindFirstSibling(cf => cf.ControlType == ControlType.Edit);
+
+if (siblingEdit != null)
+{
+    // Access the Value property of the Edit element
+    var editValue = siblingEdit.Value;
+    Console.WriteLine($"Edit value for '{textValue}': {editValue}");
+    break;
+}
+else
+{
+    Console.WriteLine($"No Edit element found for '{textValue}'");
 }
