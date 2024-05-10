@@ -38,9 +38,17 @@ class Program
                             // Get the value of the Edit control
                             string editValue = editControl.AsTextBox().Text;
 
-                            // Add the key-value pair to the dictionary
-                            childEditValues[child.Properties.Name] = editValue;
-                            Console.WriteLine($"Added key-value pair: Key='{child.Properties.Name}', Value='{editValue}'");
+                            // Check if the value is not a duplicate
+                            if (!childEditValues.ContainsValue(editValue))
+                            {
+                                // Add the key-value pair to the dictionary
+                                childEditValues[child.Properties.Name] = editValue;
+                                Console.WriteLine($"Added key-value pair: Key='{child.Properties.Name}', Value='{editValue}'");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Skipping duplicate value: '{editValue}'");
+                            }
                         }
                         else
                         {
