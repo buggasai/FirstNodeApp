@@ -1,58 +1,51 @@
+using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
-using FlaUI.UIA3;
+using FlaUI.Core.Definitions;
 
-// Assuming you have a reference to the automation element where your search starts (e.g., the main window)
-var rootElement = new UIA3Automation().GetRootElement();
-
-// Replace with the AutomationId or other unique identifier of your Group element
-string groupElementId = "YourGroupElementId";
-
-// Try finding the Group element by AutomationId first
-var groupElement = rootElement.FindFirstDescendant(cf => cf.AutomationId == groupElementId);
-
-// If not found by AutomationId, try searching using other properties (optional)
-if (groupElement == null)
+class Program
 {
-    // Replace with appropriate property values based on your UI structure
-    string groupName = "YourGroupName";
-    string groupClassName = "YourGroupClassName";
-
-    groupElement = rootElement.FindFirstDescendant(cf =>
-        cf.Name == groupName || cf.ClassName == groupClassName);
-}
-
-if (groupElement != null)
-{
-    // Text value you want to match within the Group
-    string desiredText = "Your desired text";
-
-    // Find all child Text elements within the Group
-    var textElements = groupElement.FindFirstDescendants(cf => cf.ControlType == ControlType.Text);
-
-    foreach (var textElement in textElements)
+    static void Main()
     {
-        var textValue = textElement.Name; // You can also use .Text property depending on the implementation
-
-        if (textValue == desiredText)
+        // Create a FlaUI automation object
+        using (var automation = new UIA3Automation())
         {
-            // Text match found! Find the sibling Edit element
-            var siblingEdit = textElement.FindFirstSibling(cf => cf.ControlType == ControlType.Edit);
+            // Find the window or container that contains the Group
+            var window = automation.GetDesktop(); // Example: Use GetDesktop() to search the entire desktop
+            var group = window.FindFirstDescendant(cf => cf.ByText("Group Name")); // Replace "Group Name" with the actual name of the Group
 
-            if (siblingEdit != null)
+            // Check if the Group was found
+            if (group != null)
             {
-                var editValue = siblingEdit.Value;
-                Console.WriteLine($"Edit value for '{textValue}': {editValue}");
-                break;
+                // Find the Text control within the Group
+                var textControl = group.FindFirstDescendant(cf => cf.ByText("Text Control Name")); // Replace "Text Control Name" with the actual name of the Text control
+
+                // Check if the Text control was found
+                if (textControl != null)
+                {
+                    // Find the associated Edit control (assuming it's the next sibling)
+                    var editControl = textControl.NextSibling.FindFirstChild(cf => cf.ByControlType(ControlType.Edit));
+
+                    // Check if the Edit control was found
+                    if (editControl != null)
+                    {
+                        // Get the value of the Edit control
+                        string editValue = editControl.AsTextBox().Text;
+                        Console.WriteLine($"Edit Value: {editValue}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Edit control not found associated with the Text control.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Text control not found within the Group.");
+                }
             }
             else
             {
-                Console.WriteLine($"No Edit element found for '{textValue}'");
+                Console.WriteLine("Group not found in the window or container.");
             }
-            break;
         }
     }
-}
-else
-{
-    Console.WriteLine("Group element not found!");
 }
