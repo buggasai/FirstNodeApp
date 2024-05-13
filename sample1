@@ -1,70 +1,25 @@
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
 using System;
-using System.Collections.Generic;
-
-// Define a class representing the object
-public class ChildEditValue
-{
-    public string Key { get; set; }
-    public string Value { get; set; }
-}
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        // Create a FlaUI automation object
-        using (var automation = new UIA3Automation())
+        // Initialize FlaUI application
+        var application = Application.AttachOrLaunch(new System.Diagnostics.ProcessStartInfo
         {
-            // List to store objects representing key-value pairs
-            var childEditValuesList = new List<ChildEditValue>();
+            FileName = "YourApplication.exe" // Replace this with the path to your application executable
+        });
 
-            // Find the window or container that contains the Group
-            var window = automation.GetDesktop(); // Example: Use GetDesktop() to search the entire desktop
-            var group = window.FindFirstDescendant(cf => cf.ByText("Group Name")); // Replace "Group Name" with the actual name of the Group
+        // Get the main window of the application
+        var window = application.GetMainWindow(TimeSpan.FromSeconds(10)); // Adjust the timeout as needed
 
-            // Check if the Group was found
-            if (group != null)
-            {
-                // Find all child elements within the Group
-                var children = group.FindAllChildren();
+        // Find the close button element
+        var closeButton = window.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button).And(cf.ByName("Close")));
 
-                // Loop through each child element
-                foreach (var child in children)
-                {
-                    // Check if the child is a Text control
-                    if (child.Properties.ControlType == ControlType.Text) // Check if it's a Text control
-                    {
-                        // Find the associated Edit control (assuming it's the next child element)
-                        var editControl = children.FirstOrDefault(c => c.Properties.ControlType == ControlType.Edit); // Find the corresponding Edit control
-
-                        // Check if the Edit control was found
-                        if (editControl != null)
-                        {
-                            // Get the value of the Edit control
-                            string editValue = editControl.AsTextBox().Text;
-
-                            // Create an object representing the key-value pair
-                            var childEditValue = new ChildEditValue
-                            {
-                                Key = child.Properties.Name,
-                                Value = editValue
-                            };
-
-                            // Add the object to the list
-                            childEditValuesList.Add(childEditValue);
-                            Console.WriteLine($"Added object to list: Key='{childEditValue.Key}', Value='{childEditValue.Value}'");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Edit control not found associated with the Text control.");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("Group not found in the window or container.");
-            }
-        }
+        // Click on the close button
+        closeButton?.Click();
     }
 }
