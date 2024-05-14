@@ -1,25 +1,21 @@
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Input;
-using System;
+using System.Threading;
 
-class Program
+// Example special characters
+string specialCharacters = "!@#$%^&*()_+{}|:\"<>?";
+
+// Loop through each special character and type it
+foreach (char c in specialCharacters)
 {
-    static void Main(string[] args)
-    {
-        // Initialize FlaUI application
-        var application = Application.AttachOrLaunch(new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "YourApplication.exe" // Replace this with the path to your application executable
-        });
+    // Use Keyboard.Type to type each special character
+    Keyboard.Type(c.ToString());
 
-        // Get the main window of the application
-        var window = application.GetMainWindow(TimeSpan.FromSeconds(10)); // Adjust the timeout as needed
-
-        // Find the close button element
-        var closeButton = window.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button).And(cf.ByName("Close")));
-
-        // Click on the close button
-        closeButton?.Click();
-    }
+    // Add a small delay between each character to simulate human typing speed
+    Thread.Sleep(100); // Adjust the delay as needed
 }
+
+// Optionally, you can use Keyboard.Press for individual keys if needed
+// For example:
+// Keyboard.Press(VirtualKeyShort.Shift);
+// Keyboard.Press(VirtualKeyShort.Number1); // Types !
+// Keyboard.Release(VirtualKeyShort.Shift);
