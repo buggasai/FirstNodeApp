@@ -1,21 +1,20 @@
+using FlaUI.Core;
 using FlaUI.Core.Input;
 using System.Threading;
 
-// Example special characters
-string specialCharacters = "!@#$%^&*()_+{}|:\"<>?";
+// Example string with special characters interspersed
+string stringWithSpecialCharacters = "abc!@def#$ghi%^jkl";
 
-// Loop through each special character and type it
-foreach (char c in specialCharacters)
-{
-    // Use Keyboard.Type to type each special character
-    Keyboard.Type(c.ToString());
+// Set the string to the clipboard
+Clipboard.SetText(stringWithSpecialCharacters);
 
-    // Add a small delay between each character to simulate human typing speed
-    Thread.Sleep(100); // Adjust the delay as needed
-}
+// Simulate Ctrl+V to paste the clipboard content
+Keyboard.Press(VirtualKeyShort.CONTROL);
+Keyboard.Type(VirtualKeyShort.V);
+Keyboard.Release(VirtualKeyShort.CONTROL);
 
-// Optionally, you can use Keyboard.Press for individual keys if needed
-// For example:
-// Keyboard.Press(VirtualKeyShort.Shift);
-// Keyboard.Press(VirtualKeyShort.Number1); // Types !
-// Keyboard.Release(VirtualKeyShort.Shift);
+// Add a small delay to ensure the paste operation is successful
+Thread.Sleep(100); // Adjust the delay as needed
+
+// Optionally, clear the clipboard content after typing
+Clipboard.Clear();
