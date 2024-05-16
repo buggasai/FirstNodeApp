@@ -1,20 +1,30 @@
 using FlaUI.Core;
+using FlaUI.UIA3;
 using FlaUI.Core.Input;
-using System.Threading;
 
-// Example string with special characters interspersed
-string stringWithSpecialCharacters = "abc!@def#$ghi%^jkl";
+namespace FlaUIExample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Create an automation object
+            using (var automation = new UIA3Automation())
+            {
+                // Find the window you want to interact with (replace with your window's title or other identifying method)
+                var app = Application.Launch("notepad.exe");
+                var mainWindow = app.GetMainWindow(automation);
 
-// Set the string to the clipboard
-Clipboard.SetText(stringWithSpecialCharacters);
+                // Focus the window
+                mainWindow.Focus();
 
-// Simulate Ctrl+V to paste the clipboard content
-Keyboard.Press(VirtualKeyShort.CONTROL);
-Keyboard.Type(VirtualKeyShort.V);
-Keyboard.Release(VirtualKeyShort.CONTROL);
+                // Simulate F2 key press
+                Keyboard.Press(VirtualKeyShort.F2);
+                Keyboard.Release(VirtualKeyShort.F2);
 
-// Add a small delay to ensure the paste operation is successful
-Thread.Sleep(100); // Adjust the delay as needed
-
-// Optionally, clear the clipboard content after typing
-Clipboard.Clear();
+                // Close the application
+                app.Close();
+            }
+        }
+    }
+}
