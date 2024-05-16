@@ -1,30 +1,18 @@
-using FlaUI.Core;
-using FlaUI.UIA3;
-using FlaUI.Core.Input;
+using System;
+using System.IO;
+using System.Reflection;
 
-namespace FlaUIExample
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            // Create an automation object
-            using (var automation = new UIA3Automation())
-            {
-                // Find the window you want to interact with (replace with your window's title or other identifying method)
-                var app = Application.Launch("notepad.exe");
-                var mainWindow = app.GetMainWindow(automation);
+        // Get the directory of the executing assembly
+        string assemblyLocation = Assembly.GetExecutingAssembly().Location;
+        string assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
 
-                // Focus the window
-                mainWindow.Focus();
+        // Combine the assembly directory with your folder path
+        string folderPath = Path.Combine(assemblyDirectory, "YourFolderName");
 
-                // Simulate F2 key press
-                Keyboard.Press(VirtualKeyShort.F2);
-                Keyboard.Release(VirtualKeyShort.F2);
-
-                // Close the application
-                app.Close();
-            }
-        }
+        Console.WriteLine(folderPath);
     }
 }
