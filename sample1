@@ -1,18 +1,44 @@
 using System;
-using System.IO;
-using System.Reflection;
+using FlaUI.Core;
+using FlaUI.Core.Input;
+using FlaUI.UIA3;
+using System.Diagnostics;
+using System.Threading;
 
 class Program
 {
     static void Main(string[] args)
     {
-        // Get the directory of the executing assembly
-        string assemblyLocation = Assembly.GetExecutingAssembly().Location;
-        string assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
+        // Adjust the path to your executable
+        string appPath = @"C:\Path\To\YourApplication.exe"; // Replace with the actual path to your application
 
-        // Combine the assembly directory with your folder path
-        string folderPath = Path.Combine(assemblyDirectory, "YourFolderName");
+        // Launch or attach to the application
+        var application = Application.AttachOrLaunch(new ProcessStartInfo
+        {
+            FileName = appPath
+        });
 
-        Console.WriteLine(folderPath);
+        using (var automation = new UIA3Automation())
+        {
+            // Get the main window of the application
+            var window = application.GetMainWindow(automation, TimeSpan.FromSeconds(10)); // Adjust the timeout as needed
+
+            if (window == null)
+            {
+                Console.WriteLine("Main window not found.");
+                return;
+            }
+
+            // Specify the coordinates you want to click at
+            int xCoordinate = 100; // X coordinate
+            int yCoordinate = 200; // Y coordinate
+
+            // Move the mouse to the specified coordinates and perform a click
+            Mouse.MoveTo(new System.Windows.Point(xCoordinate, yCoordinate));
+            Thread.Sleep(100); // Optional: wait for a moment to ensure the mouse move completes
+            Mouse.Click();
+
+            Console.WriteLine($"Mouse clicked at coordinates ({xCoordinate}, {yCoordinate}).");
+        }
     }
 }
