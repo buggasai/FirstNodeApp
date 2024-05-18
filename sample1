@@ -1,9 +1,8 @@
 using System;
 using FlaUI.Core;
-using FlaUI.Core.Input;
+using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
 using System.Diagnostics;
-using System.Threading;
 
 class Program
 {
@@ -29,16 +28,19 @@ class Program
                 return;
             }
 
-            // Specify the coordinates you want to click at
-            int xCoordinate = 100; // X coordinate
-            int yCoordinate = 200; // Y coordinate
+            // Find the textbox element by its AutomationId or other properties
+            var textBox = window.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
 
-            // Move the mouse to the specified coordinates and perform a click
-            Mouse.MoveTo(new System.Windows.Point(xCoordinate, yCoordinate));
-            Thread.Sleep(100); // Optional: wait for a moment to ensure the mouse move completes
-            Mouse.Click();
-
-            Console.WriteLine($"Mouse clicked at coordinates ({xCoordinate}, {yCoordinate}).");
+            if (textBox != null)
+            {
+                // Retrieve the value from the textbox
+                var textBoxValue = textBox.AsTextBox().Text;
+                Console.WriteLine($"TextBox value: {textBoxValue}");
+            }
+            else
+            {
+                Console.WriteLine("TextBox not found.");
+            }
         }
     }
 }
