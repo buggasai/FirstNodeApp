@@ -28,8 +28,9 @@ class Program
                 return;
             }
 
-            // Find the textbox element by its AutomationId or other properties
-            var textBox = window.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit));
+            // Find the textbox element by its name
+            var textBoxName = "YourTextBoxName"; // Replace with the actual name of the textbox
+            var textBox = window.FindFirstDescendant(cf => cf.ByName(textBoxName).And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit)));
 
             if (textBox != null)
             {
