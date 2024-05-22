@@ -1,62 +1,17 @@
 using System;
-using System.Diagnostics;
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Exceptions;
-using FlaUI.UIA3;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-class Program
+public class TriggerInputs
 {
-    static void Main(string[] args)
-    {
-        // Adjust the path to your executable
-        string appPath = @"C:\Path\To\YourApplication.exe"; // Replace with the actual path to your application
+    [JsonPropertyName("subcategory")]
+    public string Subcategory { get; set; }
 
-        // Launch or attach to the application
-        var application = Application.AttachOrLaunch(new ProcessStartInfo
-        {
-            FileName = appPath
-        });
+    // Add other properties as needed
+}
 
-        using (var automation = new UIA3Automation())
-        {
-            try
-            {
-                // Get the main window of the application
-                var window = application.GetMainWindow(automation, TimeSpan.FromSeconds(10)); // Adjust the timeout as needed
-
-                if (window == null)
-                {
-                    Console.WriteLine("Main window not found.");
-                    return;
-                }
-
-                // Example: Find and click an element with a special character in its name
-                var specialName = "Special&Name"; // Replace with the actual name containing special characters
-                var element = window.FindFirstDescendant(cf => cf.ByName(specialName).And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)));
-
-                if (element != null)
-                {
-                    // Try clicking the element
-                    try
-                    {
-                        element.AsButton().Click();
-                        Console.WriteLine("Element clicked successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to click the element: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Element with the special character name not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-            }
-        }
-    }
+public class Root
+{
+    [JsonPropertyName("triggerInputs")]
+    public TriggerInputs TriggerInputs { get; set; }
 }
