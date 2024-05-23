@@ -1,25 +1,42 @@
 using System;
-using System.Globalization;
+using System.Collections.Generic;
 
 class Program
 {
     static void Main()
     {
-        string inputDate = "05/16/2024"; // Example input date in mm/dd/yyyy format
-
-        // Parse the date string to a DateTime object
-        DateTime parsedDate;
-        if (DateTime.TryParseExact(inputDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+        string input = "This is a long string that should be split into smaller parts if it exceeds thirty characters.";
+        
+        // Call the function to split the string
+        string[] result = SplitStringIfLong(input, 30);
+        
+        // Print the resulting array
+        foreach (var part in result)
         {
-            // Format the DateTime object to a string in dd/MM/yyyy format
-            string outputDate = parsedDate.ToString("dd/MM/yyyy");
+            Console.WriteLine(part);
+        }
+    }
 
-            Console.WriteLine($"Input Date (mm/dd/yyyy): {inputDate}");
-            Console.WriteLine($"Output Date (dd/mm/yyyy): {outputDate}");
+    static string[] SplitStringIfLong(string input, int maxLength)
+    {
+        if (input.Length <= maxLength)
+        {
+            // If the input string is less than or equal to maxLength, return it as a single-element array
+            return new string[] { input };
         }
         else
         {
-            Console.WriteLine("Invalid date format.");
+            // Otherwise, split the string into smaller parts
+            List<string> parts = new List<string>();
+
+            for (int i = 0; i < input.Length; i += maxLength)
+            {
+                // Ensure we don't exceed the string length
+                int length = Math.Min(maxLength, input.Length - i);
+                parts.Add(input.Substring(i, length));
+            }
+
+            return parts.ToArray();
         }
     }
 }
