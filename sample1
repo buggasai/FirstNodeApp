@@ -1,42 +1,48 @@
 using System;
-using System.Collections.Generic;
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.UIA3;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        string input = "This is a long string that should be split into smaller parts if it exceeds thirty characters.";
-        
-        // Call the function to split the string
-        string[] result = SplitStringIfLong(input, 30);
-        
-        // Print the resulting array
-        foreach (var part in result)
+        using (var app = Application.Launch("path_to_your_application.exe"))
         {
-            Console.WriteLine(part);
-        }
-    }
-
-    static string[] SplitStringIfLong(string input, int maxLength)
-    {
-        if (input.Length <= maxLength)
-        {
-            // If the input string is less than or equal to maxLength, return it as a single-element array
-            return new string[] { input };
-        }
-        else
-        {
-            // Otherwise, split the string into smaller parts
-            List<string> parts = new List<string>();
-
-            for (int i = 0; i < input.Length; i += maxLength)
+            using (var automation = new UIA3Automation())
             {
-                // Ensure we don't exceed the string length
-                int length = Math.Min(maxLength, input.Length - i);
-                parts.Add(input.Substring(i, length));
-            }
+                var mainWindow = app.GetMainWindow(automation);
 
-            return parts.ToArray();
+                // Assuming the menu is identified by name or other properties
+                var menuBar = mainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuBar));
+                if (menuBar != null)
+                {
+                    var menuItem = menuBar.FindFirstDescendant(cf => cf.ByName("File"));
+                    if (menuItem != null)
+                    {
+                        var fileMenu = menuItem.AsMenuItem();
+                        fileMenu.Click();
+
+                        var subMenuItem = fileMenu.FindFirstDescendant(cf => cf.ByName("Open"));
+                        if (subMenuItem != null)
+                        {
+                            subMenuItem.AsMenuItem().Click();
+                        }
+                        else
+                        {
+                            Console.WriteLine("SubMenuItem 'Open' not found.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("MenuItem 'File' not found.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("MenuBar not found.");
+                }
+            }
         }
     }
 }
