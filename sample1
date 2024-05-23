@@ -1,56 +1,25 @@
 using System;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using System.Globalization;
 
 class Program
 {
     static void Main()
     {
-        string jsonString = "{\"triggerInputs\":{\"subcategory\":{\"param_value\":\"sai\",\"param_name\":\"Name\"}}}";
+        string inputDate = "05/16/2024"; // Example input date in mm/dd/yyyy format
 
-        // Parse the JSON string into a JsonNode
-        var jsonObject = JsonNode.Parse(jsonString);
-
-        // Find the param_value for the given param_name
-        string paramNameToFind = "Name";
-        string paramValue = FindParamValue(jsonObject, paramNameToFind);
-
-        Console.WriteLine($"param_value for param_name '{paramNameToFind}': {paramValue}");
-    }
-
-    static string FindParamValue(JsonNode node, string paramNameToFind)
-    {
-        if (node is JsonObject jsonObject)
+        // Parse the date string to a DateTime object
+        DateTime parsedDate;
+        if (DateTime.TryParseExact(inputDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
         {
-            foreach (var kvp in jsonObject)
-            {
-                var value = kvp.Value;
-                if (value is JsonObject || value is JsonArray)
-                {
-                    string result = FindParamValue(value, paramNameToFind);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-                else if (kvp.Key == "param_name" && value?.ToString() == paramNameToFind)
-                {
-                    // Assuming param_value is at the same level as param_name
-                    return jsonObject["param_value"]?.ToString() ?? string.Empty;
-                }
-            }
+            // Format the DateTime object to a string in dd/MM/yyyy format
+            string outputDate = parsedDate.ToString("dd/MM/yyyy");
+
+            Console.WriteLine($"Input Date (mm/dd/yyyy): {inputDate}");
+            Console.WriteLine($"Output Date (dd/mm/yyyy): {outputDate}");
         }
-        else if (node is JsonArray jsonArray)
+        else
         {
-            foreach (var item in jsonArray)
-            {
-                string result = FindParamValue(item, paramNameToFind);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
+            Console.WriteLine("Invalid date format.");
         }
-        return null;
     }
 }
