@@ -1,48 +1,39 @@
-using System;
 using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.Core.Conditions;
+using System;
 
 class Program
 {
     static void Main(string[] args)
     {
-        using (var app = Application.Launch("path_to_your_application.exe"))
+        using (var app = Application.Launch("path_to_your_application"))
+        using (var automation = new UIA3Automation())
         {
-            using (var automation = new UIA3Automation())
-            {
-                var mainWindow = app.GetMainWindow(automation);
+            var mainWindow = app.GetMainWindow(automation);
 
-                // Assuming the menu is identified by name or other properties
-                var menuBar = mainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuBar));
-                if (menuBar != null)
-                {
-                    var menuItem = menuBar.FindFirstDescendant(cf => cf.ByName("File"));
-                    if (menuItem != null)
-                    {
-                        var fileMenu = menuItem.AsMenuItem();
-                        fileMenu.Click();
+            // Find the menu
+            var menu = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Menu));
+            if (menu == null) throw new Exception("Menu not found");
 
-                        var subMenuItem = fileMenu.FindFirstDescendant(cf => cf.ByName("Open"));
-                        if (subMenuItem != null)
-                        {
-                            subMenuItem.AsMenuItem().Click();
-                        }
-                        else
-                        {
-                            Console.WriteLine("SubMenuItem 'Open' not found.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("MenuItem 'File' not found.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("MenuBar not found.");
-                }
-            }
+            // Find the 'File' menu item
+            var fileMenu = menu.FindFirstChild(cf => cf.ByText("File"));
+            if (fileMenu == null) throw new Exception("'File' menu item not found");
+
+            fileMenu.Click();
+            System.Threading.Thread.Sleep(500); // Wait for the submenu to appear
+
+            // Find the 'New' menu item
+            var newMenuItem = fileMenu.FindFirstChild(cf => cf.ByText("New"));
+            if (newMenuItem == null) throw new Exception("'New' menu item not found");
+
+            newMenuItem.Click();  // Try to click the new menu item
+
+            // Additional debugging information
+            Console.WriteLine($"File menu: {fileMenu}");
+            Console.WriteLine($"New menu item: {newMenuItem}");
         }
     }
 }
