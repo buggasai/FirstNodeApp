@@ -1,39 +1,37 @@
-using FlaUI.Core;
-using FlaUI.UIA3;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Definitions;
-using FlaUI.Core.Conditions;
 using System;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        using (var app = Application.Launch("path_to_your_application"))
-        using (var automation = new UIA3Automation())
+        string dateString1 = "2024-05-23";
+        string dateString2 = "2023-12-31";
+        
+        // Parse the date strings into DateTime objects
+        DateTime date1;
+        DateTime date2;
+
+        if (DateTime.TryParse(dateString1, out date1) && DateTime.TryParse(dateString2, out date2))
         {
-            var mainWindow = app.GetMainWindow(automation);
-
-            // Find the menu
-            var menu = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Menu));
-            if (menu == null) throw new Exception("Menu not found");
-
-            // Find the 'File' menu item
-            var fileMenu = menu.FindFirstChild(cf => cf.ByText("File"));
-            if (fileMenu == null) throw new Exception("'File' menu item not found");
-
-            fileMenu.Click();
-            System.Threading.Thread.Sleep(500); // Wait for the submenu to appear
-
-            // Find the 'New' menu item
-            var newMenuItem = fileMenu.FindFirstChild(cf => cf.ByText("New"));
-            if (newMenuItem == null) throw new Exception("'New' menu item not found");
-
-            newMenuItem.Click();  // Try to click the new menu item
-
-            // Additional debugging information
-            Console.WriteLine($"File menu: {fileMenu}");
-            Console.WriteLine($"New menu item: {newMenuItem}");
+            // Compare the dates
+            int result = DateTime.Compare(date1, date2);
+            
+            if (result < 0)
+            {
+                Console.WriteLine($"{dateString1} is earlier than {dateString2}");
+            }
+            else if (result == 0)
+            {
+                Console.WriteLine($"{dateString1} is the same as {dateString2}");
+            }
+            else
+            {
+                Console.WriteLine($"{dateString1} is later than {dateString2}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("One or both of the date strings are invalid.");
         }
     }
 }
