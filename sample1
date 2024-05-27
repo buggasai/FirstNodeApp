@@ -4,7 +4,7 @@ using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 using FlaUI.UIA3;
 using System;
-using System.Windows.Forms;
+using System.Windows.Forms; // Add this namespace for Clipboard
 
 namespace FlaUITest
 {
@@ -43,15 +43,16 @@ namespace FlaUITest
                 // Special characters in Polish
                 string specialCharacters = "ąćęłńśźż";
 
+                // Set the clipboard text with special characters
+                System.Windows.Forms.Clipboard.SetText(specialCharacters); // Specify fully qualified name
+
                 // Set focus on the text element
                 textElement.Focus();
 
-                // Simulate typing special characters
-                foreach (char c in specialCharacters)
-                {
-                    Keyboard.Type(c.ToString());
-                    System.Threading.Thread.Sleep(100); // Small delay for reliable input
-                }
+                // Simulate pasting from clipboard
+                Keyboard.Press(VirtualKeyShort.CONTROL);
+                Keyboard.Type(VirtualKeyShort.KEY_V);
+                Keyboard.Release(VirtualKeyShort.CONTROL);
             }
 
             // Close the application after a short delay
