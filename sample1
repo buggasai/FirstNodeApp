@@ -1,5 +1,56 @@
-Clipboard.SetText(specialCharacters);
-filterTextBox.Focus();
-Keyboard.Press(VirtualKeyShort.CONTROL);
-Keyboard.Type(VirtualKeyShort.KEY_V);
-Keyboard.Release(VirtualKeyShort.CONTROL);
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
+using FlaUI.UIA3;
+using System;
+using System.Windows.Forms;
+
+namespace FlaUITest
+{
+    class Program
+    {
+        [STAThread]
+        static void Main(string[] args)
+        {
+            // Start the application you want to automate
+            var app = FlaUI.Core.Application.Launch("notepad.exe");
+
+            // Create an automation instance
+            using (var automation = new UIA3Automation())
+            {
+                // Get the main window of the application
+                var mainWindow = app.GetMainWindow(automation);
+
+                // Find the document control within the window (assuming it's a Document control type)
+                var document = mainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document));
+
+                if (document == null)
+                {
+                    Console.WriteLine("Document control not found!");
+                    return;
+                }
+
+                // Interact with elements within the document control
+                // For example, you can find and interact with text elements within the document
+                var textElement = document.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
+
+                if (textElement == null)
+                {
+                    Console.WriteLine("Text element not found within the document!");
+                    return;
+                }
+
+                // Special characters in Polish
+                string specialCharacters = "ąćęłńśźż";
+
+                // Enter special characters into the text element
+                textElement.Enter(specialCharacters);
+            }
+
+            // Close the application after a short delay
+            System.Threading.Thread.Sleep(2000);
+            app.Close();
+        }
+    }
+}
