@@ -44,8 +44,15 @@ namespace FlaUITest
                 // Special characters in Polish
                 string specialCharacters = "ąćęłńśźż";
 
-                // Enter special characters into the text element
-                textElement.Enter(specialCharacters);
+                // Set focus on the text element
+                textElement.Focus();
+
+                // Simulate typing special characters
+                foreach (char c in specialCharacters)
+                {
+                    Keyboard.Type(c.ToString());
+                    System.Threading.Thread.Sleep(100); // Small delay for reliable input
+                }
             }
 
             // Close the application after a short delay
