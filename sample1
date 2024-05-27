@@ -1,5 +1,5 @@
 using System;
-using System.Text.RegularExpressions;
+using System.Text;
 
 class Program
 {
@@ -12,7 +12,22 @@ class Program
 
     static string GetUnicodeEscapeSequences(string input)
     {
-        string escapedString = Regex.Replace(input, @"[^\x20-\x7E]", m => "\\u" + ((int)m.Value[0]).ToString("x4"));
-        return escapedString;
+        StringBuilder builder = new StringBuilder();
+        foreach (char c in input)
+        {
+            // Check if the character is ASCII or non-ASCII
+            if ((int)c <= 127)
+            {
+                // ASCII characters are appended directly
+                builder.Append(c);
+            }
+            else
+            {
+                // Non-ASCII characters are appended as Unicode escape sequences
+                builder.Append("\\u");
+                builder.Append(((int)c).ToString("x4"));
+            }
+        }
+        return builder.ToString();
     }
 }
