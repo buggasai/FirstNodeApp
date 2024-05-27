@@ -1,63 +1,18 @@
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
-using FlaUI.Core.WindowsAPI;
-using FlaUI.UIA3;
 using System;
-using System.Windows.Forms; // Add this namespace for Clipboard
+using System.Text.RegularExpressions;
 
-namespace FlaUITest
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        [STAThread]
-        static void Main(string[] args)
-        {
-            // Start the application you want to automate
-            var app = FlaUI.Core.Application.Launch("notepad.exe");
+        string input = "hellą"; // Example string with special characters
+        string escapedString = GetUnicodeEscapeSequences(input);
+        Console.WriteLine(escapedString); // Output: \u0068\u0065\u006c\u006c\u0105
+    }
 
-            // Create an automation instance
-            using (var automation = new UIA3Automation())
-            {
-                // Get the main window of the application
-                var mainWindow = app.GetMainWindow(automation);
-
-                // Find the document pane within the window (assuming it's a Pane control type)
-                var documentPane = mainWindow.FindFirstChild(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-
-                if (documentPane == null)
-                {
-                    Console.WriteLine("Document pane not found!");
-                    return;
-                }
-
-                // Find the text element within the document pane (assuming it's a Text control type)
-                var textElement = documentPane.FindFirstChild(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
-
-                if (textElement == null)
-                {
-                    Console.WriteLine("Text element not found within the document pane!");
-                    return;
-                }
-
-                // Special characters in Polish
-                string specialCharacters = "ąćęłńśźż";
-
-                // Set the clipboard text with special characters
-                System.Windows.Forms.Clipboard.SetText(specialCharacters); // Specify fully qualified name
-
-                // Set focus on the text element
-                textElement.Focus();
-
-                // Simulate pasting from clipboard
-                Keyboard.Press(VirtualKeyShort.CONTROL);
-                Keyboard.Type(VirtualKeyShort.KEY_V);
-                Keyboard.Release(VirtualKeyShort.CONTROL);
-            }
-
-            // Close the application after a short delay
-            System.Threading.Thread.Sleep(2000);
-            app.Close();
-        }
+    static string GetUnicodeEscapeSequences(string input)
+    {
+        string escapedString = Regex.Replace(input, @"[^\x20-\x7E]", m => "\\u" + ((int)m.Value[0]).ToString("x4"));
+        return escapedString;
     }
 }
