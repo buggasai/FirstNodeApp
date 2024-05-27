@@ -22,22 +22,21 @@ namespace FlaUITest
                 // Get the main window of the application
                 var mainWindow = app.GetMainWindow(automation);
 
-                // Find the document control within the window (assuming it's a Document control type)
-                var document = mainWindow.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document));
+                // Find the document pane within the window (assuming it's a Pane control type)
+                var documentPane = mainWindow.FindFirstChild(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
 
-                if (document == null)
+                if (documentPane == null)
                 {
-                    Console.WriteLine("Document control not found!");
+                    Console.WriteLine("Document pane not found!");
                     return;
                 }
 
-                // Interact with elements within the document control
-                // For example, you can find and interact with text elements within the document
-                var textElement = document.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
+                // Find the text element within the document pane (assuming it's a Text control type)
+                var textElement = documentPane.FindFirstChild(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text));
 
                 if (textElement == null)
                 {
-                    Console.WriteLine("Text element not found within the document!");
+                    Console.WriteLine("Text element not found within the document pane!");
                     return;
                 }
 
