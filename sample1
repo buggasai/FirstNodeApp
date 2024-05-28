@@ -3,36 +3,51 @@ using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
+using System.Windows.Forms; // Make sure to add a reference to System.Windows.Forms
 
 class Program
 {
+    [STAThread]
     static void Main()
     {
         using (var app = Application.Launch("path_to_your_application"))
         using (var automation = new UIA3Automation())
         {
             var mainWindow = app.GetMainWindow(automation);
-            var document = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Document)).AsTextPattern();
+            var document = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Document));
 
-            if (document != null && document.Patterns.Text != null)
+            if (document != null)
             {
                 var textPattern = document.Patterns.Text.Pattern;
 
-                // Assuming the document supports setting text through ValuePattern
-                if (textPattern.DocumentRange != null)
+                if (textPattern != null)
                 {
-                    // Get the document range and set the text
-                    textPattern.DocumentRange.Select();
-                    textPattern.DocumentRange.Insert("Text with special characters: ąęłżźćńó");
+                    // Example of using the TextPattern to set text
+                    var documentRange = textPattern.DocumentRange;
+                    documentRange.Select();
+                    documentRange.Insert("Text with special characters: ąęłżźćńó");
                 }
                 else
                 {
-                    Console.WriteLine("TextPattern does not support document range operations.");
+                    Console.WriteLine("TextPattern is not supported on this control.");
+
+                    // Alternatively, use Clipboard to paste text
+                    Clipboard.SetText("Text with special characters: ąęłżźćńó");
+
+                    // Set focus on the document control
+                    document.Focus();
+
+                    // Send Ctrl+V to paste the text
+                    var keyboard = automation.GetDesktop().GetKeyboard();
+                    keyboard.Press(VirtualKeyShort.CONTROL);
+                    keyboard.Press(VirtualKeyShort.KEY_V);
+                    keyboard.Release(VirtualKeyShort.KEY_V);
+                    keyboard.Release(VirtualKeyShort.CONTROL);
                 }
             }
             else
             {
-                Console.WriteLine("Document control or TextPattern is not available.");
+                Console.WriteLine("Document control not found.");
             }
         }
     }
