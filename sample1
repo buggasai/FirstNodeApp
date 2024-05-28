@@ -1,18 +1,29 @@
 using System;
-using System.Text.RegularExpressions;
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.UIA3;
+using System.Windows.Forms; // Make sure to add a reference to System.Windows.Forms
 
 class Program
 {
-    static void Main(string[] args)
+    [STAThread]
+    static void Main()
     {
-        string input = "hellą"; // Example string with special characters
-        string escapedString = GetUnicodeEscapeSequences(input);
-        Console.WriteLine(escapedString); // Output: \u0068\u0065\u006c\u006c\u0105
-    }
+        using (var app = Application.Launch("path_to_your_application"))
+        using (var automation = new UIA3Automation())
+        {
+            var mainWindow = app.GetMainWindow(automation);
+            var textBox = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit)).AsTextBox();
 
-    static string GetUnicodeEscapeSequences(string input)
-    {
-        string escapedString = Regex.Replace(input, @"[^\x20-\x7E]", m => "\\u" + ((int)m.Value[0]).ToString("x4"));
-        return escapedString;
+            // Set the clipboard text
+            Clipboard.SetText("Text with special characters: ąęłżźćńó");
+
+            // Set focus on the textbox
+            textBox.Focus();
+
+            // Send Ctrl+V to paste the text
+            textBox.Enter(automation).Actions.Keyboard.Press(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V).Release(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V).Invoke();
+        }
     }
 }
