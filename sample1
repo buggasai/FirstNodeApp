@@ -3,27 +3,37 @@ using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
-using System.Windows.Forms; // Make sure to add a reference to System.Windows.Forms
 
 class Program
 {
-    [STAThread]
     static void Main()
     {
         using (var app = Application.Launch("path_to_your_application"))
         using (var automation = new UIA3Automation())
         {
             var mainWindow = app.GetMainWindow(automation);
-            var textBox = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit)).AsTextBox();
+            var document = mainWindow.FindFirstDescendant(cf => cf.ByControlType(ControlType.Document)).AsTextPattern();
 
-            // Set the clipboard text
-            Clipboard.SetText("Text with special characters: ąęłżźćńó");
+            if (document != null && document.Patterns.Text != null)
+            {
+                var textPattern = document.Patterns.Text.Pattern;
 
-            // Set focus on the textbox
-            textBox.Focus();
-
-            // Send Ctrl+V to paste the text
-            textBox.Enter(automation).Actions.Keyboard.Press(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V).Release(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V).Invoke();
+                // Assuming the document supports setting text through ValuePattern
+                if (textPattern.DocumentRange != null)
+                {
+                    // Get the document range and set the text
+                    textPattern.DocumentRange.Select();
+                    textPattern.DocumentRange.Insert("Text with special characters: ąęłżźćńó");
+                }
+                else
+                {
+                    Console.WriteLine("TextPattern does not support document range operations.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Document control or TextPattern is not available.");
+            }
         }
     }
 }
