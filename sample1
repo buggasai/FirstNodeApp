@@ -4,18 +4,20 @@ class Program
 {
     static void Main(string[] args)
     {
-        string str = "hellą"; // Example string
-        char newChar = 'o'; // Character to replace the last character with
-        string result = ReplaceLastCharacter(str, newChar);
+        string str = "hello"; // Example string
+        int number = 3; // Number to replace the last character with
+        string result = ReplaceLastCharacterWithNumber(str, number);
         Console.WriteLine($"The new string is: '{result}'");
     }
 
-    static string ReplaceLastCharacter(string input, char newChar)
+    static string ReplaceLastCharacterWithNumber(string input, int number)
     {
         if (string.IsNullOrEmpty(input))
         {
             throw new ArgumentException("Input string cannot be null or empty", nameof(input));
         }
+
+        char newChar = number.ToString()[0]; // Convert number to character
 
         char[] charArray = input.ToCharArray();
         charArray[charArray.Length - 1] = newChar;
