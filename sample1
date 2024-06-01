@@ -5,16 +5,20 @@ class Program
     static void Main(string[] args)
     {
         string str = "hellą"; // Example string
-        char lastChar = GetLastCharacter(str);
-        Console.WriteLine($"The last character of the string '{str}' is '{lastChar}'");
+        char newChar = 'o'; // Character to replace the last character with
+        string result = ReplaceLastCharacter(str, newChar);
+        Console.WriteLine($"The new string is: '{result}'");
     }
 
-    static char GetLastCharacter(string input)
+    static string ReplaceLastCharacter(string input, char newChar)
     {
         if (string.IsNullOrEmpty(input))
         {
             throw new ArgumentException("Input string cannot be null or empty", nameof(input));
         }
-        return input[input.Length - 1];
+
+        char[] charArray = input.ToCharArray();
+        charArray[charArray.Length - 1] = newChar;
+        return new string(charArray);
     }
 }
