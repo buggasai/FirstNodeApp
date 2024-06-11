@@ -1,26 +1,57 @@
 using System;
+using Microsoft.Office.Interop.Excel;
 
-class Program
+namespace ExcelManipulation
 {
-    static void Main(string[] args)
+    class Program
     {
-        string str = "hello"; // Example string
-        int number = 3; // Number to replace the last character with
-        string result = ReplaceLastCharacterWithNumber(str, number);
-        Console.WriteLine($"The new string is: '{result}'");
-    }
-
-    static string ReplaceLastCharacterWithNumber(string input, int number)
-    {
-        if (string.IsNullOrEmpty(input))
+        static void Main(string[] args)
         {
-            throw new ArgumentException("Input string cannot be null or empty", nameof(input));
+            Application excelApp = new Application();
+            Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
+            Worksheet worksheet = workbook.Sheets[1];
+
+            // Insert a column after column A
+            Range columnB = worksheet.Columns["B"];
+            columnB.Insert(XlInsertShiftDirection.xlShiftToRight);
+
+            // Insert a column after column D
+            Range columnE = worksheet.Columns["E"];
+            columnE.Insert(XlInsertShiftDirection.xlShiftToRight);
+
+            // Split data in column A and place in the new column B
+            Range columnA = worksheet.Columns["A"];
+            Range newColumnB = worksheet.Columns["B"];
+            for (int i = 1; i <= columnA.Rows.Count; i++)
+            {
+                string cellValue = (string)(columnA.Cells[i, 1] as Range).Value;
+                if (cellValue != null)
+                {
+                    string[] parts = cellValue.Split('/');
+                    if (parts.Length > 1)
+                    {
+                        newColumnB.Cells[i, 1].Value = parts[1];
+                        columnA.Cells[i, 1].Value = parts[0];
+                    }
+                }
+            }
+
+            // Extract the time part from column D and place in the new column E
+            Range columnD = worksheet.Columns["D"];
+            Range newColumnE = worksheet.Columns["E"];
+            for (int i = 1; i <= columnD.Rows.Count; i++)
+            {
+                string cellValue = (string)(columnD.Cells[i, 1] as Range).Value;
+                if (cellValue != null && DateTime.TryParse(cellValue, out DateTime dateTime))
+                {
+                    newColumnE.Cells[i, 1].Value = dateTime.ToString("HH:mm:ss");
+                    columnD.Cells[i, 1].Value = dateTime.ToString("yyyy-MM-dd");
+                }
+            }
+
+            workbook.Save();
+            workbook.Close();
+            excelApp.Quit();
         }
-
-        char newChar = number.ToString()[0]; // Convert number to character
-
-        char[] charArray = input.ToCharArray();
-        charArray[charArray.Length - 1] = newChar;
-        return new string(charArray);
     }
 }
