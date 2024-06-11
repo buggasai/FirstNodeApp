@@ -59,4 +59,35 @@ namespace ExcelManipulation
                         {
                             DateTime dateTime = DateTime.FromOADate(cellValue);
                             worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss"); // Time part in column E
-                            cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in 
+                            cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in column D
+                        }
+                    }
+                }
+
+                // Save the workbook
+                workbook.Save();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
+                if (workbook != null)
+                {
+                    workbook.Close(false);
+                    Marshal.ReleaseComObject(workbook);
+                }
+                if (excelApp != null)
+                {
+                    excelApp.Quit();
+                    Marshal.ReleaseComObject(excelApp);
+                }
+
+                // Ensure to release COM objects
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+    }
+}
