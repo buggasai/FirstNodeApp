@@ -60,6 +60,10 @@ namespace ExcelManipulation
                             DateTime dateTime = DateTime.FromOADate((double)cellD.Value2);
                             worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss"); // Time part in column E
                             cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in column D
+
+                            // Format cells appropriately
+                            cellD.NumberFormat = "yyyy-mm-dd";
+                            worksheet.Cells[i, 5].NumberFormat = "HH:mm:ss";
                         }
                     }
                 }
