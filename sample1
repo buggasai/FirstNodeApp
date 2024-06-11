@@ -1,97 +1,45 @@
 using System;
-using System.Runtime.InteropServices;
-using Microsoft.Office.Interop.Excel;
+using Excel = Microsoft.Office.Interop.Excel;
 
-namespace ExcelManipulation
+class Program
 {
-    class Program
+    static void Main()
     {
-        static void Main(string[] args)
-        {
-            Application excelApp = null;
-            Workbook workbook = null;
-            Worksheet worksheet = null;
+        // Start Excel application
+        Excel.Application excelApp = new Excel.Application();
+        
+        // Make Excel visible (optional)
+        excelApp.Visible = true;
 
-            try
-            {
-                excelApp = new Application();
-                excelApp.Visible = true; // Make Excel visible
+        // Open the Excel file
+        string filePath = "your_excel_file.xlsx";
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
 
-                workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
-                worksheet = (Worksheet)workbook.Sheets[1];
+        // Insert a new column before column A
+        Excel.Range columnA = worksheet.Columns["A"];
+        columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
 
-                // Insert a column after column A
-                Range columnB = worksheet.Columns["B"];
-                columnB.Insert(XlInsertShiftDirection.xlShiftToRight);
+        // Copy values from the original column A to the new column A
+        Excel.Range originalColumnA = worksheet.Columns["B"]; // Original data is now in column B
+        Excel.Range newColumnA = worksheet.Columns["A"];
+        originalColumnA.Copy(newColumnA);
 
-                // Insert a column after column D
-                Range columnE = worksheet.Columns["E"];
-                columnE.Insert(XlInsertShiftDirection.xlShiftToRight);
+        // Save the changes
+        workbook.Save();
 
-                // Get the used range of the worksheet
-                Range usedRange = worksheet.UsedRange;
-                int rowCount = usedRange.Rows.Count;
+        // Cleanup
+        workbook.Close(false);
+        excelApp.Quit();
+        
+        // Release COM objects
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(newColumnA);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(originalColumnA);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(columnA);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
 
-                // Split data in column A and place in the new column B
-                for (int i = 1; i <= rowCount; i++)
-                {
-                    Range cellA = worksheet.Cells[i, 1] as Range;
-                    if (cellA != null && cellA.Value2 != null)
-                    {
-                        string cellValue = cellA.Value2.ToString();
-                        string[] parts = cellValue.Split('/');
-                        if (parts.Length > 1)
-                        {
-                            worksheet.Cells[i, 2].Value2 = parts[1];
-                            cellA.Value2 = parts[0];
-                        }
-                    }
-                }
-
-                // Extract the time part from column D and place in the new column E
-                for (int i = 1; i <= rowCount; i++)
-                {
-                    Range cellD = worksheet.Cells[i, 4] as Range;
-                    if (cellD != null && cellD.Value2 != null)
-                    {
-                        // Check if the value is a double (Excel's date-time format)
-                        if (cellD.Value2 is double)
-                        {
-                            DateTime dateTime = DateTime.FromOADate((double)cellD.Value2);
-                            worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss"); // Time part in column E
-                            cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in column D
-
-                            // Format cells appropriately
-                            cellD.NumberFormat = "yyyy-mm-dd";
-                            worksheet.Cells[i, 5].NumberFormat = "HH:mm:ss";
-                        }
-                    }
-                }
-
-                // Save the workbook
-                workbook.Save();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-            finally
-            {
-                if (workbook != null)
-                {
-                    workbook.Close(false);
-                    Marshal.ReleaseComObject(workbook);
-                }
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    Marshal.ReleaseComObject(excelApp);
-                }
-
-                // Ensure to release COM objects
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-        }
+        Console.WriteLine("Operation completed successfully.");
     }
 }
