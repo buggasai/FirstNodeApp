@@ -15,6 +15,8 @@ namespace ExcelManipulation
             try
             {
                 excelApp = new Application();
+                excelApp.Visible = true; // Make Excel visible
+
                 workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
                 worksheet = (Worksheet)workbook.Sheets[1];
 
@@ -52,15 +54,14 @@ namespace ExcelManipulation
                     Range cellD = worksheet.Cells[i, 4] as Range;
                     if (cellD != null && cellD.Value2 != null)
                     {
-                        string cellValue = cellD.Value2.ToString();
-                        if (DateTime.TryParse(cellValue, out DateTime dateTime))
-                        {
-                            worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss");
-                            cellD.Value2 = dateTime.ToString("yyyy-MM-dd");
-                        }
+                        double cellValue = cellD.Value2; // Excel stores dates as double
+                        DateTime dateTime = DateTime.FromOADate(cellValue);
+                        worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss");
+                        cellD.Value2 = dateTime.ToString("yyyy-MM-dd");
                     }
                 }
 
+                // Save the workbook
                 workbook.Save();
             }
             catch (Exception ex)
@@ -78,4 +79,12 @@ namespace ExcelManipulation
                 {
                     excelApp.Quit();
                     Marshal.ReleaseComObject(excelApp);
-            
+                }
+
+                // Ensure to release COM objects
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+    }
+}
