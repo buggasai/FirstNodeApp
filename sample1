@@ -54,10 +54,14 @@ namespace ExcelManipulation
                     Range cellD = worksheet.Cells[i, 4] as Range;
                     if (cellD != null && cellD.Value2 != null)
                     {
-                        // If cellD contains a valid date-time value, it should be treated as a double
-                        if (double.TryParse(cellD.Value2.ToString(), out double cellValue))
+                        if (cellD.Value2 is double)
                         {
-                            DateTime dateTime = DateTime.FromOADate(cellValue);
+                            DateTime dateTime = DateTime.FromOADate((double)cellD.Value2);
+                            worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss"); // Time part in column E
+                            cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in column D
+                        }
+                        else if (DateTime.TryParse(cellD.Value2.ToString(), out DateTime dateTime))
+                        {
                             worksheet.Cells[i, 5].Value2 = dateTime.ToString("HH:mm:ss"); // Time part in column E
                             cellD.Value2 = dateTime.ToString("yyyy-MM-dd"); // Date part remains in column D
                         }
