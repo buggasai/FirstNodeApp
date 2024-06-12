@@ -6,44 +6,68 @@ class Program
 {
     static void Main(string[] args)
     {
-        string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "SheetToDeleteData";
+        string sourceFilePath = @"C:\path\to\source\file.xlsx";
+        string sourceSheetName = "SourceSheet";
+        string targetFilePath = @"C:\path\to\target\file.xlsx";
+        string targetSheetName = "TargetSheet";
 
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = null;
+        Excel.Workbook sourceWorkbook = null;
+        Excel.Workbook targetWorkbook = null;
+        Excel.Worksheet sourceWorksheet = null;
+        Excel.Worksheet targetWorksheet = null;
 
         try
         {
-            foreach (Excel.Worksheet sheet in workbook.Sheets)
-            {
-                if (sheet.Name == sheetName)
-                {
-                    worksheet = sheet;
-                    break;
-                }
-            }
+            // Open the source workbook
+            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+            sourceWorksheet = sourceWorkbook.Sheets[sourceSheetName] as Excel.Worksheet;
 
-            if (worksheet != null)
+            // Open the target workbook
+            targetWorkbook = excelApp.Workbooks.Open(targetFilePath);
+            targetWorksheet = targetWorkbook.Sheets[targetSheetName] as Excel.Worksheet;
+
+            if (sourceWorksheet != null && targetWorksheet != null)
             {
-                worksheet.Cells.ClearContents(); // Clear all data in the worksheet
-                workbook.Save();
-                Console.WriteLine($"Data in sheet '{sheetName}' has been deleted.");
+                // Copy all used range from source worksheet
+                Excel.Range sourceRange = sourceWorksheet.UsedRange;
+                sourceRange.Copy();
+
+                // Paste into the target worksheet starting at cell A1
+                Excel.Range targetRange = targetWorksheet.Cells[1, 1] as Excel.Range;
+                targetRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
+
+                // Optional: Clear clipboard
+                excelApp.CutCopyMode = Excel.XlCutCopyMode.xlCopy;
+
+                // Save the target workbook
+                targetWorkbook.Save();
+                Console.WriteLine("Data copied successfully from source to target.");
             }
             else
             {
-                Console.WriteLine($"Sheet with name '{sheetName}' not found.");
+                Console.WriteLine("Source or target sheet not found.");
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
         finally
         {
-            workbook.Close(false);
+            // Clean up
+            if (sourceWorkbook != null)
+            {
+                sourceWorkbook.Close(false);
+                Marshal.ReleaseComObject(sourceWorkbook);
+            }
+            if (targetWorkbook != null)
+            {
+                targetWorkbook.Close(false);
+                Marshal.ReleaseComObject(targetWorkbook);
+            }
             excelApp.Quit();
-
-            // Release COM objects
-            Marshal.ReleaseComObject(workbook);
             Marshal.ReleaseComObject(excelApp);
-            if (worksheet != null) Marshal.ReleaseComObject(worksheet);
         }
     }
 }
