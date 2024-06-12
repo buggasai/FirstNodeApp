@@ -1,45 +1,49 @@
 using System;
+using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        // Start Excel application
+        string filePath = @"C:\path\to\your\file.xlsx";
+        string sheetName = "SheetToDeleteData";
+
         Excel.Application excelApp = new Excel.Application();
-        
-        // Make Excel visible (optional)
-        excelApp.Visible = true;
-
-        // Open the Excel file
-        string filePath = "your_excel_file.xlsx";
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
+        Excel.Worksheet worksheet = null;
 
-        // Insert a new column before column A
-        Excel.Range columnA = worksheet.Columns["A"];
-        columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+        try
+        {
+            foreach (Excel.Worksheet sheet in workbook.Sheets)
+            {
+                if (sheet.Name == sheetName)
+                {
+                    worksheet = sheet;
+                    break;
+                }
+            }
 
-        // Copy values from the original column A to the new column A
-        Excel.Range originalColumnA = worksheet.Columns["B"]; // Original data is now in column B
-        Excel.Range newColumnA = worksheet.Columns["A"];
-        originalColumnA.Copy(newColumnA);
+            if (worksheet != null)
+            {
+                worksheet.Cells.ClearContents(); // Clear all data in the worksheet
+                workbook.Save();
+                Console.WriteLine($"Data in sheet '{sheetName}' has been deleted.");
+            }
+            else
+            {
+                Console.WriteLine($"Sheet with name '{sheetName}' not found.");
+            }
+        }
+        finally
+        {
+            workbook.Close(false);
+            excelApp.Quit();
 
-        // Save the changes
-        workbook.Save();
-
-        // Cleanup
-        workbook.Close(false);
-        excelApp.Quit();
-        
-        // Release COM objects
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(newColumnA);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(originalColumnA);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(columnA);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-
-        Console.WriteLine("Operation completed successfully.");
+            // Release COM objects
+            Marshal.ReleaseComObject(workbook);
+            Marshal.ReleaseComObject(excelApp);
+            if (worksheet != null) Marshal.ReleaseComObject(worksheet);
+        }
     }
 }
