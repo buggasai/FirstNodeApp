@@ -29,13 +29,29 @@ class Program
 
             if (sourceWorksheet != null && targetWorksheet != null)
             {
+                // Insert two new columns before column A in the target worksheet
+                Excel.Range columnA = targetWorksheet.Columns["A"];
+                columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+                columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+
                 // Copy all used range from source worksheet
                 Excel.Range sourceRange = sourceWorksheet.UsedRange;
                 sourceRange.Copy();
 
-                // Paste into the target worksheet starting at cell A1
-                Excel.Range targetRange = targetWorksheet.Cells[1, 1] as Excel.Range;
+                // Paste into the target worksheet starting at cell C1
+                Excel.Range targetRange = targetWorksheet.Cells[1, 3] as Excel.Range;
                 targetRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
+
+                // Find the last used row in the target worksheet's column C (original column A)
+                int lastRow = targetWorksheet.Cells[targetWorksheet.Rows.Count, "C"].End(Excel.XlDirection.xlUp).Row;
+
+                // Populate the new column A with the formula ="" where column B has values
+                Excel.Range newColumnA = targetWorksheet.Range["A1", $"A{lastRow}"];
+                Excel.Range newColumnB = targetWorksheet.Range["B1", $"B{lastRow}"];
+                
+                // Setting formulas to entire columns A and B
+                newColumnA.Formula = "=IF(C1<>\"\", \"\", \"\")"; // Adjust the formula as necessary
+                newColumnB.Formula = "=IF(C1<>\"\", \"\", \"\")"; // Adjust the formula as necessary
 
                 // Optional: Clear clipboard
                 excelApp.CutCopyMode = Excel.XlCutCopyMode.xlCopy;
