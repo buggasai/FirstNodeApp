@@ -40,27 +40,18 @@ class Program
             int totalRows = sourceUsedRange.Rows.Count;
             int totalColumns = sourceUsedRange.Columns.Count;
 
-            // Copy data from the source to the destination cell by cell
+            // Copy data and formats row by row from source to destination
             for (int row = 1; row <= totalRows; row++)
             {
-                for (int col = 1; col <= totalColumns; col++)
-                {
-                    Excel.Range sourceCell = sourceWorksheet.Cells[row, col];
-                    Excel.Range destinationCell = destinationWorksheet.Cells[row, col];
-                    destinationCell.Value = sourceCell.Value;
-                }
-            }
+                Excel.Range sourceRow = sourceWorksheet.Rows[row];
+                Excel.Range destinationRow = destinationWorksheet.Rows[row];
+                
+                // Copy row values
+                destinationRow.Value = sourceRow.Value;
 
-            // Copy formats from the source to the destination cell by cell
-            for (int row = 1; row <= totalRows; row++)
-            {
-                for (int col = 1; col <= totalColumns; col++)
-                {
-                    Excel.Range sourceCell = sourceWorksheet.Cells[row, col];
-                    Excel.Range destinationCell = destinationWorksheet.Cells[row, col];
-                    sourceCell.Copy(destinationCell);
-                    destinationCell.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
-                }
+                // Copy row formats
+                sourceRow.Copy(destinationRow);
+                destinationRow.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
             }
 
             // Save the destination workbook
