@@ -1,69 +1,68 @@
-using System;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        Excel.Application excelApp = null;
-        Excel.Workbook sourceWorkbook = null;
-        Excel.Workbook destinationWorkbook = null;
+        // Create a new instance of Excel application
+        Excel.Application excelApp = new Excel.Application();
+
+        // Open the workbook (replace with the path to your Excel file)
+        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\Your\Workbook.xlsx");
 
         try
         {
-            // Initialize the Excel application
-            excelApp = new Excel.Application();
-            excelApp.Visible = false; // Set to true for debugging, false for production
+            // Assuming AA9 is a specific cell in a worksheet
+            Excel.Worksheet worksheet = workbook.Worksheets["Sheet1"];
+            Excel.Range cell = worksheet.Range["AA9"];
+            Excel.Range resultCell = worksheet.Range["AB9"];
 
-            // Define file paths
-            string sourceFilePath = @"C:\path\to\your\source_excel_file.xlsx";
-            string destinationFilePath = @"C:\path\to\your\destination_excel_file.xlsx";
+            // Apply the formula programmatically
+            resultCell.Formula = "=IF(AA9=\"ja\", 1, IF(AA9=\"nein\", \"\", \"\"))";
 
-            // Open the source workbook
-            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
-            Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assuming the first worksheet
+            // Optionally, you can calculate the formula
+            // resultCell.Calculate();
 
-            // Get the used range of the source worksheet
-            Excel.Range usedRange = sourceWorksheet.UsedRange;
-            object[,] fullData = usedRange.Value2;
-
-            // Determine dimensions
-            int numRows = fullData.GetLength(0); // Including header row
-            int numCols = fullData.GetLength(1);
-
-            // Close the source workbook without saving changes
-            sourceWorkbook.Close(false);
-
-            // Open the destination workbook
-            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
-            Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assuming the first worksheet
-
-            // Define the starting cell for applying the formula (A9)
-            int startRow = 9;
-            int startCol = 1;
-
-            // Get the range to apply the formula in destination worksheet
-            Excel.Range formulaRange = destinationWorksheet.Cells[startRow, startCol];
-            formulaRange.Resize[numRows, numCols].Formula = "=IF(AND(H9=0,I9=0),\"ja\",\"nein\")";
-
-            // Save and close the destination workbook
-            destinationWorkbook.Save();
-            destinationWorkbook.Close();
+            // Save the workbook
+            workbook.Save();
 
             Console.WriteLine("Formula applied successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occurred: " + ex.Message);
+            Console.WriteLine("Error applying formula: " + ex.Message);
         }
         finally
         {
-            // Quit the Excel application
-            if (excelApp != null)
-            {
-                excelApp.Quit();
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-            }
+            // Close the workbook and Excel application
+            workbook.Close();
+            excelApp.Quit();
+
+            // Release COM objects to avoid memory leaks
+            ReleaseObject(resultCell);
+            ReleaseObject(cell);
+            ReleaseObject(worksheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
+
+    // Helper method to release COM objects
+    private static void ReleaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (System.Exception ex)
+        {
+            obj = null;
+            Console.WriteLine("Exception Occured while releasing object " + ex.ToString());
+        }
+        finally
+        {
+            GC.Collect();
         }
     }
 }
