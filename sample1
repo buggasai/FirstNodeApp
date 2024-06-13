@@ -26,20 +26,9 @@ class Program
 
             // Get the used range of the source worksheet
             Excel.Range usedRange = sourceWorksheet.UsedRange;
-            
-            // Determine the dimensions of the data range
-            int numRows = usedRange.Rows.Count;
-            int numCols = usedRange.Columns.Count;
 
             // Read data from source Excel into the array, excluding the header row
-            object[,] data = new object[numRows - 1, numCols];
-            for (int row = 2; row <= numRows; row++) // Start from row 2 to exclude header
-            {
-                for (int col = 1; col <= numCols; col++)
-                {
-                    data[row - 2, col - 1] = usedRange.Cells[row, col].Value2;
-                }
-            }
+            object[,] data = usedRange.Value2;
 
             // Close the source workbook without saving changes
             sourceWorkbook.Close(false);
@@ -56,7 +45,7 @@ class Program
             Excel.Range destinationRange = destinationWorksheet.Cells[startPasteRow, startPasteCol];
 
             // Paste values from the data array to the destination range
-            destinationRange.Resize[numRows - 1, numCols].Value = data;
+            destinationRange.Resize[data.GetLength(0), data.GetLength(1)].Value = data;
 
             // Save and close the destination workbook
             destinationWorkbook.Save();
