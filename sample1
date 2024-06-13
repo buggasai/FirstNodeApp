@@ -26,14 +26,9 @@ class Program
         // Get the used range of the source worksheet
         Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
 
-        // Copy data from the source worksheet to the destination worksheet
-        for (int row = 1; row <= sourceUsedRange.Rows.Count; row++)
-        {
-            for (int col = 1; col <= sourceUsedRange.Columns.Count; col++)
-            {
-                destinationWorksheet.Cells[row, col].Value = sourceWorksheet.Cells[row, col].Value;
-            }
-        }
+        // Copy the entire range from source to destination
+        Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
+        sourceUsedRange.Copy(destinationRange);
 
         // Save the destination workbook
         destinationWorkbook.Save();
@@ -45,12 +40,9 @@ class Program
         
         // Release COM objects
         System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceUsedRange);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationRange);
         System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorksheet);
         System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorkbook);
         System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorksheet);
         System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorkbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-
-        Console.WriteLine("Data copied successfully from source to destination.");
-    }
-}
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelAp
