@@ -11,50 +11,45 @@ class Program
 
         try
         {
-            // Start Excel application
+            // Initialize the Excel application
             excelApp = new Excel.Application();
-            excelApp.Visible = false; // Set to true for debugging, set to false for production
+            excelApp.Visible = false; // Set to true for debugging, false for production
 
-            // Path to the source Excel file
+            // Define file paths
             string sourceFilePath = @"C:\path\to\your\source_excel_file.xlsx";
-            // Path to the destination Excel file
             string destinationFilePath = @"C:\path\to\your\destination_excel_file.xlsx";
 
-            // Open the source Excel file
+            // Open the source workbook
             sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
             Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assuming the first worksheet
 
             // Get the used range of the source worksheet
             Excel.Range usedRange = sourceWorksheet.UsedRange;
-
-            // Read data from source Excel into the array
             object[,] fullData = usedRange.Value2;
 
-            // Determine the dimensions of the data excluding the header row
+            // Get dimensions excluding the header row
             int numRows = fullData.GetLength(0) - 1;
             int numCols = fullData.GetLength(1);
 
-            // Create a new array to hold the data excluding the header row
+            // Create a new array to hold data excluding the header row
             object[,] data = new object[numRows, numCols];
 
-            // Copy data excluding the header row
+            // Efficiently copy data from the source array excluding the header row
             Array.Copy(fullData, numCols, data, 0, numRows * numCols);
 
             // Close the source workbook without saving changes
             sourceWorkbook.Close(false);
 
-            // Open the destination Excel file
+            // Open the destination workbook
             destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
             Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assuming the first worksheet
 
-            // Determine the starting cell for pasting values (A9)
-            int startPasteRow = 9; // Row 9 in destination file
-            int startPasteCol = 1; // Column A (1st column) in Excel's indexing
+            // Define the starting cell for pasting values (A9)
+            int startPasteRow = 9;
+            int startPasteCol = 1;
 
-            // Get the range to paste values into destination worksheet
+            // Define the destination range and paste values
             Excel.Range destinationRange = destinationWorksheet.Cells[startPasteRow, startPasteCol];
-
-            // Paste values from the data array to the destination range
             destinationRange.Resize[numRows, numCols].Value2 = data;
 
             // Save and close the destination workbook
@@ -69,7 +64,7 @@ class Program
         }
         finally
         {
-            // Quit Excel application
+            // Quit the Excel application
             if (excelApp != null)
             {
                 excelApp.Quit();
