@@ -5,44 +5,70 @@ class Program
 {
     static void Main()
     {
-        // Start Excel application
-        Excel.Application excelApp = new Excel.Application();
-        
-        // Make Excel visible (optional)
-        excelApp.Visible = false;
+        Excel.Application excelApp = null;
+        Excel.Workbook sourceWorkbook = null;
+        Excel.Workbook destinationWorkbook = null;
 
-        // Paths to the source and destination Excel files
-        string sourceFilePath = "source_excel_file.xlsx";
-        string destinationFilePath = "destination_excel_file.xlsx";
+        try
+        {
+            // Start Excel application
+            excelApp = new Excel.Application();
+            
+            // Make Excel visible (optional)
+            excelApp.Visible = false;
 
-        // Open the source Excel file
-        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
-        Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assumes the first worksheet
+            // Paths to the source and destination Excel files
+            string sourceFilePath = "source_excel_file.xlsx";
+            string destinationFilePath = "destination_excel_file.xlsx";
 
-        // Open the destination Excel file
-        Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
-        Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assumes the first worksheet
+            // Open the source Excel file
+            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+            Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assumes the first worksheet
 
-        // Get the used range of the source worksheet
-        Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
+            // Open the destination Excel file
+            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
+            Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assumes the first worksheet
 
-        // Copy the entire range from source to destination
-        Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
-        sourceUsedRange.Copy(destinationRange);
+            // Clear the contents and formatting of the destination sheet
+            Excel.Range destinationUsedRange = destinationWorksheet.UsedRange;
+            destinationUsedRange.Clear(); // Clears both content and formatting
 
-        // Save the destination workbook
-        destinationWorkbook.Save();
+            // Get the used range of the source worksheet
+            Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
 
-        // Close the workbooks and quit Excel
-        sourceWorkbook.Close(false);
-        destinationWorkbook.Close(false);
-        excelApp.Quit();
-        
-        // Release COM objects
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceUsedRange);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationRange);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorkbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorkbook);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelAp
+            // Copy the entire range from source to destination
+            Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
+            sourceUsedRange.Copy(destinationRange);
+
+            // Save the destination workbook
+            destinationWorkbook.Save();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+        finally
+        {
+            // Close the workbooks and quit Excel
+            if (sourceWorkbook != null)
+            {
+                sourceWorkbook.Close(false);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorkbook);
+            }
+
+            if (destinationWorkbook != null)
+            {
+                destinationWorkbook.Close(false);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorkbook);
+            }
+
+            if (excelApp != null)
+            {
+                excelApp.Quit();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+            }
+
+            Console.WriteLine("Operation completed.");
+        }
+    }
+}
