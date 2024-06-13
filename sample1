@@ -23,22 +23,15 @@ class Program
             workbook = excelApp.Workbooks.Open(filePath);
             Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
 
-            // Get the used range excluding the header row
-            Excel.Range usedRange = worksheet.UsedRange;
-            int startRow = 2; // Start from the second row (assuming header is in row 1)
-
-            // Add the formula with static text to each cell in column C starting from row 2
-            for (int row = startRow; row <= usedRange.Rows.Count; row++)
-            {
-                Excel.Range cellC = worksheet.Cells[row, 3]; // Column C is index 3 (C is the 3rd column)
-                cellC.Formula = "= \"pro\" & D" + row;
-            }
+            // Add the formula to cell H2
+            Excel.Range cellH2 = worksheet.Cells[2, 8]; // H2 is represented as (2, 8) in Excel interop (G is 7th column, H is 8th column)
+            cellH2.Formula = "=IF(G2=\"BOB\",\"HI\",IF(G2=\"SL\",\"He\",\"She\"))";
 
             // Save and close the workbook
             workbook.Save();
             workbook.Close();
 
-            Console.WriteLine("Formulas added successfully.");
+            Console.WriteLine("Formula added successfully.");
         }
         catch (Exception ex)
         {
