@@ -6,32 +6,66 @@ class Program
     static void Main()
     {
         Excel.Application excelApp = null;
-        Excel.Workbook workbook = null;
+        Excel.Workbook sourceWorkbook = null;
+        Excel.Workbook destinationWorkbook = null;
 
         try
         {
             // Start Excel application
             excelApp = new Excel.Application();
-            
-            // Make Excel visible (optional)
-            excelApp.Visible = true; // Set to true for debugging, set to false for production
+            excelApp.Visible = false; // Set to true for debugging, set to false for production
 
-            // Path to the Excel file
-            string filePath = @"C:\path\to\your\excel_file.xlsx";
+            // Path to the source Excel file
+            string sourceFilePath = @"C:\path\to\your\source_excel_file.xlsx";
+            // Path to the destination Excel file
+            string destinationFilePath = @"C:\path\to\your\destination_excel_file.xlsx";
 
-            // Open the Excel file
-            workbook = excelApp.Workbooks.Open(filePath);
-            Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
+            // Open the source Excel file
+            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+            Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assuming the first worksheet
 
-            // Add the formula to cell H2
-            Excel.Range cellH2 = worksheet.Cells[2, 8]; // H2 is represented as (2, 8) in Excel interop (G is 7th column, H is 8th column)
-            cellH2.Formula = "=IF(G2=\"BOB\",\"HI\",IF(G2=\"SL\",\"He\",\"She\"))";
+            // Get the used range of the source worksheet excluding header row
+            Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
+            int startRow = 2; // Start from the second row (assuming header is in row 1)
 
-            // Save and close the workbook
-            workbook.Save();
-            workbook.Close();
+            // Determine the dimensions of the data range (excluding header row)
+            int numRows = sourceUsedRange.Rows.Count - startRow + 1;
+            int numCols = sourceUsedRange.Columns.Count;
 
-            Console.WriteLine("Formula added successfully.");
+            // Initialize a 2-dimensional array to store the data
+            object[,] data = new object[numRows, numCols];
+
+            // Read data from source Excel into the array
+            for (int row = 0; row < numRows; row++)
+            {
+                for (int col = 0; col < numCols; col++)
+                {
+                    data[row, col] = sourceUsedRange.Cells[row + startRow, col + 1].Value;
+                }
+            }
+
+            // Close the source workbook without saving changes
+            sourceWorkbook.Close(false);
+
+            // Open the destination Excel file
+            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
+            Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assuming the first worksheet
+
+            // Determine the starting cell for pasting values (A9)
+            int startPasteRow = 9; // Row 9 in destination file
+            int startPasteCol = 1; // Column A (1st column) in Excel's indexing
+
+            // Get the range to paste values into destination worksheet
+            Excel.Range destinationRange = destinationWorksheet.Cells[startPasteRow, startPasteCol];
+
+            // Set the values from the data array to the destination range
+            destinationRange.Resize[numRows, numCols].Value = data;
+
+            // Save and close the destination workbook
+            destinationWorkbook.Save();
+            destinationWorkbook.Close();
+
+            Console.WriteLine("Data copied and pasted successfully.");
         }
         catch (Exception ex)
         {
