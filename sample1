@@ -36,9 +36,14 @@ class Program
             // Get the used range of the source worksheet
             Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
 
-            // Copy the entire range from source to destination
-            Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
-            sourceUsedRange.Copy(destinationRange);
+            // Copy data from the source to the destination cell by cell
+            for (int row = 1; row <= sourceUsedRange.Rows.Count; row++)
+            {
+                for (int col = 1; col <= sourceUsedRange.Columns.Count; col++)
+                {
+                    destinationWorksheet.Cells[row, col].Value = sourceWorksheet.Cells[row, col].Value;
+                }
+            }
 
             // Save the destination workbook
             destinationWorkbook.Save();
