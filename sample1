@@ -27,15 +27,15 @@ class Program
             Excel.Range usedRange = sourceWorksheet.UsedRange;
             object[,] fullData = usedRange.Value2;
 
-            // Get dimensions excluding the header row
-            int numRows = fullData.GetLength(0) - 1;
+            // Determine dimensions
+            int numRows = fullData.GetLength(0); // Including header row
             int numCols = fullData.GetLength(1);
 
             // Create a new array to hold data excluding the header row
-            object[,] data = new object[numRows, numCols];
+            object[,] data = new object[numRows - 1, numCols];
 
-            // Efficiently copy data from the source array excluding the header row
-            Array.Copy(fullData, numCols, data, 0, numRows * numCols);
+            // Copy data excluding the header row
+            Array.Copy(fullData, numCols, data, 0, (numRows - 1) * numCols);
 
             // Close the source workbook without saving changes
             sourceWorkbook.Close(false);
@@ -48,9 +48,11 @@ class Program
             int startPasteRow = 9;
             int startPasteCol = 1;
 
-            // Define the destination range and paste values
+            // Get the range to paste values into destination worksheet
             Excel.Range destinationRange = destinationWorksheet.Cells[startPasteRow, startPasteCol];
-            destinationRange.Resize[numRows, numCols].Value2 = data;
+
+            // Paste values from the data array to the destination range
+            destinationRange.Resize[numRows - 1, numCols].Value2 = data;
 
             // Save and close the destination workbook
             destinationWorkbook.Save();
