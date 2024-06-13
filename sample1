@@ -6,8 +6,7 @@ class Program
     static void Main()
     {
         Excel.Application excelApp = null;
-        Excel.Workbook sourceWorkbook = null;
-        Excel.Workbook destinationWorkbook = null;
+        Excel.Workbook workbook = null;
 
         try
         {
@@ -15,47 +14,31 @@ class Program
             excelApp = new Excel.Application();
             
             // Make Excel visible (optional)
-            excelApp.Visible = false;
+            excelApp.Visible = true; // Set to true for debugging, set to false for production
 
-            // Paths to the source and destination Excel files
-            string sourceFilePath = "source_excel_file.xlsx";
-            string destinationFilePath = "destination_excel_file.xlsx";
+            // Path to the Excel file
+            string filePath = @"C:\path\to\your\excel_file.xlsx";
 
-            // Open the source Excel file
-            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
-            Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assumes the first worksheet
+            // Open the Excel file
+            workbook = excelApp.Workbooks.Open(filePath);
+            Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
 
-            // Open the destination Excel file
-            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
-            Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assumes the first worksheet
+            // Get the used range excluding the header row
+            Excel.Range usedRange = worksheet.UsedRange;
+            int startRow = 2; // Start from the second row (assuming header is in row 1)
 
-            // Clear the contents and formatting of the destination sheet
-            Excel.Range destinationUsedRange = destinationWorksheet.UsedRange;
-            destinationUsedRange.Clear(); // Clears both content and formatting
-
-            // Get the used range of the source worksheet
-            Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
-
-            // Get the total number of rows and columns in the used range
-            int totalRows = sourceUsedRange.Rows.Count;
-            int totalColumns = sourceUsedRange.Columns.Count;
-
-            // Copy data and formats row by row from source to destination
-            for (int row = 1; row <= totalRows; row++)
+            // Add the formula with static text to each cell in column C starting from row 2
+            for (int row = startRow; row <= usedRange.Rows.Count; row++)
             {
-                Excel.Range sourceRow = sourceWorksheet.Rows[row];
-                Excel.Range destinationRow = destinationWorksheet.Rows[row];
-                
-                // Copy row values
-                destinationRow.Value = sourceRow.Value;
-
-                // Copy row formats
-                sourceRow.Copy(destinationRow);
-                destinationRow.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
+                Excel.Range cellC = worksheet.Cells[row, 3]; // Column C is index 3 (C is the 3rd column)
+                cellC.Formula = "= \"pro\" & D" + row;
             }
 
-            // Save the destination workbook
-            destinationWorkbook.Save();
+            // Save and close the workbook
+            workbook.Save();
+            workbook.Close();
+
+            Console.WriteLine("Formulas added successfully.");
         }
         catch (Exception ex)
         {
@@ -63,26 +46,12 @@ class Program
         }
         finally
         {
-            // Close the workbooks and quit Excel
-            if (sourceWorkbook != null)
-            {
-                sourceWorkbook.Close(false);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorkbook);
-            }
-
-            if (destinationWorkbook != null)
-            {
-                destinationWorkbook.Close(false);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorkbook);
-            }
-
+            // Quit Excel application
             if (excelApp != null)
             {
                 excelApp.Quit();
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
             }
-
-            Console.WriteLine("Operation completed.");
         }
     }
 }
