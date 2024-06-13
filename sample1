@@ -32,13 +32,13 @@ class Program
 
             // Determine the dimensions of the data excluding the header row
             int numRows = fullData.GetLength(0) - 1;
-            int numCols = fullData.GetLength(1) - 1;
+            int numCols = fullData.GetLength(1);
 
             // Create a new array to hold the data excluding the header row
             object[,] data = new object[numRows, numCols];
 
-            // Copy data excluding the header row using Array.Copy
-            Buffer.BlockCopy(fullData, (numCols + 1) * sizeof(object), data, 0, numRows * numCols * sizeof(object));
+            // Copy data excluding the header row
+            Array.Copy(fullData, numCols, data, 0, numRows * numCols);
 
             // Close the source workbook without saving changes
             sourceWorkbook.Close(false);
