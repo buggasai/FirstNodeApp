@@ -31,12 +31,6 @@ class Program
             int numRows = fullData.GetLength(0); // Including header row
             int numCols = fullData.GetLength(1);
 
-            // Create a new array to hold data excluding the header row
-            object[,] data = new object[numRows - 1, numCols];
-
-            // Copy data excluding the header row
-            Array.Copy(fullData, numCols, data, 0, (numRows - 1) * numCols);
-
             // Close the source workbook without saving changes
             sourceWorkbook.Close(false);
 
@@ -44,21 +38,19 @@ class Program
             destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
             Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assuming the first worksheet
 
-            // Define the starting cell for pasting values (A9)
-            int startPasteRow = 9;
-            int startPasteCol = 1;
+            // Define the starting cell for applying the formula (A9)
+            int startRow = 9;
+            int startCol = 1;
 
-            // Get the range to paste values into destination worksheet
-            Excel.Range destinationRange = destinationWorksheet.Cells[startPasteRow, startPasteCol];
-
-            // Paste values from the data array to the destination range
-            destinationRange.Resize[numRows - 1, numCols].Value2 = data;
+            // Get the range to apply the formula in destination worksheet
+            Excel.Range formulaRange = destinationWorksheet.Cells[startRow, startCol];
+            formulaRange.Resize[numRows, numCols].Formula = "=IF(AND(H9=0,I9=0),\"ja\",\"nein\")";
 
             // Save and close the destination workbook
             destinationWorkbook.Save();
             destinationWorkbook.Close();
 
-            Console.WriteLine("Data copied and pasted successfully.");
+            Console.WriteLine("Formula applied successfully.");
         }
         catch (Exception ex)
         {
