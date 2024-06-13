@@ -11,38 +11,46 @@ class Program
         // Make Excel visible (optional)
         excelApp.Visible = false;
 
-        // Open the Excel file
-        string filePath = "your_excel_file.xlsx";
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
+        // Paths to the source and destination Excel files
+        string sourceFilePath = "source_excel_file.xlsx";
+        string destinationFilePath = "destination_excel_file.xlsx";
 
-        // Insert a new column before column A
-        Excel.Range columnA = worksheet.Columns["A"];
-        columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+        // Open the source Excel file
+        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+        Excel.Worksheet sourceWorksheet = sourceWorkbook.Sheets[1]; // Assumes the first worksheet
 
-        // Get the used range of the worksheet
-        Excel.Range usedRange = worksheet.UsedRange;
+        // Open the destination Excel file
+        Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
+        Excel.Worksheet destinationWorksheet = destinationWorkbook.Sheets[1]; // Assumes the first worksheet
 
-        // Copy values from the original column A (now column B) to the new column A
-        for (int row = 1; row <= usedRange.Rows.Count; row++)
+        // Get the used range of the source worksheet
+        Excel.Range sourceUsedRange = sourceWorksheet.UsedRange;
+
+        // Copy data from the source worksheet to the destination worksheet
+        for (int row = 1; row <= sourceUsedRange.Rows.Count; row++)
         {
-            worksheet.Cells[row, 1].Value = worksheet.Cells[row, 2].Value;
+            for (int col = 1; col <= sourceUsedRange.Columns.Count; col++)
+            {
+                destinationWorksheet.Cells[row, col].Value = sourceWorksheet.Cells[row, col].Value;
+            }
         }
 
-        // Save the changes
-        workbook.Save();
+        // Save the destination workbook
+        destinationWorkbook.Save();
 
-        // Cleanup
-        workbook.Close(false);
+        // Close the workbooks and quit Excel
+        sourceWorkbook.Close(false);
+        destinationWorkbook.Close(false);
         excelApp.Quit();
         
         // Release COM objects
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(columnA);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(usedRange);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceUsedRange);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(sourceWorkbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(destinationWorkbook);
         System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
 
-        Console.WriteLine("Operation completed successfully.");
+        Console.WriteLine("Data copied successfully from source to destination.");
     }
 }
