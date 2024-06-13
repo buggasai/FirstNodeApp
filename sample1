@@ -1,65 +1,48 @@
 using System;
-using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "Sheet1"; // Adjust the sheet name as necessary
-
+        // Start Excel application
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = null;
-        Excel.Worksheet worksheet = null;
+        
+        // Make Excel visible (optional)
+        excelApp.Visible = false;
 
-        try
+        // Open the Excel file
+        string filePath = "your_excel_file.xlsx";
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet worksheet = workbook.Sheets[1]; // Assumes the first worksheet
+
+        // Insert a new column before column A
+        Excel.Range columnA = worksheet.Columns["A"];
+        columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
+
+        // Get the used range of the worksheet
+        Excel.Range usedRange = worksheet.UsedRange;
+
+        // Copy values from the original column A (now column B) to the new column A
+        for (int row = 1; row <= usedRange.Rows.Count; row++)
         {
-            // Open the workbook
-            workbook = excelApp.Workbooks.Open(filePath);
-            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
-
-            if (worksheet != null)
-            {
-                // Insert two new columns before column A
-                Excel.Range columnA = worksheet.Columns["A"];
-                columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
-                columnA.Insert(Excel.XlInsertShiftDirection.xlShiftToRight);
-
-                // Find the last used row in the worksheet
-                int lastRow = worksheet.Cells[worksheet.Rows.Count, "C"].End(Excel.XlDirection.xlUp).Row;
-
-                // Populate the new column A with a formula
-                Excel.Range newColumnA = worksheet.Range["A1", $"A{lastRow}"];
-                newColumnA.Formula = "=C1"; // Example formula, adjust as needed
-
-                // Populate the new column B with a different formula
-                Excel.Range newColumnB = worksheet.Range["B1", $"B{lastRow}"];
-                newColumnB.Formula = "=D1"; // Example formula, adjust as needed
-
-                // Save the workbook
-                workbook.Save();
-                Console.WriteLine("Two new columns added and formulas set successfully.");
-            }
-            else
-            {
-                Console.WriteLine("Sheet not found.");
-            }
+            worksheet.Cells[row, 1].Value = worksheet.Cells[row, 2].Value;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-        finally
-        {
-            // Clean up
-            if (workbook != null)
-            {
-                workbook.Close(false);
-                Marshal.ReleaseComObject(workbook);
-            }
-            excelApp.Quit();
-            Marshal.ReleaseComObject(excelApp);
-        }
+
+        // Save the changes
+        workbook.Save();
+
+        // Cleanup
+        workbook.Close(false);
+        excelApp.Quit();
+        
+        // Release COM objects
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(columnA);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(usedRange);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+
+        Console.WriteLine("Operation completed successfully.");
     }
 }
