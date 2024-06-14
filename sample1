@@ -28,13 +28,14 @@ class Program
 
                 if (pivotTable != null)
                 {
-                    // Update the data source of the PivotTable
-                    pivotTable.ChangePivotCache(
-                        workbook.PivotTableWizard(
-                            SourceType: Excel.XlPivotTableSourceType.xlDatabase,
-                            SourceData: newDataSourceRange
-                        )
+                    // Create a new PivotCache
+                    Excel.PivotCache newPivotCache = workbook.PivotCaches().Create(
+                        SourceType: Excel.XlPivotTableSourceType.xlDatabase,
+                        SourceData: newDataSourceRange
                     );
+
+                    // Change the PivotCache of the PivotTable
+                    pivotTable.ChangePivotCache(newPivotCache);
 
                     // Refresh the PivotTable
                     pivotTable.RefreshTable();
