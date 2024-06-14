@@ -10,6 +10,7 @@ class Program
         string sheetName = "Sheet1"; // The sheet where the PivotTable is located
         string pivotTableName = "PivotTable1"; // The name of the PivotTable to update
         string newDataSourceRange = "Sheet1!A1:D100"; // New data source range, adjust as necessary
+        string sortColumn = "A"; // Column to sort by
 
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = null;
@@ -40,9 +41,17 @@ class Program
                     // Refresh the PivotTable
                     pivotTable.RefreshTable();
 
+                    // Sort the specified column
+                    Excel.Range sortRange = worksheet.Columns[sortColumn];
+                    sortRange.Sort(
+                        Key1: sortRange,
+                        Order1: Excel.XlSortOrder.xlAscending,
+                        Header: Excel.XlYesNoGuess.xlYes // Adjust if there is no header
+                    );
+
                     // Save the workbook
                     workbook.Save();
-                    Console.WriteLine("PivotTable data source updated successfully.");
+                    Console.WriteLine("PivotTable data source updated and column sorted successfully.");
                 }
                 else
                 {
