@@ -7,40 +7,41 @@ class Program
     static void Main(string[] args)
     {
         string filePath = @"C:\path\to\your\file.xlsx";
-        string sourceSheetName = "Sheet1"; // The source sheet
-        string destinationSheetName = "Auswertung StB"; // The destination sheet
+        string sheetName = "Sheet1"; // The sheet where the operation will be performed
+        int[] valuesToDelete = { 5197, 5198, 5199 }; // The values to search for in column A
 
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = null;
+        Excel.Worksheet worksheet = null;
 
         try
         {
             // Open the workbook
             workbook = excelApp.Workbooks.Open(filePath);
+            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
 
-            Excel.Worksheet sourceSheet = workbook.Sheets[sourceSheetName] as Excel.Worksheet;
-            Excel.Worksheet destinationSheet = workbook.Sheets[destinationSheetName] as Excel.Worksheet;
-
-            if (sourceSheet != null && destinationSheet != null)
+            if (worksheet != null)
             {
-                // Select and copy columns A-G from the source sheet
-                Excel.Range sourceRange = sourceSheet.Range["A:G"];
-                sourceRange.Copy();
+                Excel.Range usedRange = worksheet.UsedRange;
+                int lastRow = usedRange.Rows.Count;
 
-                // Paste values into columns A-G of the destination sheet
-                Excel.Range destinationRange = destinationSheet.Range["A1"];
-                destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
-
-                // Clear the clipboard to prevent Excel from asking about keeping copied data
-                excelApp.CutCopyMode = 0;
+                // Loop through the rows in column A from bottom to top to avoid skipping rows after deletion
+                for (int row = lastRow; row >= 1; row--)
+                {
+                    Excel.Range cell = worksheet.Cells[row, 1] as Excel.Range;
+                    if (cell != null && Array.Exists(valuesToDelete, value => value.ToString() == cell.Value2.ToString()))
+                    {
+                        ((Excel.Range)worksheet.Rows[row]).Delete();
+                    }
+                }
 
                 // Save the workbook
                 workbook.Save();
-                Console.WriteLine("Data copied from columns A-G and pasted as values in 'Auswertung StB'.");
+                Console.WriteLine("Rows containing specified values in column A have been deleted.");
             }
             else
             {
-                Console.WriteLine($"One or both sheets '{sourceSheetName}' or '{destinationSheetName}' not found.");
+                Console.WriteLine($"Sheet '{sheetName}' not found.");
             }
         }
         catch (Exception ex)
