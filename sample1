@@ -7,10 +7,7 @@ class Program
     static void Main(string[] args)
     {
         string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "Sheet1"; // The sheet where the PivotTable is located
-        string pivotTableName = "PivotTable1"; // The name of the PivotTable to update
-        string newDataSourceRange = "Sheet1!A1:D100"; // New data source range, adjust as necessary
-        string sortColumn = "A"; // Column to sort by
+        string sheetName = "Sheet1"; // The sheet where the operation will be performed
 
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = null;
@@ -24,39 +21,22 @@ class Program
 
             if (worksheet != null)
             {
-                // Access the PivotTable
-                Excel.PivotTable pivotTable = worksheet.PivotTables(pivotTableName) as Excel.PivotTable;
+                // Define the source range (column C)
+                Excel.Range sourceRange = worksheet.Columns["C"];
 
-                if (pivotTable != null)
-                {
-                    // Create a new PivotCache
-                    Excel.PivotCache newPivotCache = workbook.PivotCaches().Create(
-                        SourceType: Excel.XlPivotTableSourceType.xlDatabase,
-                        SourceData: newDataSourceRange
-                    );
+                // Define the destination range (column D)
+                Excel.Range destinationRange = worksheet.Columns["D"];
 
-                    // Change the PivotCache of the PivotTable
-                    pivotTable.ChangePivotCache(newPivotCache);
+                // Copy values from column C to column D
+                sourceRange.Copy();
+                destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
 
-                    // Refresh the PivotTable
-                    pivotTable.RefreshTable();
+                // Clear the clipboard to prevent Excel from asking about keeping copied data
+                excelApp.CutCopyMode = 0;
 
-                    // Sort the specified column
-                    Excel.Range sortRange = worksheet.Columns[sortColumn];
-                    sortRange.Sort(
-                        Key1: sortRange,
-                        Order1: Excel.XlSortOrder.xlAscending,
-                        Header: Excel.XlYesNoGuess.xlYes // Adjust if there is no header
-                    );
-
-                    // Save the workbook
-                    workbook.Save();
-                    Console.WriteLine("PivotTable data source updated and column sorted successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"PivotTable '{pivotTableName}' not found.");
-                }
+                // Save the workbook
+                workbook.Save();
+                Console.WriteLine("Values from column C copied to column D successfully.");
             }
             else
             {
