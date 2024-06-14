@@ -7,28 +7,28 @@ class Program
     static void Main(string[] args)
     {
         string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "Sheet1"; // The sheet where the operation will be performed
+        string sourceSheetName = "Sheet1"; // The source sheet
+        string destinationSheetName = "Auswertung StB"; // The destination sheet
 
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = null;
-        Excel.Worksheet worksheet = null;
 
         try
         {
             // Open the workbook
             workbook = excelApp.Workbooks.Open(filePath);
-            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
 
-            if (worksheet != null)
+            Excel.Worksheet sourceSheet = workbook.Sheets[sourceSheetName] as Excel.Worksheet;
+            Excel.Worksheet destinationSheet = workbook.Sheets[destinationSheetName] as Excel.Worksheet;
+
+            if (sourceSheet != null && destinationSheet != null)
             {
-                // Define the source range (column C)
-                Excel.Range sourceRange = worksheet.Columns["C"];
-
-                // Define the destination range (column D)
-                Excel.Range destinationRange = worksheet.Columns["D"];
-
-                // Copy values from column C to column D
+                // Select and copy columns A-G from the source sheet
+                Excel.Range sourceRange = sourceSheet.Range["A:G"];
                 sourceRange.Copy();
+
+                // Paste values into columns A-G of the destination sheet
+                Excel.Range destinationRange = destinationSheet.Range["A1"];
                 destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
 
                 // Clear the clipboard to prevent Excel from asking about keeping copied data
@@ -36,11 +36,11 @@ class Program
 
                 // Save the workbook
                 workbook.Save();
-                Console.WriteLine("Values from column C copied to column D successfully.");
+                Console.WriteLine("Data copied from columns A-G and pasted as values in 'Auswertung StB'.");
             }
             else
             {
-                Console.WriteLine($"Sheet '{sheetName}' not found.");
+                Console.WriteLine($"One or both sheets '{sourceSheetName}' or '{destinationSheetName}' not found.");
             }
         }
         catch (Exception ex)
