@@ -1,67 +1,72 @@
+using System;
+using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        // Create a new instance of Excel application
-        Excel.Application excelApp = new Excel.Application();
+        string filePath = @"C:\path\to\your\file.xlsx";
+        string sheetName = "Sheet1"; // The sheet where the PivotTable is located
+        string pivotTableName = "PivotTable1"; // The name of the PivotTable to update
+        string newDataSourceRange = "Sheet1!A1:D100"; // New data source range, adjust as necessary
 
-        // Open the workbook (replace with the path to your Excel file)
-        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\Your\Workbook.xlsx");
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = null;
+        Excel.Worksheet worksheet = null;
 
         try
         {
-            // Assuming your data starts from row 8 and you want to sort column B
-            Excel.Worksheet worksheet = workbook.Worksheets["Sheet1"];
+            // Open the workbook
+            workbook = excelApp.Workbooks.Open(filePath);
+            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
 
-            // Define the range where the filter is applied (starting from row 8)
-            Excel.Range filteredRange = worksheet.Range["A8:Z" + worksheet.Rows.Count];
+            if (worksheet != null)
+            {
+                // Access the PivotTable
+                Excel.PivotTable pivotTable = worksheet.PivotTables(pivotTableName) as Excel.PivotTable;
 
-            // Apply sort to column B within the filtered range, smallest to largest
-            Excel.Range sortRange = filteredRange.Columns["B:B"];
-            sortRange.Sort(sortRange, Excel.XlSortOrder.xlAscending,
-                           Header: Excel.XlYesNoGuess.xlNo, OrderCustom: 1, MatchCase: false,
-                           Orientation: Excel.XlSortOrientation.xlSortColumns);
+                if (pivotTable != null)
+                {
+                    // Update the data source of the PivotTable
+                    pivotTable.ChangePivotCache(
+                        workbook.PivotTableWizard(
+                            SourceType: Excel.XlPivotTableSourceType.xlDatabase,
+                            SourceData: newDataSourceRange
+                        )
+                    );
 
-            Console.WriteLine("Column B sorted smallest to largest within the filtered range.");
+                    // Refresh the PivotTable
+                    pivotTable.RefreshTable();
+
+                    // Save the workbook
+                    workbook.Save();
+                    Console.WriteLine("PivotTable data source updated successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"PivotTable '{pivotTableName}' not found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Sheet '{sheetName}' not found.");
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error sorting column B within the filtered range: " + ex.Message);
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
         finally
         {
-            // Save the workbook
-            workbook.Save();
-
-            // Close the workbook and Excel application
-            workbook.Close();
+            // Clean up
+            if (workbook != null)
+            {
+                workbook.Close(false);
+                Marshal.ReleaseComObject(workbook);
+            }
             excelApp.Quit();
-
-            // Release COM objects to avoid memory leaks
-            ReleaseObject(worksheet);
-            ReleaseObject(workbook);
-            ReleaseObject(excelApp);
-        }
-    }
-
-    // Helper method to release COM objects
-    private static void ReleaseObject(object obj)
-    {
-        try
-        {
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-            obj = null;
-        }
-        catch (System.Exception ex)
-        {
-            obj = null;
-            Console.WriteLine("Exception Occured while releasing object " + ex.ToString());
-        }
-        finally
-        {
-            GC.Collect();
+            Marshal.ReleaseComObject(excelApp);
         }
     }
 }
