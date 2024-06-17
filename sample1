@@ -17,15 +17,18 @@ class Program
 
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        
+
         // Assuming you are working with the first sheet in the workbook
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
 
         try
         {
             // Define the range starting from row 8 downwards
-            Excel.Range startCell = worksheet.Cells[8, 2]; // B8
-            Excel.Range endCell = worksheet.Cells[worksheet.Rows.Count, 2]; // B column, last row
+            int startRow = 8;
+            int numRows = worksheet.UsedRange.Rows.Count - startRow + 1;
+
+            Excel.Range startCell = worksheet.Cells[startRow, 2]; // B8
+            Excel.Range endCell = worksheet.Cells[startRow + numRows - 1, 2]; // B column, last row with data
             Excel.Range filterRange = worksheet.Range[startCell, endCell];
 
             // Apply filter on "Berater" (Column B) smallest to largest
