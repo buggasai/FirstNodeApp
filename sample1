@@ -26,8 +26,11 @@ class Program
             // Ensure auto-filters are enabled (optional)
             worksheet.AutoFilterMode = true;
 
+            // Define the header row and first data row
+            int headerRow = 8;
+            int startRow = 9;
+
             // Calculate the correct data range starting from row 9 downwards
-            int startRow = 9; // Start from the first row of data
             int numRowsB = worksheet.Cells[worksheet.Rows.Count, 2].End(Excel.XlDirection.xlUp).Row - startRow + 1;
             int numRowsH = worksheet.Cells[worksheet.Rows.Count, 8].End(Excel.XlDirection.xlUp).Row - startRow + 1;
             int numRowsE = worksheet.Cells[worksheet.Rows.Count, 5].End(Excel.XlDirection.xlUp).Row - startRow + 1;
