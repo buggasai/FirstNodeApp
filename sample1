@@ -19,9 +19,33 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Delete row number 9
-        Excel.Range row9 = worksheet.Rows[9];
-        row9.Delete();
+        // Define the starting row and column
+        int startRow = 9;
+        int startCol = 26; // Column Z
+
+        // Define the number of rows and columns
+        int numRows = 1000; // Adjust as needed
+        int numCols = 3; // Columns Z, AA, AB
+
+        // Create an array to hold the formulas
+        object[,] formulas = new object[numRows, numCols];
+
+        // Populate the array with formulas
+        for (int i = 0; i < numRows; i++)
+        {
+            int row = startRow + i;
+            formulas[i, 0] = $"=IFNA(VLOOKUP(A{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column Z
+            formulas[i, 1] = $"=IFNA(VLOOKUP(B{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AA
+            formulas[i, 2] = $"=IFNA(VLOOKUP(C{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AB
+        }
+
+        // Define the range where formulas will be inserted
+        Excel.Range startCell = worksheet.Cells[startRow, startCol];
+        Excel.Range endCell = worksheet.Cells[startRow + numRows - 1, startCol + numCols - 1];
+        Excel.Range formulaRange = worksheet.Range[startCell, endCell];
+
+        // Insert the formulas into the range
+        formulaRange.Value2 = formulas;
 
         // Save and close the workbook
         workbook.Save();
@@ -31,7 +55,9 @@ class Program
         excelApp.Quit();
 
         // Clean up
-        Marshal.ReleaseComObject(row9);
+        Marshal.ReleaseComObject(formulaRange);
+        Marshal.ReleaseComObject(startCell);
+        Marshal.ReleaseComObject(endCell);
         Marshal.ReleaseComObject(worksheet);
         Marshal.ReleaseComObject(workbook);
         Marshal.ReleaseComObject(excelApp);
