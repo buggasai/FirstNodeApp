@@ -12,55 +12,29 @@ class Program
         // Make the application visible (optional)
         excelApp.Visible = false;
 
-        // Define the paths to the source and destination workbooks
+        // Define the path to the source workbook
         string sourceFilePath = @"C:\path\to\source\file.xlsx";
-        string destinationFilePath = @"C:\path\to\destination\file.xlsx";
 
         // Open the source workbook
         Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
         Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Define the source range from A2 downwards till the last column
+        // Define the source range from A2 downwards till the last row and last column
         Excel.Range sourceRange = sourceWorksheet.Range["A2", sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
 
         // Copy the values from the source range
-        object[,] sourceValues = sourceRange.Value2;
-
-        // Open the destination workbook
-        Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
-        Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[1]; // Adjust the sheet index if necessary
-
-        // Define the range to clear starting from A9 downwards till the last column
-        Excel.Range clearStartCell = destinationWorksheet.Cells[9, 1];
-        Excel.Range clearEndCell = destinationWorksheet.Cells[destinationWorksheet.Rows.Count, destinationWorksheet.Columns.Count].End(Excel.XlDirection.xlUp];
-        Excel.Range clearRange = destinationWorksheet.Range[clearStartCell, clearEndCell];
-        clearRange.ClearContents();
-
-        // Define the destination range where the values will be inserted
-        Excel.Range destinationStartCell = destinationWorksheet.Cells[9, 1];
-        Excel.Range destinationEndCell = destinationWorksheet.Cells[8 + sourceValues.GetLength(0), sourceValues.GetLength(1)];
-        Excel.Range destinationRange = destinationWorksheet.Range[destinationStartCell, destinationEndCell];
-
-        // Insert the copied values into the destination range
-        destinationRange.Value2 = sourceValues;
-
-        // Save and close the destination workbook
-        destinationWorkbook.Save();
-        destinationWorkbook.Close(false);
+        sourceRange.Copy();
 
         // Close the source workbook without saving
         sourceWorkbook.Close(false);
 
-        // Quit the Excel application
+        // Quit the Excel application (if not needed further)
         excelApp.Quit();
 
         // Clean up
         Marshal.ReleaseComObject(sourceRange);
-        Marshal.ReleaseComObject(destinationRange);
         Marshal.ReleaseComObject(sourceWorksheet);
-        Marshal.ReleaseComObject(destinationWorksheet);
         Marshal.ReleaseComObject(sourceWorkbook);
-        Marshal.ReleaseComObject(destinationWorkbook);
         Marshal.ReleaseComObject(excelApp);
 
         GC.Collect();
