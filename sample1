@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
@@ -8,7 +9,7 @@ class Program
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
         
-        // Make the application visible
+        // Make the application visible (optional)
         excelApp.Visible = true;
 
         // Add a new workbook
@@ -17,26 +18,40 @@ class Program
         // Get the active sheet
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.ActiveSheet;
 
-        // Define the formula
-        string formula = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:H,8,0),""Keine Angabe"")";
+        // Define the formula for column F
+        string formulaF = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:H,8,0),""Keine Angabe"")";
 
-        // Specify the range where you want to insert the formula
-        Excel.Range startCell = worksheet.Cells[4, 6]; // Cell F4
-        Excel.Range endCell = worksheet.Cells[worksheet.Rows.Count, 6]; // Cell F to the last row
+        // Specify the range where you want to insert the formula in column F
+        Excel.Range startCellF = worksheet.Cells[4, 6]; // Cell F4
+        Excel.Range endCellF = worksheet.Cells[worksheet.Rows.Count, 6]; // Cell F to the last row
+        Excel.Range fillRangeF = worksheet.Range[startCellF, endCellF];
 
         // Fill the range with the formula
-        Excel.Range fillRange = worksheet.Range[startCell, endCell];
-        fillRange.Formula = formula;
+        fillRangeF.Formula = formulaF;
 
-        // Optional: AutoFit the column width
-        worksheet.Columns["F"].AutoFit();
+        // Iterate through each row in the specified range
+        for (int i = 4; i <= worksheet.Rows.Count; i++)
+        {
+            Excel.Range cellF = worksheet.Cells[i, 6]; // Cell in column F
+            if (cellF.Value == null) break; // Stop if the cell is empty
+
+            if (cellF.Value.ToString().ToLower() == "nein")
+            {
+                // Set values in columns D and E to 0
+                worksheet.Cells[i, 4].Value = 0; // Column D
+                worksheet.Cells[i, 5].Value = 0; // Column E
+            }
+        }
+
+        // Optional: AutoFit the columns
+        worksheet.Columns["D:E"].AutoFit();
 
         // Clean up
         GC.Collect();
         GC.WaitForPendingFinalizers();
-        Marshal.ReleaseComObject(fillRange);
-        Marshal.ReleaseComObject(startCell);
-        Marshal.ReleaseComObject(endCell);
+        Marshal.ReleaseComObject(fillRangeF);
+        Marshal.ReleaseComObject(startCellF);
+        Marshal.ReleaseComObject(endCellF);
         Marshal.ReleaseComObject(worksheet);
         workbook.Close(false);
         Marshal.ReleaseComObject(workbook);
