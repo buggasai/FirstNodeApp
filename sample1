@@ -20,25 +20,29 @@ class Program
         Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
         Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
+        // Define the source range from A2 downwards till the last column
+        Excel.Range sourceRange = sourceWorksheet.Range["A2", sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
+
+        // Copy the values from the source range
+        object[,] sourceValues = sourceRange.Value2;
+
         // Open the destination workbook
         Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
         Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Copy the entire content of the source worksheet
-        Excel.Range sourceRange = sourceWorksheet.UsedRange;
+        // Define the range to clear starting from A9 downwards till the last column
+        Excel.Range clearStartCell = destinationWorksheet.Cells[9, 1];
+        Excel.Range clearEndCell = destinationWorksheet.Cells[destinationWorksheet.Rows.Count, destinationWorksheet.Columns.Count].End(Excel.XlDirection.xlUp];
+        Excel.Range clearRange = destinationWorksheet.Range[clearStartCell, clearEndCell];
+        clearRange.ClearContents();
 
-        // Find the top-left cell in the destination worksheet
-        Excel.Range destinationStartCell = destinationWorksheet.Cells[1, 1];
+        // Define the destination range where the values will be inserted
+        Excel.Range destinationStartCell = destinationWorksheet.Cells[9, 1];
+        Excel.Range destinationEndCell = destinationWorksheet.Cells[8 + sourceValues.GetLength(0), sourceValues.GetLength(1)];
+        Excel.Range destinationRange = destinationWorksheet.Range[destinationStartCell, destinationEndCell];
 
-        // Get the size of the source range
-        int rowsCount = sourceRange.Rows.Count;
-        int colsCount = sourceRange.Columns.Count;
-
-        // Define the destination range
-        Excel.Range destinationRange = destinationWorksheet.Range[destinationStartCell, destinationWorksheet.Cells[rowsCount, colsCount]];
-
-        // Copy values from source to destination
-        destinationRange.Value = sourceRange.Value;
+        // Insert the copied values into the destination range
+        destinationRange.Value2 = sourceValues;
 
         // Save and close the destination workbook
         destinationWorkbook.Save();
@@ -58,3 +62,8 @@ class Program
         Marshal.ReleaseComObject(sourceWorkbook);
         Marshal.ReleaseComObject(destinationWorkbook);
         Marshal.ReleaseComObject(excelApp);
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+}
