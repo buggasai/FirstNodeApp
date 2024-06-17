@@ -19,13 +19,9 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Define the range to clear starting from A9 downwards till the last row and last column
-        Excel.Range clearStartCell = worksheet.Cells[9, 1];
-        Excel.Range lastCell = worksheet.Cells[worksheet.Rows.Count, worksheet.Columns.Count].End(Excel.XlDirection.xlUp);
-        Excel.Range clearRange = worksheet.Range[clearStartCell, lastCell];
-
-        // Clear the contents of the defined range
-        clearRange.ClearContents();
+        // Delete row number 9
+        Excel.Range row9 = worksheet.Rows[9];
+        row9.Delete();
 
         // Save and close the workbook
         workbook.Save();
@@ -35,9 +31,7 @@ class Program
         excelApp.Quit();
 
         // Clean up
-        Marshal.ReleaseComObject(clearRange);
-        Marshal.ReleaseComObject(clearStartCell);
-        Marshal.ReleaseComObject(lastCell);
+        Marshal.ReleaseComObject(row9);
         Marshal.ReleaseComObject(worksheet);
         Marshal.ReleaseComObject(workbook);
         Marshal.ReleaseComObject(excelApp);
