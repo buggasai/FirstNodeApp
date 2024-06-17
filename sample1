@@ -23,31 +23,38 @@ class Program
 
         try
         {
-            // Define the range starting from row 8 downwards
-            int startRow = 8;
-            int numRows = worksheet.UsedRange.Rows.Count - startRow + 1;
+            // Ensure auto-filters are enabled (optional)
+            worksheet.AutoFilterMode = true;
 
-            Excel.Range startCell = worksheet.Cells[startRow, 2]; // B8
+            // Calculate the correct data range starting from row 9 downwards
+            int startRow = 9; // Start from the first row of data
+            int numRows = worksheet.Cells[worksheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row - startRow + 1;
+
+            // Define the range for filtering and sorting
+            Excel.Range startCell = worksheet.Cells[startRow, 2]; // B9
             Excel.Range endCell = worksheet.Cells[startRow + numRows - 1, 2]; // B column, last row with data
             Excel.Range filterRange = worksheet.Range[startCell, endCell];
 
             // Apply filter on "Berater" (Column B) smallest to largest
-            filterRange.Sort(
-                Key1: worksheet.Range["B8"], // Column B range (starting from B8)
+            Excel.Range sortRangeB = worksheet.Range["B8", $"B{startRow + numRows - 1}"];
+            sortRangeB.Sort(
+                Key1: worksheet.Range["B9"],
                 Order1: Excel.XlSortOrder.xlAscending,
                 Orientation: Excel.XlSortOrientation.xlSortColumns
             );
 
             // Apply filter on "D handling" (Column H) smallest to largest
-            filterRange.Sort(
-                Key1: worksheet.Range["H8"], // Column H range (starting from H8)
+            Excel.Range sortRangeH = worksheet.Range["H8", $"H{startRow + numRows - 1}"];
+            sortRangeH.Sort(
+                Key1: worksheet.Range["H9"],
                 Order1: Excel.XlSortOrder.xlAscending,
                 Orientation: Excel.XlSortOrientation.xlSortColumns
             );
 
             // Apply filter on "Eraang" (Column E) oldest to newest
-            filterRange.Sort(
-                Key1: worksheet.Range["E8"], // Column E range (starting from E8)
+            Excel.Range sortRangeE = worksheet.Range["E8", $"E{startRow + numRows - 1}"];
+            sortRangeE.Sort(
+                Key1: worksheet.Range["E9"],
                 Order1: Excel.XlSortOrder.xlAscending,
                 Orientation: Excel.XlSortOrientation.xlSortColumns
             );
