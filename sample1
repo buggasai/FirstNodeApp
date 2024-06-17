@@ -35,7 +35,7 @@ class Program
             int numRowsH = worksheet.Cells[worksheet.Rows.Count, 8].End(Excel.XlDirection.xlUp).Row - startRow + 1;
             int numRowsE = worksheet.Cells[worksheet.Rows.Count, 5].End(Excel.XlDirection.xlUp).Row - startRow + 1;
 
-            // Define the range for filtering and sorting
+            // Define the range for filtering and sorting (excluding headers)
             Excel.Range startCellB = worksheet.Cells[startRow, 2]; // B9
             Excel.Range endCellB = worksheet.Cells[startRow + numRowsB - 1, 2]; // B column, last row with data
             Excel.Range filterRangeB = worksheet.Range[startCellB, endCellB];
@@ -53,7 +53,8 @@ class Program
             sortRangeB.Sort(
                 Key1: worksheet.Range["B9"],
                 Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns
+                Orientation: Excel.XlSortOrientation.xlSortColumns,
+                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
             );
 
             // Apply filter on "D handling" (Column H) smallest to largest
@@ -61,7 +62,8 @@ class Program
             sortRangeH.Sort(
                 Key1: worksheet.Range["H9"],
                 Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns
+                Orientation: Excel.XlSortOrientation.xlSortColumns,
+                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
             );
 
             // Apply filter on "Eraang" (Column E) oldest to newest
@@ -69,7 +71,8 @@ class Program
             sortRangeE.Sort(
                 Key1: worksheet.Range["E9"],
                 Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns
+                Orientation: Excel.XlSortOrientation.xlSortColumns,
+                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
             );
 
             // Autofit columns to adjust width automatically (optional)
