@@ -21,7 +21,8 @@ class Program
         Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
         // Define the source range from A2 downwards till the last row and last column
-        Excel.Range sourceRange = sourceWorksheet.Range["A2", sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
+        Excel.Range lastSourceCell = sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp);
+        Excel.Range sourceRange = sourceWorksheet.Range["A2", lastSourceCell];
 
         // Copy the values from the source range
         object[,] sourceValues = sourceRange.Value2;
@@ -35,8 +36,8 @@ class Program
 
         // Define the range to clear starting from A9 downwards till the last row and column
         Excel.Range clearStartCell = destinationWorksheet.Cells[9, 1];
-        Excel.Range clearEndCell = destinationWorksheet.Cells[destinationWorksheet.Rows.Count, destinationWorksheet.Columns.Count];
-        Excel.Range clearRange = destinationWorksheet.Range[clearStartCell, clearEndCell];
+        Excel.Range lastDestinationCell = destinationWorksheet.Cells[destinationWorksheet.Rows.Count, destinationWorksheet.Columns.Count].End(Excel.XlDirection.xlUp);
+        Excel.Range clearRange = destinationWorksheet.Range[clearStartCell, lastDestinationCell];
 
         // Clear the contents of the defined range
         clearRange.ClearContents();
