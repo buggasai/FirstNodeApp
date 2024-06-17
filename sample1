@@ -9,33 +9,71 @@ class Program
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
 
-        // Make the application visible (optional)
-        excelApp.Visible = false;
+        // Make the application visible (optional for demonstration)
+        excelApp.Visible = true;
 
         // Define the path to the workbook
-        string filePath = @"C:\path\to\file.xlsx";
+        string filePath = @"C:\path\to\your\file.xlsx";
 
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1]; // Adjust the sheet index if necessary
+        
+        // Assuming you are working with the first sheet in the workbook
+        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
 
-        // Find the last used row in column A
-        int lastRow = worksheet.Cells[worksheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row;
+        try
+        {
+            // Define the range starting from row 8 downwards
+            Excel.Range startCell = worksheet.Cells[8, 2]; // B8
+            Excel.Range endCell = worksheet.Cells[worksheet.Rows.Count, 2]; // B column, last row
+            Excel.Range filterRange = worksheet.Range[startCell, endCell];
 
-        Console.WriteLine($"Last used row with data in column A: {lastRow}");
+            // Apply filter on "Berater" (Column B) smallest to largest
+            filterRange.Sort(
+                Key1: worksheet.Range["B8"], // Column B range (starting from B8)
+                Order1: Excel.XlSortOrder.xlAscending,
+                Orientation: Excel.XlSortOrientation.xlSortColumns
+            );
 
-        // Close the workbook without saving changes
-        workbook.Close(false);
+            // Apply filter on "D handling" (Column H) smallest to largest
+            filterRange.Sort(
+                Key1: worksheet.Range["H8"], // Column H range (starting from H8)
+                Order1: Excel.XlSortOrder.xlAscending,
+                Orientation: Excel.XlSortOrientation.xlSortColumns
+            );
 
-        // Quit the Excel application
-        excelApp.Quit();
+            // Apply filter on "Eraang" (Column E) oldest to newest
+            filterRange.Sort(
+                Key1: worksheet.Range["E8"], // Column E range (starting from E8)
+                Order1: Excel.XlSortOrder.xlAscending,
+                Orientation: Excel.XlSortOrientation.xlSortColumns
+            );
 
-        // Clean up
-        Marshal.ReleaseComObject(worksheet);
-        Marshal.ReleaseComObject(workbook);
-        Marshal.ReleaseComObject(excelApp);
+            // Autofit columns to adjust width automatically (optional)
+            worksheet.Columns.AutoFit();
 
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
+            // Save the workbook (optional if you want to keep changes)
+            workbook.Save();
+
+            Console.WriteLine("Filters applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error applying filters: {ex.Message}");
+        }
+        finally
+        {
+            // Close the workbook and quit Excel application
+            workbook.Close(false);
+            excelApp.Quit();
+
+            // Clean up
+            Marshal.ReleaseComObject(worksheet);
+            Marshal.ReleaseComObject(workbook);
+            Marshal.ReleaseComObject(excelApp);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 }
