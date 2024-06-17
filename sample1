@@ -30,7 +30,7 @@ class Program
 
         // Paste the content into the destination worksheet
         Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
-        destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
+        destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
 
         // Save and close the destination workbook
         destinationWorkbook.Save();
