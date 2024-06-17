@@ -1,74 +1,46 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "Sheet1"; // The sheet where the operation will be performed
-        int[] valuesToDelete = { 5197, 5198, 5199 }; // The values to search for in column A
-
+        // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = null;
-        Excel.Worksheet worksheet = null;
+        
+        // Make the application visible
+        excelApp.Visible = true;
 
-        try
-        {
-            // Open the workbook
-            workbook = excelApp.Workbooks.Open(filePath);
-            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
+        // Add a new workbook
+        Excel.Workbook workbook = excelApp.Workbooks.Add();
+        
+        // Get the active sheet
+        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.ActiveSheet;
 
-            if (worksheet != null)
-            {
-                Excel.Range usedRange = worksheet.UsedRange;
-                int lastRow = usedRange.Rows.Count;
-                List<int> rowsToDelete = new List<int>();
+        // Define the formula
+        string formula = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:H,8,0),""Keine Angabe"")";
 
-                // Collect all rows that need to be deleted
-                for (int row = 1; row <= lastRow; row++)
-                {
-                    Excel.Range cell = worksheet.Cells[row, 1] as Excel.Range;
-                    if (cell != null && Array.Exists(valuesToDelete, value => value.ToString() == cell.Value2.ToString()))
-                    {
-                        rowsToDelete.Add(row);
-                    }
-                }
+        // Specify the range where you want to insert the formula
+        Excel.Range startCell = worksheet.Cells[4, 6]; // Cell F4
+        Excel.Range endCell = worksheet.Cells[worksheet.Rows.Count, 6]; // Cell F to the last row
 
-                // Delete rows in reverse order to avoid affecting the index of rows to be deleted
-                rowsToDelete.Sort();
-                rowsToDelete.Reverse();
+        // Fill the range with the formula
+        Excel.Range fillRange = worksheet.Range[startCell, endCell];
+        fillRange.Formula = formula;
 
-                foreach (int row in rowsToDelete)
-                {
-                    ((Excel.Range)worksheet.Rows[row]).Delete();
-                }
+        // Optional: AutoFit the column width
+        worksheet.Columns["F"].AutoFit();
 
-                // Save the workbook
-                workbook.Save();
-                Console.WriteLine("Rows containing specified values in column A have been deleted.");
-            }
-            else
-            {
-                Console.WriteLine($"Sheet '{sheetName}' not found.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-        finally
-        {
-            // Clean up
-            if (workbook != null)
-            {
-                workbook.Close(false);
-                Marshal.ReleaseComObject(workbook);
-            }
-            excelApp.Quit();
-            Marshal.ReleaseComObject(excelApp);
-        }
+        // Clean up
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        Marshal.ReleaseComObject(fillRange);
+        Marshal.ReleaseComObject(startCell);
+        Marshal.ReleaseComObject(endCell);
+        Marshal.ReleaseComObject(worksheet);
+        workbook.Close(false);
+        Marshal.ReleaseComObject(workbook);
+        excelApp.Quit();
+        Marshal.ReleaseComObject(excelApp);
     }
 }
