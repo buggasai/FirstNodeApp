@@ -35,8 +35,8 @@ class Program
         {
             int row = startRow + i;
             formulas[i, 0] = $"=IFNA(VLOOKUP(A{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column Z
-            formulas[i, 1] = $"=IFNA(VLOOKUP(B{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AA
-            formulas[i, 2] = $"=IFNA(VLOOKUP(C{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AB
+            formulas[i, 1] = $"=IFNA(VLOOKUP(A{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AA
+            formulas[i, 2] = $"=IFNA(VLOOKUP(A{row},'edlohn kunden'!A:L,7,0),\"0\")"; // Column AB
         }
 
         // Define the range where formulas will be inserted
@@ -45,7 +45,7 @@ class Program
         Excel.Range formulaRange = worksheet.Range[startCell, endCell];
 
         // Insert the formulas into the range
-        formulaRange.Value2 = formulas;
+        formulaRange.Formula = formulas;
 
         // Save and close the workbook
         workbook.Save();
