@@ -18,49 +18,31 @@ class Program
         // Get the active sheet
         Excel.Worksheet worksheet = (Excel.Worksheet)workbook.ActiveSheet;
 
-        // Define the formula for column F
-        string formulaF = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:H,8,0),""Keine Angabe"")";
+        // Define the formula for column G
+        string formulaG = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:L,7,0),""0"")";
 
-        // Specify the range where you want to insert the formula in column F
-        Excel.Range startCellF = worksheet.Cells[4, 6]; // Cell F4
-        Excel.Range endCellF = worksheet.Cells[1000, 6]; // Adjust to a reasonable number of rows
-        Excel.Range fillRangeF = worksheet.Range[startCellF, endCellF];
+        // Specify the range where you want to insert the formula in column G
+        Excel.Range startCellG = worksheet.Cells[4, 7]; // Cell G4
+        Excel.Range endCellG = worksheet.Cells[1000, 7]; // Adjust to a reasonable number of rows
+        Excel.Range fillRangeG = worksheet.Range[startCellG, endCellG];
 
         // Fill the range with the formula
-        fillRangeF.Formula = formulaF;
+        fillRangeG.Formula = formulaG;
 
-        // Define the formulas for columns D and E
-        string formulaD = @"=IF(F4=""nein"", 0, D4)";
-        string formulaE = @"=IF(F4=""nein"", 0, E4)";
-
-        // Specify the ranges for columns D and E
-        Excel.Range startCellD = worksheet.Cells[4, 4]; // Cell D4
-        Excel.Range endCellD = worksheet.Cells[1000, 4]; // Adjust to a reasonable number of rows
-        Excel.Range fillRangeD = worksheet.Range[startCellD, endCellD];
-        
-        Excel.Range startCellE = worksheet.Cells[4, 5]; // Cell E4
-        Excel.Range endCellE = worksheet.Cells[1000, 5]; // Adjust to a reasonable number of rows
-        Excel.Range fillRangeE = worksheet.Range[startCellE, endCellE];
-
-        // Fill the ranges with the formulas
-        fillRangeD.Formula = formulaD;
-        fillRangeE.Formula = formulaE;
+        // Set the filter on column G for the value "BOB"
+        Excel.Range filterRange = worksheet.Range["A3", "G1000"]; // Adjust to your data range
+        filterRange.AutoFilter(7, "BOB", Excel.XlAutoFilterOperator.xlFilterValues);
 
         // Optional: AutoFit the columns
-        worksheet.Columns["D:E"].AutoFit();
+        worksheet.Columns["G"].AutoFit();
 
         // Clean up
         GC.Collect();
         GC.WaitForPendingFinalizers();
-        Marshal.ReleaseComObject(fillRangeF);
-        Marshal.ReleaseComObject(startCellF);
-        Marshal.ReleaseComObject(endCellF);
-        Marshal.ReleaseComObject(fillRangeD);
-        Marshal.ReleaseComObject(startCellD);
-        Marshal.ReleaseComObject(endCellD);
-        Marshal.ReleaseComObject(fillRangeE);
-        Marshal.ReleaseComObject(startCellE);
-        Marshal.ReleaseComObject(endCellE);
+        Marshal.ReleaseComObject(fillRangeG);
+        Marshal.ReleaseComObject(startCellG);
+        Marshal.ReleaseComObject(endCellG);
+        Marshal.ReleaseComObject(filterRange);
         Marshal.ReleaseComObject(worksheet);
         workbook.Close(false);
         Marshal.ReleaseComObject(workbook);
