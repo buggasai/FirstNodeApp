@@ -8,45 +8,50 @@ class Program
     {
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
-        
+
         // Make the application visible (optional)
-        excelApp.Visible = true;
+        excelApp.Visible = false;
 
-        // Add a new workbook
-        Excel.Workbook workbook = excelApp.Workbooks.Add();
-        
-        // Get the active sheet
-        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.ActiveSheet;
+        // Define the paths to the source and destination workbooks
+        string sourceFilePath = @"C:\path\to\source\file.xlsx";
+        string destinationFilePath = @"C:\path\to\destination\file.xlsx";
 
-        // Define the formula for column G
-        string formulaG = @"=IFNA(VLOOKUP(A4,'edlohn kunden'!A:L,7,0),""0"")";
+        // Open the source workbook
+        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+        Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Specify the range where you want to insert the formula in column G
-        Excel.Range startCellG = worksheet.Cells[4, 7]; // Cell G4
-        Excel.Range endCellG = worksheet.Cells[1000, 7]; // Adjust to a reasonable number of rows
-        Excel.Range fillRangeG = worksheet.Range[startCellG, endCellG];
+        // Open the destination workbook
+        Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
+        Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Fill the range with the formula
-        fillRangeG.Formula = formulaG;
+        // Copy the entire content of the source worksheet
+        Excel.Range sourceRange = sourceWorksheet.UsedRange;
+        sourceRange.Copy();
 
-        // Set the filter on column G for the value "BOB"
-        Excel.Range filterRange = worksheet.Range["A3", "G1000"]; // Adjust to your data range
-        filterRange.AutoFilter(7, "BOB", Excel.XlAutoFilterOperator.xlFilterValues);
+        // Paste the content into the destination worksheet
+        Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
+        destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
 
-        // Optional: AutoFit the columns
-        worksheet.Columns["G"].AutoFit();
+        // Save and close the destination workbook
+        destinationWorkbook.Save();
+        destinationWorkbook.Close(false);
+
+        // Close the source workbook without saving
+        sourceWorkbook.Close(false);
+
+        // Quit the Excel application
+        excelApp.Quit();
 
         // Clean up
+        Marshal.ReleaseComObject(sourceRange);
+        Marshal.ReleaseComObject(destinationRange);
+        Marshal.ReleaseComObject(sourceWorksheet);
+        Marshal.ReleaseComObject(destinationWorksheet);
+        Marshal.ReleaseComObject(sourceWorkbook);
+        Marshal.ReleaseComObject(destinationWorkbook);
+        Marshal.ReleaseComObject(excelApp);
+
         GC.Collect();
         GC.WaitForPendingFinalizers();
-        Marshal.ReleaseComObject(fillRangeG);
-        Marshal.ReleaseComObject(startCellG);
-        Marshal.ReleaseComObject(endCellG);
-        Marshal.ReleaseComObject(filterRange);
-        Marshal.ReleaseComObject(worksheet);
-        workbook.Close(false);
-        Marshal.ReleaseComObject(workbook);
-        excelApp.Quit();
-        Marshal.ReleaseComObject(excelApp);
     }
 }
