@@ -28,15 +28,25 @@ class Program
 
             // Calculate the correct data range starting from row 9 downwards
             int startRow = 9; // Start from the first row of data
-            int numRows = worksheet.Cells[worksheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row - startRow + 1;
+            int numRowsB = worksheet.Cells[worksheet.Rows.Count, 2].End(Excel.XlDirection.xlUp).Row - startRow + 1;
+            int numRowsH = worksheet.Cells[worksheet.Rows.Count, 8].End(Excel.XlDirection.xlUp).Row - startRow + 1;
+            int numRowsE = worksheet.Cells[worksheet.Rows.Count, 5].End(Excel.XlDirection.xlUp).Row - startRow + 1;
 
             // Define the range for filtering and sorting
-            Excel.Range startCell = worksheet.Cells[startRow, 2]; // B9
-            Excel.Range endCell = worksheet.Cells[startRow + numRows - 1, 2]; // B column, last row with data
-            Excel.Range filterRange = worksheet.Range[startCell, endCell];
+            Excel.Range startCellB = worksheet.Cells[startRow, 2]; // B9
+            Excel.Range endCellB = worksheet.Cells[startRow + numRowsB - 1, 2]; // B column, last row with data
+            Excel.Range filterRangeB = worksheet.Range[startCellB, endCellB];
+
+            Excel.Range startCellH = worksheet.Cells[startRow, 8]; // H9
+            Excel.Range endCellH = worksheet.Cells[startRow + numRowsH - 1, 8]; // H column, last row with data
+            Excel.Range filterRangeH = worksheet.Range[startCellH, endCellH];
+
+            Excel.Range startCellE = worksheet.Cells[startRow, 5]; // E9
+            Excel.Range endCellE = worksheet.Cells[startRow + numRowsE - 1, 5]; // E column, last row with data
+            Excel.Range filterRangeE = worksheet.Range[startCellE, endCellE];
 
             // Apply filter on "Berater" (Column B) smallest to largest
-            Excel.Range sortRangeB = worksheet.Range["B8", $"B{startRow + numRows - 1}"];
+            Excel.Range sortRangeB = worksheet.Range["B8", $"B{startRow + numRowsB - 1}"];
             sortRangeB.Sort(
                 Key1: worksheet.Range["B9"],
                 Order1: Excel.XlSortOrder.xlAscending,
@@ -44,7 +54,7 @@ class Program
             );
 
             // Apply filter on "D handling" (Column H) smallest to largest
-            Excel.Range sortRangeH = worksheet.Range["H8", $"H{startRow + numRows - 1}"];
+            Excel.Range sortRangeH = worksheet.Range["H8", $"H{startRow + numRowsH - 1}"];
             sortRangeH.Sort(
                 Key1: worksheet.Range["H9"],
                 Order1: Excel.XlSortOrder.xlAscending,
@@ -52,7 +62,7 @@ class Program
             );
 
             // Apply filter on "Eraang" (Column E) oldest to newest
-            Excel.Range sortRangeE = worksheet.Range["E8", $"E{startRow + numRows - 1}"];
+            Excel.Range sortRangeE = worksheet.Range["E8", $"E{startRow + numRowsE - 1}"];
             sortRangeE.Sort(
                 Key1: worksheet.Range["E9"],
                 Order1: Excel.XlSortOrder.xlAscending,
