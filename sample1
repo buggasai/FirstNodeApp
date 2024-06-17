@@ -12,8 +12,22 @@ class Program
         // Make the application visible (optional)
         excelApp.Visible = false;
 
-        // Define the path to the destination workbook
+        // Define the paths to the source and destination workbooks
+        string sourceFilePath = @"C:\path\to\source\file.xlsx";
         string destinationFilePath = @"C:\path\to\destination\file.xlsx";
+
+        // Open the source workbook
+        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+        Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
+
+        // Define the source range from A2 downwards till the last row and last column
+        Excel.Range sourceRange = sourceWorksheet.Range["A2", sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
+
+        // Copy the values from the source range
+        object[,] sourceValues = sourceRange.Value2;
+
+        // Close the source workbook
+        sourceWorkbook.Close(false);
 
         // Open the destination workbook
         Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
@@ -27,6 +41,16 @@ class Program
         // Clear the contents of the defined range
         clearRange.ClearContents();
 
+        // Define the destination range where the values will be inserted starting from A9
+        int rowsCount = sourceValues.GetLength(0);
+        int colsCount = sourceValues.GetLength(1);
+        Excel.Range destinationStartCell = destinationWorksheet.Cells[9, 1];
+        Excel.Range destinationEndCell = destinationWorksheet.Cells[8 + rowsCount, colsCount];
+        Excel.Range destinationRange = destinationWorksheet.Range[destinationStartCell, destinationEndCell];
+
+        // Insert the copied values into the destination range
+        destinationRange.Value2 = sourceValues;
+
         // Save and close the destination workbook
         destinationWorkbook.Save();
         destinationWorkbook.Close(false);
@@ -35,10 +59,12 @@ class Program
         excelApp.Quit();
 
         // Clean up
+        Marshal.ReleaseComObject(sourceRange);
+        Marshal.ReleaseComObject(destinationRange);
         Marshal.ReleaseComObject(clearRange);
-        Marshal.ReleaseComObject(clearStartCell);
-        Marshal.ReleaseComObject(clearEndCell);
+        Marshal.ReleaseComObject(sourceWorksheet);
         Marshal.ReleaseComObject(destinationWorksheet);
+        Marshal.ReleaseComObject(sourceWorkbook);
         Marshal.ReleaseComObject(destinationWorkbook);
         Marshal.ReleaseComObject(excelApp);
 
