@@ -12,29 +12,34 @@ class Program
         // Make the application visible (optional)
         excelApp.Visible = false;
 
-        // Define the path to the source workbook
-        string sourceFilePath = @"C:\path\to\source\file.xlsx";
+        // Define the path to the destination workbook
+        string destinationFilePath = @"C:\path\to\destination\file.xlsx";
 
-        // Open the source workbook
-        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
-        Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[1]; // Adjust the sheet index if necessary
+        // Open the destination workbook
+        Excel.Workbook destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
+        Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[1]; // Adjust the sheet index if necessary
 
-        // Define the source range from A2 downwards till the last row and last column
-        Excel.Range sourceRange = sourceWorksheet.Range["A2", sourceWorksheet.Cells[sourceWorksheet.Rows.Count, sourceWorksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
+        // Define the range to clear starting from A9 downwards till the last row and column
+        Excel.Range clearStartCell = destinationWorksheet.Cells[9, 1];
+        Excel.Range clearEndCell = destinationWorksheet.Cells[destinationWorksheet.Rows.Count, destinationWorksheet.Columns.Count];
+        Excel.Range clearRange = destinationWorksheet.Range[clearStartCell, clearEndCell];
 
-        // Copy the values from the source range
-        sourceRange.Copy();
+        // Clear the contents of the defined range
+        clearRange.ClearContents();
 
-        // Close the source workbook without saving
-        sourceWorkbook.Close(false);
+        // Save and close the destination workbook
+        destinationWorkbook.Save();
+        destinationWorkbook.Close(false);
 
-        // Quit the Excel application (if not needed further)
+        // Quit the Excel application
         excelApp.Quit();
 
         // Clean up
-        Marshal.ReleaseComObject(sourceRange);
-        Marshal.ReleaseComObject(sourceWorksheet);
-        Marshal.ReleaseComObject(sourceWorkbook);
+        Marshal.ReleaseComObject(clearRange);
+        Marshal.ReleaseComObject(clearStartCell);
+        Marshal.ReleaseComObject(clearEndCell);
+        Marshal.ReleaseComObject(destinationWorksheet);
+        Marshal.ReleaseComObject(destinationWorkbook);
         Marshal.ReleaseComObject(excelApp);
 
         GC.Collect();
