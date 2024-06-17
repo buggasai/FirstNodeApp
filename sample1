@@ -26,11 +26,19 @@ class Program
 
         // Copy the entire content of the source worksheet
         Excel.Range sourceRange = sourceWorksheet.UsedRange;
-        sourceRange.Copy();
 
-        // Paste the content into the destination worksheet
-        Excel.Range destinationRange = destinationWorksheet.Cells[1, 1];
-        destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+        // Find the top-left cell in the destination worksheet
+        Excel.Range destinationStartCell = destinationWorksheet.Cells[1, 1];
+
+        // Get the size of the source range
+        int rowsCount = sourceRange.Rows.Count;
+        int colsCount = sourceRange.Columns.Count;
+
+        // Define the destination range
+        Excel.Range destinationRange = destinationWorksheet.Range[destinationStartCell, destinationWorksheet.Cells[rowsCount, colsCount]];
+
+        // Copy values from source to destination
+        destinationRange.Value = sourceRange.Value;
 
         // Save and close the destination workbook
         destinationWorkbook.Save();
@@ -50,8 +58,3 @@ class Program
         Marshal.ReleaseComObject(sourceWorkbook);
         Marshal.ReleaseComObject(destinationWorkbook);
         Marshal.ReleaseComObject(excelApp);
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-    }
-}
