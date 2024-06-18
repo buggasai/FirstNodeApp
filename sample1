@@ -10,13 +10,15 @@ class Program
         Excel.Application excelApp = new Excel.Application();
         excelApp.Visible = true; // Make Excel application visible for debugging
 
+        Excel.Workbook workbook = null;
+
         try
         {
             // Define the path to the workbook
             string filePath = @"C:\path\to\your\file.xlsx";
 
             // Open the workbook
-            Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+            workbook = excelApp.Workbooks.Open(filePath);
 
             // Define the worksheet name
             string worksheetName = "Sheet1"; // Replace with your worksheet name
@@ -27,19 +29,25 @@ class Program
             // Get the used range of the worksheet
             Excel.Range usedRange = worksheet.UsedRange;
 
-            // Get the column E range
+            // Get the column E range starting from the second row to the last used row
             int rowCount = usedRange.Rows.Count;
             Excel.Range columnERange = worksheet.Range["E2:E" + rowCount];
+
+            // Ensure the cell format is set to General before applying formulas
+            columnERange.NumberFormat = "General"; // Set to General format
 
             // Construct dynamic formula for the entire column E
             string[] formulas = new string[rowCount - 1]; // Array to hold all formulas
             for (int row = 2; row <= rowCount; row++)
             {
-                formulas[row - 2] = "=IF(A" + row + "<>\"ja\",0,IF(B" + row + "<$K$" + row + ",..."; // Example dynamic formula
+                formulas[row - 2] = $"=IF(A{row}<>\"ja\",0,IF(B{row}<$K$2, ...))"; // Example dynamic formula
             }
 
-            // Apply formulas to the entire column E using FormulaLocal
-            columnERange.FormulaLocal = formulas;
+            // Apply formulas to the entire column E using Formula
+            for (int row = 2; row <= rowCount; row++)
+            {
+                worksheet.Cells[row, 5].Formula = formulas[row - 2]; // Column E is the 5th column
+            }
 
             // Force Excel to recalculate
             workbook.Application.Calculate();
@@ -60,11 +68,12 @@ class Program
         finally
         {
             // Close the workbook and quit Excel application
-            workbook.Close(false);
+            if (workbook != null)
+            {
+                workbook.Close(false);
+                Marshal.ReleaseComObject(workbook);
+            }
             excelApp.Quit();
-
-            // Clean up
-            Marshal.ReleaseComObject(workbook);
             Marshal.ReleaseComObject(excelApp);
 
             GC.Collect();
