@@ -18,88 +18,24 @@ class Program
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
-        // Assuming you are working with the first sheet in the workbook
-        Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[1];
+        // Access the worksheet from which you want to get the row count
+        Excel.Worksheet dataWorksheet = (Excel.Worksheet)workbook.Sheets["DataSheet"]; // Replace "DataSheet" with the name of your sheet
 
-        try
-        {
-            // Ensure auto-filters are enabled (optional)
-            worksheet.AutoFilterMode = true;
+        // Find the last row with data in column A (or any specific column)
+        int lastRow = dataWorksheet.Cells[dataWorksheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row;
 
-            // Define the header row and first data row
-            int headerRow = 8;
-            int startRow = 9;
+        // Output the last row number
+        Console.WriteLine($"The last row with data in the 'DataSheet' is: {lastRow}");
 
-            // Calculate the correct data range starting from row 9 downwards
-            int numRowsB = worksheet.Cells[worksheet.Rows.Count, 2].End(Excel.XlDirection.xlUp).Row - startRow + 1;
-            int numRowsH = worksheet.Cells[worksheet.Rows.Count, 8].End(Excel.XlDirection.xlUp).Row - startRow + 1;
-            int numRowsE = worksheet.Cells[worksheet.Rows.Count, 5].End(Excel.XlDirection.xlUp).Row - startRow + 1;
+        // Clean up
+        workbook.Close(false);
+        excelApp.Quit();
 
-            // Define the range for filtering and sorting (excluding headers)
-            Excel.Range startCellB = worksheet.Cells[startRow, 2]; // B9
-            Excel.Range endCellB = worksheet.Cells[startRow + numRowsB - 1, 2]; // B column, last row with data
-            Excel.Range filterRangeB = worksheet.Range[startCellB, endCellB];
+        Marshal.ReleaseComObject(dataWorksheet);
+        Marshal.ReleaseComObject(workbook);
+        Marshal.ReleaseComObject(excelApp);
 
-            Excel.Range startCellH = worksheet.Cells[startRow, 8]; // H9
-            Excel.Range endCellH = worksheet.Cells[startRow + numRowsH - 1, 8]; // H column, last row with data
-            Excel.Range filterRangeH = worksheet.Range[startCellH, endCellH];
-
-            Excel.Range startCellE = worksheet.Cells[startRow, 5]; // E9
-            Excel.Range endCellE = worksheet.Cells[startRow + numRowsE - 1, 5]; // E column, last row with data
-            Excel.Range filterRangeE = worksheet.Range[startCellE, endCellE];
-
-            // Apply filter on "Berater" (Column B) smallest to largest
-            Excel.Range sortRangeB = worksheet.Range["B8", $"B{startRow + numRowsB - 1}"];
-            sortRangeB.Sort(
-                Key1: worksheet.Range["B9"],
-                Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns,
-                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
-            );
-
-            // Apply filter on "D handling" (Column H) smallest to largest
-            Excel.Range sortRangeH = worksheet.Range["H8", $"H{startRow + numRowsH - 1}"];
-            sortRangeH.Sort(
-                Key1: worksheet.Range["H9"],
-                Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns,
-                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
-            );
-
-            // Apply filter on "Eraang" (Column E) oldest to newest
-            Excel.Range sortRangeE = worksheet.Range["E8", $"E{startRow + numRowsE - 1}"];
-            sortRangeE.Sort(
-                Key1: worksheet.Range["E9"],
-                Order1: Excel.XlSortOrder.xlAscending,
-                Orientation: Excel.XlSortOrientation.xlSortColumns,
-                Header: Excel.XlYesNoGuess.xlYes // Ensure headers are considered
-            );
-
-            // Autofit columns to adjust width automatically (optional)
-            worksheet.Columns.AutoFit();
-
-            // Save the workbook (optional if you want to keep changes)
-            workbook.Save();
-
-            Console.WriteLine("Filters applied successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error applying filters: {ex.Message}");
-        }
-        finally
-        {
-            // Close the workbook and quit Excel application
-            workbook.Close(false);
-            excelApp.Quit();
-
-            // Clean up
-            Marshal.ReleaseComObject(worksheet);
-            Marshal.ReleaseComObject(workbook);
-            Marshal.ReleaseComObject(excelApp);
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
     }
 }
