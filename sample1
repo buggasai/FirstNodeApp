@@ -18,48 +18,52 @@ class Program
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
-        // Define the worksheet name
+        // Define the worksheet and pivot table name
         string worksheetName = "Sheet1"; // Replace with your worksheet name
+        string pivotTableName = "PivotTable1"; // Replace with your pivot table name
 
         try
         {
             // Access the worksheet
             Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
 
-            // Select cell A1
-            Excel.Range cellA1 = worksheet.Range["A1"];
-            cellA1.Select();
+            // Access the pivot table
+            Excel.PivotTable pivotTable = worksheet.PivotTables(pivotTableName) as Excel.PivotTable;
 
-            // Get the used range of the worksheet
-            Excel.Range usedRange = worksheet.UsedRange;
+            // Refresh the pivot table
+            pivotTable.RefreshTable();
 
-            // Apply sort filter A to Z on column A
-            Excel.Range sortRange = worksheet.Range["A1", usedRange.Cells[usedRange.Rows.Count, 1]];
+            // Access the pivot table's PivotField you want to sort
+            Excel.PivotField pivotField = pivotTable.PivotFields("FieldName"); // Replace "FieldName" with your field name
 
-            // Create a sort object
-            Excel.Sort sort = worksheet.Sort;
-            sort.SortFields.Clear();
+            // Apply sort on the pivot field
+            pivotField.AutoSort(Excel.XlSortOrder.xlAscending, "FieldName"); // Sort the pivot field
 
-            // Add the sort field for column A
-            sort.SortFields.Add(
-                Key: sortRange,
-                SortOn: Excel.XlSortOn.xlSortOnValues,
-                Order: Excel.XlSortOrder.xlAscending,
-                DataOption: Excel.XlSortDataOption.xlSortNormal);
-
-            // Set the sort range and apply the sort
-            sort.SetRange(sortRange);
-            sort.Header = Excel.XlYesNoGuess.xlGuess;
-            sort.MatchCase = false;
-            sort.Orientation = Excel.XlSortOrientation.xlSortColumns;
-            sort.SortMethod = Excel.XlSortMethod.xlPinYin;
-            sort.Apply();
-
-            Console.WriteLine("Column A sorted A to Z successfully.");
+            Console.WriteLine("Pivot table refreshed and sorted successfully.");
 
             // Save the workbook if needed
             // workbook.Save();
         }
+        catch (COMException comEx)
+        {
+            Console.WriteLine($"COM Error: {comEx.Message}");
+        }
         catch (Exception ex)
         {
-            Console.
+            Console.WriteLine($"General Error: {ex.Message}");
+        }
+        finally
+        {
+            // Close the workbook and quit Excel application
+            workbook.Close(false);
+            excelApp.Quit();
+
+            // Clean up
+            Marshal.ReleaseComObject(workbook);
+            Marshal.ReleaseComObject(excelApp);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+    }
+}
