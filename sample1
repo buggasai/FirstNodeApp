@@ -18,21 +18,28 @@ class Program
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
+        // Define the worksheet name
+        string worksheetName = "PivotSheet"; // Replace with your worksheet name
+
         try
         {
-            // Access the second sheet
-            Excel.Worksheet secondSheet = (Excel.Worksheet)workbook.Sheets[2];
+            // Access the worksheet
+            Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
 
-            // Activate the second sheet
-            secondSheet.Activate();
+            // Ensure the worksheet is activated
+            worksheet.Activate();
 
-            // Do any other operations you need with the second sheet
-            // ...
+            // List all pivot table names in the worksheet
+            Excel.PivotTables pivotTables = worksheet.PivotTables();
+            foreach (Excel.PivotTable pivotTable in pivotTables)
+            {
+                Console.WriteLine($"PivotTable Name: {pivotTable.Name}");
+            }
 
             // Save the workbook if needed
             // workbook.Save();
 
-            Console.WriteLine("Second sheet activated successfully.");
+            Console.WriteLine("Pivot table names listed successfully.");
         }
         catch (Exception ex)
         {
