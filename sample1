@@ -19,44 +19,31 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
         // Define the worksheet name
-        string worksheetName = "PivotSheet"; // Replace with your worksheet name
+        string worksheetName = "Sheet1"; // Replace with your worksheet name
 
         try
         {
             // Access the worksheet
             Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
 
-            // Ensure the worksheet is activated
-            worksheet.Activate();
+            // Select cell A1
+            Excel.Range cellA1 = worksheet.Range["A1"];
+            cellA1.Select();
 
-            // List all pivot table names in the worksheet
-            Excel.PivotTables pivotTables = worksheet.PivotTables();
-            foreach (Excel.PivotTable pivotTable in pivotTables)
-            {
-                Console.WriteLine($"PivotTable Name: {pivotTable.Name}");
-            }
+            // Get the used range of the worksheet
+            Excel.Range usedRange = worksheet.UsedRange;
 
-            // Save the workbook if needed
-            // workbook.Save();
+            // Apply sort filter A to Z on column A
+            Excel.Range sortRange = worksheet.Range["A1", usedRange.Cells[usedRange.Rows.Count, 1]];
 
-            Console.WriteLine("Pivot table names listed successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-        finally
-        {
-            // Close the workbook and quit Excel application
-            workbook.Close(false);
-            excelApp.Quit();
+            // Create a sort object
+            Excel.Sort sort = worksheet.Sort;
+            sort.SortFields.Clear();
+            sort.SortFields.Add(sortRange, Excel.XlSortOn.xlSortOnValues, Excel.XlSortOrder.xlAscending, Type.Missing, Excel.XlSortDataOption.xlSortNormal);
 
-            // Clean up
-            Marshal.ReleaseComObject(workbook);
-            Marshal.ReleaseComObject(excelApp);
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-    }
-}
+            // Set the sort range and apply the sort
+            sort.SetRange(sortRange);
+            sort.Header = Excel.XlYesNoGuess.xlYes;
+            sort.MatchCase = false;
+            sort.Orientation = Excel.XlSortOrientation.xlSortColumns;
+            sort.SortMethod = Excel.Xl
