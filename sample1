@@ -29,30 +29,26 @@ class Program
             // Get the used range of the worksheet
             Excel.Range usedRange = worksheet.UsedRange;
 
-            // Get the column E range starting from the second row to the last used row
-            int rowCount = usedRange.Rows.Count;
-            Excel.Range columnERange = worksheet.Range["E2:E" + rowCount];
+            // Determine the last used row
+            int lastRow = usedRange.Rows.Count;
+
+            // Get the range starting from F4 downwards
+            Excel.Range formulaRange = worksheet.Range["F4:F" + lastRow];
 
             // Ensure the cell format is set to General before applying formulas
-            columnERange.NumberFormat = "General"; // Set to General format
+            formulaRange.NumberFormat = "General"; // Set to General format
 
-            // Construct dynamic formula for the entire column E
-            string[] formulas = new string[rowCount - 1]; // Array to hold all formulas
-            for (int row = 2; row <= rowCount; row++)
+            // Apply the formula dynamically
+            for (int row = 4; row <= lastRow; row++)
             {
-                formulas[row - 2] = $"=IF(A{row}<>\"ja\",0,IF(B{row}<$K$2, ...))"; // Example dynamic formula
-            }
-
-            // Apply formulas to the entire column E using Formula
-            for (int row = 2; row <= rowCount; row++)
-            {
-                worksheet.Cells[row, 5].Formula = formulas[row - 2]; // Column E is the 5th column
+                string formula = $"=IFNA(VLOOKUP(A{row},'edlohn kunden'!A:H,8,0),\"Keine Angabe\")";
+                worksheet.Cells[row, 6].Formula = formula; // Column F is the 6th column
             }
 
             // Force Excel to recalculate
             workbook.Application.Calculate();
 
-            Console.WriteLine("Dynamic formulas applied to column E successfully.");
+            Console.WriteLine("Formulas applied to column F from row 4 downwards successfully.");
 
             // Save the workbook if needed
             // workbook.Save();
