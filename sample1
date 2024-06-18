@@ -8,21 +8,19 @@ class Program
     {
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
-
-        // Make the application visible (optional for demonstration)
-        excelApp.Visible = true;
-
-        // Define the path to the workbook
-        string filePath = @"C:\path\to\your\file.xlsx";
-
-        // Open the workbook
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-
-        // Define the worksheet name
-        string worksheetName = "Sheet1"; // Replace with your worksheet name
+        excelApp.Visible = false; // Make Excel application invisible
 
         try
         {
+            // Define the path to the workbook
+            string filePath = @"C:\path\to\your\file.xlsx";
+
+            // Open the workbook
+            Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+
+            // Define the worksheet name
+            string worksheetName = "Sheet1"; // Replace with your worksheet name
+
             // Access the worksheet
             Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
 
@@ -30,13 +28,20 @@ class Program
             Excel.Range usedRange = worksheet.UsedRange;
 
             // Get the column E range
-            Excel.Range columnERange = worksheet.Range["E:E"];
+            int rowCount = usedRange.Rows.Count;
+            Excel.Range columnERange = worksheet.Range["E2:E" + rowCount];
 
-            // Apply formula to the entire column E
-            string formula = "=A1 * B1"; // Example formula, adjust as needed
-            columnERange.Formula = formula + new string[usedRange.Rows.Count - 1];
+            // Construct dynamic formula for the entire column E
+            string[] formulas = new string[rowCount - 1]; // Array to hold all formulas
+            for (int row = 2; row <= rowCount; row++)
+            {
+                formulas[row - 2] = "=IF(A" + row + "<>\"ja\",0,IF(B" + row + "<$K$" + row + ",..."; // Example dynamic formula
+            }
 
-            Console.WriteLine("Formula applied to column E successfully.");
+            // Apply formulas to the entire column E in one go
+            columnERange.Formula = formulas;
+
+            Console.WriteLine("Dynamic formulas applied to column E successfully.");
 
             // Save the workbook if needed
             // workbook.Save();
