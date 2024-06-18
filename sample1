@@ -29,28 +29,14 @@ class Program
             // Get the used range of the worksheet
             Excel.Range usedRange = worksheet.UsedRange;
 
-            // Define the sort range starting from row 8 downwards
-            Excel.Range sortRange = worksheet.Range["A8", usedRange.Cells[usedRange.Rows.Count, usedRange.Columns.Count]];
+            // Get the column E range
+            Excel.Range columnERange = worksheet.Range["E:E"];
 
-            // Sort the range by multiple columns
-            sortRange.Sort(
-                Key1: worksheet.Range["B8"],
-                Order1: Excel.XlSortOrder.xlAscending,
-                Key2: worksheet.Range["H8"],
-                Order2: Excel.XlSortOrder.xlAscending,
-                Key3: worksheet.Range["E8"],
-                Order3: Excel.XlSortOrder.xlAscending,
-                Header: Excel.XlYesNoGuess.xlYes,
-                OrderCustom: 1,
-                MatchCase: false,
-                Orientation: Excel.XlSortOrientation.xlSortRows,
-                SortMethod: Excel.XlSortMethod.xlPinYin,
-                DataOption1: Excel.XlSortDataOption.xlSortNormal,
-                DataOption2: Excel.XlSortDataOption.xlSortNormal,
-                DataOption3: Excel.XlSortDataOption.xlSortNormal
-            );
+            // Apply formula to the entire column E
+            string formula = "=A1 * B1"; // Example formula, adjust as needed
+            columnERange.Formula = formula + new string[usedRange.Rows.Count - 1];
 
-            Console.WriteLine("Range sorted successfully.");
+            Console.WriteLine("Formula applied to column E successfully.");
 
             // Save the workbook if needed
             // workbook.Save();
