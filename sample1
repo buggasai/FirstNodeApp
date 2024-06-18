@@ -39,11 +39,17 @@ class Program
             // Create a sort object
             Excel.Sort sort = worksheet.Sort;
             sort.SortFields.Clear();
-            sort.SortFields.Add(sortRange, Excel.XlSortOn.xlSortOnValues, Excel.XlSortOrder.xlAscending, Type.Missing, Excel.XlSortDataOption.xlSortNormal);
+
+            // Add the sort field for column A
+            sort.SortFields.Add(
+                Key: sortRange,
+                SortOn: Excel.XlSortOn.xlSortOnValues,
+                Order: Excel.XlSortOrder.xlAscending,
+                DataOption: Excel.XlSortDataOption.xlSortNormal);
 
             // Set the sort range and apply the sort
             sort.SetRange(sortRange);
-            sort.Header = Excel.XlYesNoGuess.xlYes;
+            sort.Header = Excel.XlYesNoGuess.xlGuess;
             sort.MatchCase = false;
             sort.Orientation = Excel.XlSortOrientation.xlSortColumns;
             sort.SortMethod = Excel.XlSortMethod.xlPinYin;
@@ -56,20 +62,4 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-        finally
-        {
-            // Close the workbook and quit Excel application
-            workbook.Close(false);
-            excelApp.Quit();
-
-            // Clean up
-            Marshal.ReleaseComObject(workbook);
-            Marshal.ReleaseComObject(excelApp);
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-    }
-}
+            Console.
