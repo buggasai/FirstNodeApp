@@ -18,24 +18,38 @@ class Program
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
-        // Access the worksheet from which you want to get the row count
-        Excel.Worksheet dataWorksheet = (Excel.Worksheet)workbook.Sheets["DataSheet"]; // Replace "DataSheet" with the name of your sheet
+        try
+        {
+            // Access the second sheet
+            Excel.Worksheet secondSheet = (Excel.Worksheet)workbook.Sheets[2];
 
-        // Find the last row with data in column A (or any specific column)
-        int lastRow = dataWorksheet.Cells[dataWorksheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row;
+            // Activate the second sheet
+            secondSheet.Activate();
 
-        // Output the last row number
-        Console.WriteLine($"The last row with data in the 'DataSheet' is: {lastRow}");
+            // Do any other operations you need with the second sheet
+            // ...
 
-        // Clean up
-        workbook.Close(false);
-        excelApp.Quit();
+            // Save the workbook if needed
+            // workbook.Save();
 
-        Marshal.ReleaseComObject(dataWorksheet);
-        Marshal.ReleaseComObject(workbook);
-        Marshal.ReleaseComObject(excelApp);
+            Console.WriteLine("Second sheet activated successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            // Close the workbook and quit Excel application
+            workbook.Close(false);
+            excelApp.Quit();
 
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
+            // Clean up
+            Marshal.ReleaseComObject(workbook);
+            Marshal.ReleaseComObject(excelApp);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 }
