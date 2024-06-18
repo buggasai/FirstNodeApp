@@ -8,7 +8,7 @@ class Program
     {
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = false; // Make Excel application invisible
+        excelApp.Visible = true; // Make Excel application visible for debugging
 
         try
         {
@@ -38,8 +38,11 @@ class Program
                 formulas[row - 2] = "=IF(A" + row + "<>\"ja\",0,IF(B" + row + "<$K$" + row + ",..."; // Example dynamic formula
             }
 
-            // Apply formulas to the entire column E in one go
-            columnERange.Formula = formulas;
+            // Apply formulas to the entire column E using FormulaLocal
+            columnERange.FormulaLocal = formulas;
+
+            // Force Excel to recalculate
+            workbook.Application.Calculate();
 
             Console.WriteLine("Dynamic formulas applied to column E successfully.");
 
