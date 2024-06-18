@@ -30,19 +30,11 @@ class Program
             // Access the pivot table
             Excel.PivotTable pivotTable = worksheet.PivotTables(pivotTableName) as Excel.PivotTable;
 
-            // Refresh the pivot table
-            pivotTable.RefreshTable();
-
-            // Access the pivot table's PivotField you want to sort
-            Excel.PivotField pivotField = pivotTable.PivotFields("FieldName"); // Replace "FieldName" with your field name
-
-            // Apply sort on the pivot field
-            pivotField.AutoSort(Excel.XlSortOrder.xlAscending, "FieldName"); // Sort the pivot field
-
-            Console.WriteLine("Pivot table refreshed and sorted successfully.");
-
-            // Save the workbook if needed
-            // workbook.Save();
+            // List all field names in the pivot table
+            foreach (Excel.PivotField field in pivotTable.PivotFields())
+            {
+                Console.WriteLine($"Pivot Table Field Name: {field.Name}");
+            }
         }
         catch (COMException comEx)
         {
