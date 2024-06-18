@@ -18,30 +18,42 @@ class Program
         // Open the workbook
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
 
-        // Define the worksheet and pivot table name
+        // Define the worksheet name
         string worksheetName = "Sheet1"; // Replace with your worksheet name
-        string pivotTableName = "PivotTable1"; // Replace with your pivot table name
 
         try
         {
             // Access the worksheet
             Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
 
-            // Access the pivot table
-            Excel.PivotTable pivotTable = worksheet.PivotTables(pivotTableName) as Excel.PivotTable;
+            // Get the used range of the worksheet
+            Excel.Range usedRange = worksheet.UsedRange;
 
-            // Refresh the pivot table
-            pivotTable.RefreshTable();
+            // Define the sort range starting from row 8 downwards
+            Excel.Range sortRange = worksheet.Range["A8", usedRange.Cells[usedRange.Rows.Count, usedRange.Columns.Count]];
 
-            // Access the pivot table's PivotField you want to sort
-            Excel.PivotField pivotField = pivotTable.PivotFields("FieldName") as Excel.PivotField; // Replace "FieldName" with your field name
+            // Sort the range by multiple columns
+            sortRange.Sort(
+                Key1: worksheet.Range["B8"],
+                Order1: Excel.XlSortOrder.xlAscending,
+                Key2: worksheet.Range["H8"],
+                Order2: Excel.XlSortOrder.xlAscending,
+                Key3: worksheet.Range["E8"],
+                Order3: Excel.XlSortOrder.xlAscending,
+                Header: Excel.XlYesNoGuess.xlYes,
+                OrderCustom: 1,
+                MatchCase: false,
+                Orientation: Excel.XlSortOrientation.xlSortRows,
+                SortMethod: Excel.XlSortMethod.xlPinYin,
+                DataOption1: Excel.XlSortDataOption.xlSortNormal,
+                DataOption2: Excel.XlSortDataOption.xlSortNormal,
+                DataOption3: Excel.XlSortDataOption.xlSortNormal
+            );
 
-            // Apply sort on the pivot field
-            pivotField.AutoSort(
-                Order: Excel.XlSortOrder.xlAscending,
-                Field: "FieldName"); // Sort the pivot field by name
+            Console.WriteLine("Range sorted successfully.");
 
-            Console.WriteLine("Pivot table refreshed and sorted successfully.");
+            // Save the workbook if needed
+            // workbook.Save();
         }
         catch (COMException comEx)
         {
