@@ -38,9 +38,6 @@ class Program
             // Select the range A-G in the source worksheet
             Excel.Range sourceRange = sourceWorksheet.Range["A:G"];
 
-            // Copy the selected range
-            sourceRange.Copy();
-
             // Open the destination workbook
             destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
 
@@ -51,14 +48,16 @@ class Program
             Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[destinationWorksheetName];
             destinationWorksheet.Activate();
 
+            // Clear destination range from existing pivot tables without deleting data
+            ClearPivotTableData(destinationWorksheet);
+
             // Select the destination range starting from A1 in the destination worksheet
             Excel.Range destinationRange = destinationWorksheet.Range["A1"];
 
-            // Paste the copied range
-            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
-
-            // Remove any existing pivot tables in the destination worksheet
-            RemovePivotTables(destinationWorksheet);
+            // Copy only values and formats from the source range to the destination range
+            sourceRange.Copy(Type.Missing);
+            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
+            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
 
             Console.WriteLine("Data copied and pasted successfully.");
 
@@ -94,7 +93,7 @@ class Program
         }
     }
 
-    static void RemovePivotTables(Excel.Worksheet worksheet)
+    static void ClearPivotTableData(Excel.Worksheet worksheet)
     {
         try
         {
@@ -104,7 +103,7 @@ class Program
             for (int i = pivotTableCount; i > 0; i--)
             {
                 Excel.PivotTable pivotTable = pivotTables.Item(i);
-                pivotTable.TableRange2.Clear();
+                pivotTable.TableRange2.ClearContents();
             }
         }
         catch (COMException comEx)
