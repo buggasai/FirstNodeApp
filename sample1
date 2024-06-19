@@ -1,11 +1,17 @@
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
+        // Set the culture to en-US
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
         // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
         excelApp.Visible = true; // Make Excel application visible for debugging
@@ -90,9 +96,24 @@ class Program
 
     static void RemovePivotTables(Excel.Worksheet worksheet)
     {
-        foreach (Excel.PivotTable pivotTable in worksheet.PivotTables())
+        try
         {
-            pivotTable.TableRange2.Clear();
+            Excel.PivotTables pivotTables = worksheet.PivotTables();
+            int pivotTableCount = pivotTables.Count;
+
+            for (int i = pivotTableCount; i > 0; i--)
+            {
+                Excel.PivotTable pivotTable = pivotTables.Item(i);
+                pivotTable.TableRange2.Clear();
+            }
+        }
+        catch (COMException comEx)
+        {
+            Console.WriteLine($"Error removing pivot tables: {comEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"General Error: {ex.Message}");
         }
     }
 }
