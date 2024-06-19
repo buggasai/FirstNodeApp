@@ -1,89 +1,54 @@
-using System;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Excel = Microsoft.Office.Interop.Excel;
 
-class Program
+class ExcelInteropExample
 {
-    static void Main()
+    public void CopyDataExcludingPivotTables(string sourceFilePath, string sourceSheetName, string targetSheetName)
     {
-        // Set the culture to en-US
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
-
-        // Create a new Excel application
         Excel.Application excelApp = new Excel.Application();
-        excelApp.Visible = true; // Make Excel application visible for debugging
-
-        Excel.Workbook workbook = null;
+        Excel.Workbook workbook = excelApp.Workbooks.Open(sourceFilePath);
+        Excel.Worksheet sourceSheet = workbook.Sheets[sourceSheetName];
+        Excel.Worksheet targetSheet = workbook.Sheets[targetSheetName];
 
         try
         {
-            // Define the path to the workbook
-            string workbookPath = @"C:\path\to\your\workbook.xlsx";
+            // Find the used range excluding pivot tables
+            Excel.Range usedRange = sourceSheet.UsedRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
 
-            // Open the workbook
-            workbook = excelApp.Workbooks.Open(workbookPath);
+            // Copy values excluding pivot tables
+            if (usedRange != null)
+            {
+                targetSheet.Range["A1:G" + usedRange.Rows.Count].Value = usedRange.Value;
+            }
 
-            // Define the source and destination worksheet names
-            string sourceWorksheetName = "Sheet1"; // Replace with your source worksheet name
-            string destinationWorksheetName = "Sheet2"; // Replace with your destination worksheet name
-
-            // Access the source worksheet
-            Excel.Worksheet sourceWorksheet = (Excel.Worksheet)workbook.Sheets[sourceWorksheetName];
-
-            // Select the range A-G in the source worksheet
-            Excel.Range sourceRange = sourceWorksheet.Range["A:G"];
-            int rowCount = sourceRange.Rows.Count;
-            int columnCount = sourceRange.Columns.Count;
-
-            // Access the destination worksheet
-            Excel.Worksheet destinationWorksheet = (Excel.Worksheet)workbook.Sheets[destinationWorksheetName];
-
-            // Select the destination range starting from A1 in the destination worksheet
-            Excel.Range destinationRange = destinationWorksheet.Range["A1"].Resize[rowCount, columnCount];
-
-            // Clear the destination range to remove any existing pivot tables
-            destinationRange.Clear();
-
-            // Copy values and formats directly
-            destinationRange.Value = sourceRange.Value;
-            destinationRange.NumberFormat = sourceRange.NumberFormat;
-            destinationRange.Font.Name = sourceRange.Font.Name;
-            destinationRange.Font.Size = sourceRange.Font.Size;
-            destinationRange.Font.Bold = sourceRange.Font.Bold;
-            destinationRange.Font.Italic = sourceRange.Font.Italic;
-            destinationRange.Font.Underline = sourceRange.Font.Underline;
-            destinationRange.Font.Color = sourceRange.Font.Color;
-            destinationRange.Interior.Color = sourceRange.Interior.Color;
-
-            Console.WriteLine("Data copied and pasted successfully.");
-
-            // Save the workbook if needed
+            // Save and close workbook
             workbook.Save();
-        }
-        catch (COMException comEx)
-        {
-            Console.WriteLine($"COM Error: {comEx.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"General Error: {ex.Message}");
+            workbook.Close();
         }
         finally
         {
-            // Close the workbook and quit Excel application
-            if (workbook != null)
-            {
-                workbook.Close(false);
-                Marshal.ReleaseComObject(workbook);
-            }
-            excelApp.Quit();
-            Marshal.ReleaseComObject(excelApp);
+            // Clean up Excel objects
+            ReleaseObject(sourceSheet);
+            ReleaseObject(targetSheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
 
+    private void ReleaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (System.Exception ex)
+        {
+            obj = null;
+            Console.WriteLine("Exception occurred while releasing object " + ex.ToString());
+        }
+        finally
+        {
             GC.Collect();
-            GC.WaitForPendingFinalizers();
         }
     }
 }
