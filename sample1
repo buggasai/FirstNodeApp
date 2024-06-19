@@ -11,8 +11,8 @@ class ExcelInteropExample
 
         try
         {
-            // Find the used range excluding pivot tables
-            Excel.Range usedRange = sourceSheet.UsedRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+            // Find the used range excluding pivot tables and only visible cells
+            Excel.Range usedRange = GetVisibleUsedRange(sourceSheet);
 
             // Clear existing data in destination range A1:Gx (where x is the last row in used range)
             Excel.Range targetRange = targetSheet.Range["A1:G" + usedRange.Rows.Count];
@@ -36,6 +36,25 @@ class ExcelInteropExample
             ReleaseObject(workbook);
             ReleaseObject(excelApp);
         }
+    }
+
+    private Excel.Range GetVisibleUsedRange(Excel.Worksheet sheet)
+    {
+        Excel.Range lastCell = sheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
+        Excel.Range usedRange = sheet.Range["A1", lastCell];
+
+        // Find the last row in the used range that is visible
+        int lastRow = 0;
+        foreach (Excel.Range row in usedRange.Rows)
+        {
+            if (row.Hidden == false && row.EntireRow.Hidden == false)
+            {
+                lastRow = row.Row;
+            }
+        }
+
+        // Return range from A1 to lastRow and column G
+        return sheet.Range["A1:G" + lastRow];
     }
 
     private void ReleaseObject(object obj)
