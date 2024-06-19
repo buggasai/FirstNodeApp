@@ -10,35 +10,51 @@ class Program
         Excel.Application excelApp = new Excel.Application();
         excelApp.Visible = true; // Make Excel application visible for debugging
 
-        Excel.Workbook workbook = null;
+        Excel.Workbook sourceWorkbook = null;
+        Excel.Workbook destinationWorkbook = null;
 
         try
         {
-            // Define the path to the workbook
-            string filePath = @"C:\path\to\your\file.xlsx";
+            // Define the path to the source and destination workbooks
+            string sourceFilePath = @"C:\path\to\your\source_file.xlsx";
+            string destinationFilePath = @"C:\path\to\your\destination_file.xlsx";
 
-            // Open the workbook
-            workbook = excelApp.Workbooks.Open(filePath);
+            // Open the source workbook
+            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
 
-            // Define the worksheet name
-            string worksheetName = "Sheet4"; // Replace with your worksheet name
+            // Define the source worksheet name
+            string sourceWorksheetName = "Sheet1"; // Replace with your source worksheet name
 
-            // Access and activate the worksheet
-            Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
-            worksheet.Activate();
+            // Access and activate the source worksheet
+            Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[sourceWorksheetName];
+            sourceWorksheet.Activate();
 
-            // Get the used range of the active worksheet
-            Excel.Range usedRange = worksheet.UsedRange;
+            // Select the range A-G in the source worksheet
+            Excel.Range sourceRange = sourceWorksheet.Range["A:G"];
 
-            // Get the row count from column A
-            Excel.Range columnARange = worksheet.Columns[1];
-            Excel.Range columnAUsedRange = columnARange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
-            int rowCount = columnAUsedRange.Row;
+            // Copy the selected range
+            sourceRange.Copy();
 
-            Console.WriteLine($"Row count in column A of {worksheetName}: {rowCount}");
+            // Open the destination workbook
+            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
 
-            // Save the workbook if needed
-            // workbook.Save();
+            // Define the destination worksheet name
+            string destinationWorksheetName = "Sheet1"; // Replace with your destination worksheet name
+
+            // Access and activate the destination worksheet
+            Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[destinationWorksheetName];
+            destinationWorksheet.Activate();
+
+            // Select the destination range A-G in the destination worksheet
+            Excel.Range destinationRange = destinationWorksheet.Range["A1"];
+
+            // Paste the copied range
+            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
+
+            Console.WriteLine("Data copied and pasted successfully.");
+
+            // Save the destination workbook if needed
+            // destinationWorkbook.Save();
         }
         catch (COMException comEx)
         {
@@ -50,11 +66,16 @@ class Program
         }
         finally
         {
-            // Close the workbook and quit Excel application
-            if (workbook != null)
+            // Close the workbooks and quit Excel application
+            if (sourceWorkbook != null)
             {
-                workbook.Close(false);
-                Marshal.ReleaseComObject(workbook);
+                sourceWorkbook.Close(false);
+                Marshal.ReleaseComObject(sourceWorkbook);
+            }
+            if (destinationWorkbook != null)
+            {
+                destinationWorkbook.Close(false);
+                Marshal.ReleaseComObject(destinationWorkbook);
             }
             excelApp.Quit();
             Marshal.ReleaseComObject(excelApp);
