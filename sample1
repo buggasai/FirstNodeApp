@@ -45,16 +45,19 @@ class Program
             Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[destinationWorksheetName];
             destinationWorksheet.Activate();
 
-            // Select the destination range A-G in the destination worksheet
+            // Remove any existing pivot tables in the destination worksheet
+            RemovePivotTables(destinationWorksheet);
+
+            // Select the destination range starting from A1 in the destination worksheet
             Excel.Range destinationRange = destinationWorksheet.Range["A1"];
 
             // Paste the copied range
-            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
+            destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteAll);
 
             Console.WriteLine("Data copied and pasted successfully.");
 
             // Save the destination workbook if needed
-            // destinationWorkbook.Save();
+            destinationWorkbook.Save();
         }
         catch (COMException comEx)
         {
@@ -82,6 +85,14 @@ class Program
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+    }
+
+    static void RemovePivotTables(Excel.Worksheet worksheet)
+    {
+        foreach (Excel.PivotTable pivotTable in worksheet.PivotTables())
+        {
+            pivotTable.TableRange2.Clear();
         }
     }
 }
