@@ -14,10 +14,14 @@ class ExcelInteropExample
             // Find the used range excluding pivot tables
             Excel.Range usedRange = sourceSheet.UsedRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
 
+            // Clear existing data in destination range A1:Gx (where x is the last row in used range)
+            Excel.Range targetRange = targetSheet.Range["A1:G" + usedRange.Rows.Count];
+            targetRange.ClearContents();
+
             // Copy values excluding pivot tables
             if (usedRange != null)
             {
-                targetSheet.Range["A1:G" + usedRange.Rows.Count].Value = usedRange.Value;
+                targetRange.Value = usedRange.Value;
             }
 
             // Save and close workbook
