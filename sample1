@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -22,37 +21,21 @@ class Program
             workbook = excelApp.Workbooks.Open(filePath);
 
             // Define the worksheet name
-            string worksheetName = "Sheet1"; // Replace with your worksheet name
+            string worksheetName = "Sheet4"; // Replace with your worksheet name
 
-            // Access the worksheet
+            // Access and activate the worksheet
             Excel.Worksheet worksheet = (Excel.Worksheet)workbook.Sheets[worksheetName];
+            worksheet.Activate();
 
-            // Values to check in column A
-            HashSet<int> valuesToDelete = new HashSet<int> { 5197, 5198, 5199, 5273, 5450, 5404, 5405, 8478 };
-
-            // Get the used range of the worksheet
+            // Get the used range of the active worksheet
             Excel.Range usedRange = worksheet.UsedRange;
-            int rowCount = usedRange.Rows.Count;
 
-            // Collect rows to delete
-            List<int> rowsToDelete = new List<int>();
+            // Get the row count from column A
+            Excel.Range columnARange = worksheet.Columns[1];
+            Excel.Range columnAUsedRange = columnARange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
+            int rowCount = columnAUsedRange.Row;
 
-            for (int row = 1; row <= rowCount; row++)
-            {
-                Excel.Range cell = worksheet.Cells[row, 1]; // Column A is the 1st column
-                if (cell.Value2 != null && valuesToDelete.Contains((int)cell.Value2))
-                {
-                    rowsToDelete.Add(row);
-                }
-            }
-
-            // Delete rows in reverse order
-            for (int i = rowsToDelete.Count - 1; i >= 0; i--)
-            {
-                worksheet.Rows[rowsToDelete[i]].Delete();
-            }
-
-            Console.WriteLine("Specified rows deleted successfully.");
+            Console.WriteLine($"Row count in column A of {worksheetName}: {rowCount}");
 
             // Save the workbook if needed
             // workbook.Save();
