@@ -16,53 +16,47 @@ class Program
         Excel.Application excelApp = new Excel.Application();
         excelApp.Visible = true; // Make Excel application visible for debugging
 
-        Excel.Workbook sourceWorkbook = null;
-        Excel.Workbook destinationWorkbook = null;
+        Excel.Workbook workbook = null;
 
         try
         {
-            // Define the path to the source and destination workbooks
-            string sourceFilePath = @"C:\path\to\your\source_file.xlsx";
-            string destinationFilePath = @"C:\path\to\your\destination_file.xlsx";
+            // Define the path to the workbook
+            string workbookPath = @"C:\path\to\your\workbook.xlsx";
 
-            // Open the source workbook
-            sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+            // Open the workbook
+            workbook = excelApp.Workbooks.Open(workbookPath);
 
-            // Define the source worksheet name
+            // Define the source and destination worksheet names
             string sourceWorksheetName = "Sheet1"; // Replace with your source worksheet name
+            string destinationWorksheetName = "Sheet2"; // Replace with your destination worksheet name
 
-            // Access and activate the source worksheet
-            Excel.Worksheet sourceWorksheet = (Excel.Worksheet)sourceWorkbook.Sheets[sourceWorksheetName];
-            sourceWorksheet.Activate();
+            // Access the source worksheet
+            Excel.Worksheet sourceWorksheet = (Excel.Worksheet)workbook.Sheets[sourceWorksheetName];
 
             // Select the range A-G in the source worksheet
             Excel.Range sourceRange = sourceWorksheet.Range["A:G"];
 
-            // Open the destination workbook
-            destinationWorkbook = excelApp.Workbooks.Open(destinationFilePath);
-
-            // Define the destination worksheet name
-            string destinationWorksheetName = "Sheet1"; // Replace with your destination worksheet name
-
-            // Access and activate the destination worksheet
-            Excel.Worksheet destinationWorksheet = (Excel.Worksheet)destinationWorkbook.Sheets[destinationWorksheetName];
-            destinationWorksheet.Activate();
-
-            // Clear destination range from existing pivot tables without deleting data
-            ClearPivotTableData(destinationWorksheet);
+            // Access the destination worksheet
+            Excel.Worksheet destinationWorksheet = (Excel.Worksheet)workbook.Sheets[destinationWorksheetName];
 
             // Select the destination range starting from A1 in the destination worksheet
             Excel.Range destinationRange = destinationWorksheet.Range["A1"];
+
+            // Clear the destination range to remove any existing pivot tables
+            destinationRange.Clear();
 
             // Copy only values and formats from the source range to the destination range
             sourceRange.Copy(Type.Missing);
             destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
             destinationRange.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
 
+            // Clear the clipboard to avoid memory issues
+            excelApp.CutCopyMode = Excel.XlCutCopyMode.xlCopy;
+
             Console.WriteLine("Data copied and pasted successfully.");
 
-            // Save the destination workbook if needed
-            destinationWorkbook.Save();
+            // Save the workbook if needed
+            workbook.Save();
         }
         catch (COMException comEx)
         {
@@ -74,45 +68,17 @@ class Program
         }
         finally
         {
-            // Close the workbooks and quit Excel application
-            if (sourceWorkbook != null)
+            // Close the workbook and quit Excel application
+            if (workbook != null)
             {
-                sourceWorkbook.Close(false);
-                Marshal.ReleaseComObject(sourceWorkbook);
-            }
-            if (destinationWorkbook != null)
-            {
-                destinationWorkbook.Close(false);
-                Marshal.ReleaseComObject(destinationWorkbook);
+                workbook.Close(false);
+                Marshal.ReleaseComObject(workbook);
             }
             excelApp.Quit();
             Marshal.ReleaseComObject(excelApp);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
-        }
-    }
-
-    static void ClearPivotTableData(Excel.Worksheet worksheet)
-    {
-        try
-        {
-            Excel.PivotTables pivotTables = worksheet.PivotTables();
-            int pivotTableCount = pivotTables.Count;
-
-            for (int i = pivotTableCount; i > 0; i--)
-            {
-                Excel.PivotTable pivotTable = pivotTables.Item(i);
-                pivotTable.TableRange2.ClearContents();
-            }
-        }
-        catch (COMException comEx)
-        {
-            Console.WriteLine($"Error removing pivot tables: {comEx.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"General Error: {ex.Message}");
         }
     }
 }
