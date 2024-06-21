@@ -11,7 +11,10 @@ class ExcelInteropExample
 
         try
         {
-            // Find the used range excluding pivot tables and only visible cells
+            // Activate the target worksheet
+            targetSheet.Activate();
+
+            // Find the used range excluding pivot tables and only visible cells in the source sheet
             Excel.Range usedRange = GetVisibleUsedRange(sourceSheet);
 
             // Clear existing data in destination range A1:Gx (where x is the last row in used range)
@@ -22,6 +25,14 @@ class ExcelInteropExample
             if (usedRange != null)
             {
                 targetRange.Value = usedRange.Value;
+            }
+
+            // Optionally, if you need to delete specific rows, here is how you could do it:
+            // Example: Deleting row 1 to lastRow
+            for (int row = usedRange.Rows.Count; row >= 1; row--)
+            {
+                Excel.Range currentRow = targetSheet.Rows[row];
+                currentRow.Delete();
             }
 
             // Save and close workbook
