@@ -3,7 +3,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void ClearFilters(string filePath, string sheetName)
+    public void SetValuesBasedOnCondition(string filePath, string sheetName)
     {
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
@@ -14,9 +14,20 @@ class ExcelInteropExample
             // Activate the sheet
             sheet.Activate();
 
-            // Clear filters in columns H and I
-            ClearColumnFilter(sheet, "H");
-            ClearColumnFilter(sheet, "I");
+            // Get the used range of the sheet
+            Excel.Range usedRange = sheet.UsedRange;
+
+            // Iterate through each row in the used range
+            for (int row = 2; row <= usedRange.Rows.Count; row++) // Assuming data starts from row 2
+            {
+                Excel.Range cellF = sheet.Cells[row, 6]; // Column F
+                if (cellF.Value != null && cellF.Value.ToString().Equals("nein", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Set values in columns D and E to 0
+                    sheet.Cells[row, 4].Value = 0; // Column D
+                    sheet.Cells[row, 5].Value = 0; // Column E
+                }
+            }
 
             // Save and close workbook
             workbook.Save();
@@ -32,62 +43,6 @@ class ExcelInteropExample
             ReleaseObject(sheet);
             ReleaseObject(workbook);
             ReleaseObject(excelApp);
-        }
-    }
-
-    private void ClearColumnFilter(Excel.Worksheet sheet, string columnName)
-    {
-        int columnIndex = GetColumnIndex(sheet, columnName);
-        if (columnIndex > 0)
-        {
-            Excel.Range headerCell = sheet.Cells[3, columnIndex]; // Assuming filters start from row 3
-            Excel.Range headerRow = sheet.Rows[3];
-            
-            // Check if there are any filters currently applied
-            if (sheet.AutoFilter != null)
-            {
-                // Clear all existing filters
-                sheet.AutoFilterMode = false;
-            }
-
-            // Apply the filter to the column if it doesn't intersect with a pivot table
-            if (!IsPivotTableColumn(sheet, columnIndex))
-            {
-                headerRow.AutoFilter(columnIndex);
-            }
-            else
-            {
-                Console.WriteLine("Column " + columnName + " contains pivot table data. Skipping filter clear.");
-            }
-        }
-    }
-
-    private bool IsPivotTableColumn(Excel.Worksheet sheet, int columnIndex)
-    {
-        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
-        {
-            Excel.Range pivotRange = pivotTable.TableRange2;
-            if (columnIndex >= pivotRange.Column && columnIndex < (pivotRange.Column + pivotRange.Columns.Count))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private int GetColumnIndex(Excel.Worksheet sheet, string columnName)
-    {
-        Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
-        Excel.Range column = headerRow.Find(columnName, Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlWhole, Excel.XlSearchOrder.xlByColumns, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
-
-        if (column != null)
-        {
-            return column.Column;
-        }
-        else
-        {
-            Console.WriteLine("Column " + columnName + " not found.");
-            return -1;
         }
     }
 
@@ -107,5 +62,14 @@ class ExcelInteropExample
         {
             GC.Collect();
         }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ExcelInteropExample example = new ExcelInteropExample();
+        example.SetValuesBasedOnCondition("path_to_your_excel_file.xlsx", "Sheet1");
     }
 }
