@@ -1,3 +1,4 @@
+using System;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
@@ -22,7 +23,7 @@ class ExcelInteropExample
             Excel.Range sortRange = dataSheet.Range["A1", dataRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
 
             // Apply sorting
-            SortRange(sortRange, sortColumn);
+            SortRange(dataSheet, sortRange, sortColumn);
 
             // Save and close workbook
             workbook.Save();
@@ -46,15 +47,15 @@ class ExcelInteropExample
         }
     }
 
-    private void SortRange(Excel.Range range, string sortColumn)
+    private void SortRange(Excel.Worksheet sheet, Excel.Range range, string sortColumn)
     {
-        Excel.Range firstCell = range.Cells[1, 1];
-        int columnNumber = firstCell.Worksheet.Cells[1, sortColumn].Column;
+        int columnNumber = GetColumnNumber(sheet, sortColumn);
 
-        Excel.Sort sort = range.Worksheet.Sort;
+        Excel.Range sortRange = range.Columns[columnNumber];
+        Excel.Sort sort = sheet.Sort;
         sort.SortFields.Clear();
         sort.SortFields.Add(
-            range.Columns[columnNumber],
+            sortRange,
             Excel.XlSortOn.xlSortOnValues,
             Excel.XlSortOrder.xlAscending
         );
@@ -64,6 +65,12 @@ class ExcelInteropExample
         sort.Orientation = Excel.XlSortOrientation.xlSortRows;
         sort.SortMethod = Excel.XlSortMethod.xlPinYin;
         sort.Apply();
+    }
+
+    private int GetColumnNumber(Excel.Worksheet sheet, string columnLetter)
+    {
+        Excel.Range cell = sheet.Cells[1, columnLetter];
+        return cell.Column;
     }
 
     private void ReleaseObject(object obj)
