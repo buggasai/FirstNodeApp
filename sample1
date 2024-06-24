@@ -17,7 +17,7 @@ class ExcelInteropExample
             // Activate the data sheet
             dataSheet.Activate();
 
-            // Identify the range to sort (assuming header is in the first row and data starts from A2)
+            // Identify the range to sort (assuming header is in the first row and data starts from A1)
             Excel.Range dataRange = dataSheet.UsedRange;
             Excel.Range sortRange = dataSheet.Range["A1", dataRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
 
@@ -51,18 +51,12 @@ class ExcelInteropExample
         Excel.Range firstCell = range.Cells[1, 1];
         int columnNumber = firstCell.Worksheet.Cells[1, sortColumn].Column;
 
-        Excel.Sort sort = range.Sort;
-        sort.SortFields.Clear();
-        sort.SortFields.Add(
-            Key: range.Columns[columnNumber],
-            Order: Excel.XlSortOrder.xlAscending
+        range.Sort(
+            Key1: range.Columns[columnNumber],
+            Order1: Excel.XlSortOrder.xlAscending,
+            Header: Excel.XlYesNoGuess.xlYes,
+            Orientation: Excel.XlSortOrientation.xlSortColumns
         );
-        sort.SetRange(range);
-        sort.Header = Excel.XlYesNoGuess.xlYes;
-        sort.MatchCase = false;
-        sort.Orientation = Excel.XlSortOrientation.xlSortColumns;
-        sort.SortMethod = Excel.XlSortMethod.xlPinYin;
-        sort.Apply();
     }
 
     private void ReleaseObject(object obj)
