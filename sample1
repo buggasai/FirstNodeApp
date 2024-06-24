@@ -15,8 +15,8 @@ class ExcelInteropExample
             sheet.Activate();
 
             // Clear filters in columns H and I
-            ClearColumnFilter(sheet, 8); // Column H is 8
-            ClearColumnFilter(sheet, 9); // Column I is 9
+            ClearColumnFilter(sheet, "H");
+            ClearColumnFilter(sheet, "I");
 
             // Save and close workbook
             workbook.Save();
@@ -31,16 +31,36 @@ class ExcelInteropExample
         }
     }
 
-    private void ClearColumnFilter(Excel.Worksheet sheet, int columnIndex)
+    private void ClearColumnFilter(Excel.Worksheet sheet, string columnName)
     {
-        Excel.AutoFilter autoFilter = sheet.AutoFilter;
-        if (autoFilter != null)
+        int columnIndex = GetColumnIndex(sheet, columnName);
+        if (columnIndex > 0)
         {
-            Excel.Filters filters = autoFilter.Filters;
-            if (filters != null && filters.Item[columnIndex].On)
+            Excel.AutoFilter autoFilter = sheet.AutoFilter;
+            if (autoFilter != null && autoFilter.Filters.Count >= columnIndex)
             {
-                autoFilter.Range.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+                Excel.Filter filter = autoFilter.Filters[columnIndex];
+                if (filter != null && filter.On)
+                {
+                    filter.Clear();
+                }
             }
+        }
+    }
+
+    private int GetColumnIndex(Excel.Worksheet sheet, string columnName)
+    {
+        Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
+        Excel.Range column = headerRow.Find(columnName, Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlWhole, Excel.XlSearchOrder.xlByColumns, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+        
+        if (column != null)
+        {
+            return column.Column;
+        }
+        else
+        {
+            Console.WriteLine("Column " + columnName + " not found.");
+            return -1;
         }
     }
 
