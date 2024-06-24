@@ -14,7 +14,7 @@ class ExcelInteropExample
             // Activate the sheet
             sheet.Activate();
 
-            // Clear filters in columns H and I
+            // Clear filters in columns H and I excluding pivot table areas
             ClearColumnFilter(sheet, "H");
             ClearColumnFilter(sheet, "I");
 
@@ -39,9 +39,29 @@ class ExcelInteropExample
             Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
             Excel.Range columnRange = headerRow.EntireColumn;
 
-            // Apply filter to the entire column range and clear it
-            columnRange.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
+            // Check if the column range intersects with pivot table range
+            if (!IntersectsPivotTableRange(sheet, columnRange))
+            {
+                // Apply auto-filter to the entire column range and clear it
+                columnRange.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
+            }
+            else
+            {
+                Console.WriteLine("Column " + columnName + " contains pivot table data. Skipping filter clear.");
+            }
         }
+    }
+
+    private bool IntersectsPivotTableRange(Excel.Worksheet sheet, Excel.Range range)
+    {
+        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
+        {
+            if (pivotTable.TableRange1.Intersect(range) != null)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int GetColumnIndex(Excel.Worksheet sheet, string columnName)
