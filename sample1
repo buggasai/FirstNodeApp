@@ -3,27 +3,20 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void RefreshPivotAndSort(string filePath, string pivotSheetName, string dataSheetName, string sortColumn)
+    public void ClearFilters(string filePath, string sheetName)
     {
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet pivotSheet = workbook.Sheets[pivotSheetName];
-        Excel.Worksheet dataSheet = workbook.Sheets[dataSheetName];
+        Excel.Worksheet sheet = workbook.Sheets[sheetName];
 
         try
         {
-            // Refresh the pivot table
-            RefreshPivotTable(pivotSheet);
+            // Activate the sheet
+            sheet.Activate();
 
-            // Activate the data sheet
-            dataSheet.Activate();
-
-            // Identify the range to sort (assuming header is in the first row and data starts from A1)
-            Excel.Range dataRange = dataSheet.UsedRange;
-            Excel.Range sortRange = dataSheet.Range["A1", dataRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
-
-            // Apply sorting
-            SortRange(dataSheet, sortRange, sortColumn);
+            // Clear filters in columns H and I
+            ClearColumnFilters(sheet, "H");
+            ClearColumnFilters(sheet, "I");
 
             // Save and close workbook
             workbook.Save();
@@ -32,39 +25,24 @@ class ExcelInteropExample
         finally
         {
             // Clean up Excel objects
-            ReleaseObject(pivotSheet);
-            ReleaseObject(dataSheet);
+            ReleaseObject(sheet);
             ReleaseObject(workbook);
             ReleaseObject(excelApp);
         }
     }
 
-    private void RefreshPivotTable(Excel.Worksheet sheet)
+    private void ClearColumnFilters(Excel.Worksheet sheet, string columnLetter)
     {
-        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
+        Excel.AutoFilter autoFilter = sheet.AutoFilter;
+        if (autoFilter != null)
         {
-            pivotTable.RefreshTable();
+            int columnNumber = GetColumnNumber(sheet, columnLetter);
+            Excel.Filters filters = autoFilter.Filters;
+            if (filters != null && filters.Item[columnNumber].On)
+            {
+                autoFilter.Range.AutoFilter(columnNumber, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+            }
         }
-    }
-
-    private void SortRange(Excel.Worksheet sheet, Excel.Range range, string sortColumn)
-    {
-        int columnNumber = GetColumnNumber(sheet, sortColumn);
-
-        Excel.Range sortRange = range.Columns[columnNumber];
-        Excel.Sort sort = sheet.Sort;
-        sort.SortFields.Clear();
-        sort.SortFields.Add(
-            sortRange,
-            Excel.XlSortOn.xlSortOnValues,
-            Excel.XlSortOrder.xlAscending
-        );
-        sort.SetRange(range);
-        sort.Header = Excel.XlYesNoGuess.xlYes;
-        sort.MatchCase = false;
-        sort.Orientation = Excel.XlSortOrientation.xlSortRows;
-        sort.SortMethod = Excel.XlSortMethod.xlPinYin;
-        sort.Apply();
     }
 
     private int GetColumnNumber(Excel.Worksheet sheet, string columnLetter)
