@@ -3,7 +3,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void SetValuesBasedOnCondition(string filePath, string sheetName)
+    public void SetFilterOnColumnG(string filePath, string sheetName)
     {
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
@@ -17,17 +17,17 @@ class ExcelInteropExample
             // Get the used range of the sheet
             Excel.Range usedRange = sheet.UsedRange;
 
-            // Iterate through each row in the used range
-            for (int row = 2; row <= usedRange.Rows.Count; row++) // Assuming data starts from row 2
+            // Assuming the header row is row 3
+            Excel.Range headerRow = sheet.Rows[3];
+
+            // Clear any existing filters
+            if (sheet.AutoFilter != null)
             {
-                Excel.Range cellF = sheet.Cells[row, 6]; // Column F
-                if (cellF.Value != null && cellF.Value.ToString().Equals("nein", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Set values in columns D and E to 0
-                    sheet.Cells[row, 4].Value = 0; // Column D
-                    sheet.Cells[row, 5].Value = 0; // Column E
-                }
+                sheet.AutoFilterMode = false;
             }
+
+            // Set the filter on column G (7th column)
+            headerRow.AutoFilter(7, "BOB", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
 
             // Save and close workbook
             workbook.Save();
@@ -70,6 +70,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelInteropExample example = new ExcelInteropExample();
-        example.SetValuesBasedOnCondition("path_to_your_excel_file.xlsx", "Sheet1");
+        example.SetFilterOnColumnG("path_to_your_excel_file.xlsx", "Sheet1");
     }
 }
