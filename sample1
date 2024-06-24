@@ -40,22 +40,46 @@ class ExcelInteropExample
         int columnIndex = GetColumnIndex(sheet, columnName);
         if (columnIndex > 0)
         {
-            Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
-            Excel.Range columnRange = headerRow.EntireColumn;
+            Excel.Range headerCell = sheet.Cells[3, columnIndex]; // Assuming filters start from row 3
+            Excel.Range headerRow = sheet.Rows[3];
             
-            // Clear existing filters
-            columnRange.AutoFilter(Type.Missing);
+            // Check if there are any filters currently applied
+            if (sheet.AutoFilter != null)
+            {
+                // Clear all existing filters
+                sheet.AutoFilterMode = false;
+            }
 
-            // Apply new filter if needed
-            // columnRange.AutoFilter(columnIndex, "FilterValue", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, Type.Missing);
+            // Apply the filter to the column if it doesn't intersect with a pivot table
+            if (!IsPivotTableColumn(sheet, columnIndex))
+            {
+                headerRow.AutoFilter(columnIndex);
+            }
+            else
+            {
+                Console.WriteLine("Column " + columnName + " contains pivot table data. Skipping filter clear.");
+            }
         }
+    }
+
+    private bool IsPivotTableColumn(Excel.Worksheet sheet, int columnIndex)
+    {
+        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
+        {
+            Excel.Range pivotRange = pivotTable.TableRange2;
+            if (columnIndex >= pivotRange.Column && columnIndex < (pivotRange.Column + pivotRange.Columns.Count))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int GetColumnIndex(Excel.Worksheet sheet, string columnName)
     {
         Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
         Excel.Range column = headerRow.Find(columnName, Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlWhole, Excel.XlSearchOrder.xlByColumns, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
-        
+
         if (column != null)
         {
             return column.Column;
