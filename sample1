@@ -2,38 +2,27 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void CopyDataExcludingPivotTables(string sourceFilePath, string sourceSheetName, string targetSheetName)
+    public void RefreshPivotAndSort(string filePath, string pivotSheetName, string dataSheetName, string sortColumn)
     {
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(sourceFilePath);
-        Excel.Worksheet sourceSheet = workbook.Sheets[sourceSheetName];
-        Excel.Worksheet targetSheet = workbook.Sheets[targetSheetName];
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet pivotSheet = workbook.Sheets[pivotSheetName];
+        Excel.Worksheet dataSheet = workbook.Sheets[dataSheetName];
 
         try
         {
-            // Activate the target worksheet
-            targetSheet.Activate();
+            // Refresh the pivot table
+            RefreshPivotTable(pivotSheet);
 
-            // Find the used range excluding pivot tables and only visible cells in the source sheet
-            Excel.Range usedRange = GetVisibleUsedRange(sourceSheet);
+            // Activate the data sheet
+            dataSheet.Activate();
 
-            // Clear existing data in destination range A1:Gx (where x is the last row in used range)
-            Excel.Range targetRange = targetSheet.Range["A1:G" + usedRange.Rows.Count];
-            targetRange.ClearContents();
+            // Identify the range to sort (assuming header is in the first row and data starts from A2)
+            Excel.Range dataRange = dataSheet.UsedRange;
+            Excel.Range sortRange = dataSheet.Range["A1", dataRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
 
-            // Copy values excluding pivot tables
-            if (usedRange != null)
-            {
-                targetRange.Value = usedRange.Value;
-            }
-
-            // Optionally, if you need to delete specific rows, here is how you could do it:
-            // Example: Deleting row 1 to lastRow
-            for (int row = usedRange.Rows.Count; row >= 1; row--)
-            {
-                Excel.Range currentRow = targetSheet.Rows[row];
-                currentRow.Delete();
-            }
+            // Apply sorting
+            SortRange(sortRange, sortColumn);
 
             // Save and close workbook
             workbook.Save();
@@ -42,30 +31,38 @@ class ExcelInteropExample
         finally
         {
             // Clean up Excel objects
-            ReleaseObject(sourceSheet);
-            ReleaseObject(targetSheet);
+            ReleaseObject(pivotSheet);
+            ReleaseObject(dataSheet);
             ReleaseObject(workbook);
             ReleaseObject(excelApp);
         }
     }
 
-    private Excel.Range GetVisibleUsedRange(Excel.Worksheet sheet)
+    private void RefreshPivotTable(Excel.Worksheet sheet)
     {
-        Excel.Range lastCell = sheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
-        Excel.Range usedRange = sheet.Range["A1", lastCell];
-
-        // Find the last row in the used range that is visible
-        int lastRow = 0;
-        foreach (Excel.Range row in usedRange.Rows)
+        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
         {
-            if (row.Hidden == false && row.EntireRow.Hidden == false)
-            {
-                lastRow = row.Row;
-            }
+            pivotTable.RefreshTable();
         }
+    }
 
-        // Return range from A1 to lastRow and column G
-        return sheet.Range["A1:G" + lastRow];
+    private void SortRange(Excel.Range range, string sortColumn)
+    {
+        Excel.Range firstCell = range.Cells[1, 1];
+        int columnNumber = firstCell.Worksheet.Cells[1, sortColumn].Column;
+
+        Excel.Sort sort = range.Sort;
+        sort.SortFields.Clear();
+        sort.SortFields.Add(
+            Key: range.Columns[columnNumber],
+            Order: Excel.XlSortOrder.xlAscending
+        );
+        sort.SetRange(range);
+        sort.Header = Excel.XlYesNoGuess.xlYes;
+        sort.MatchCase = false;
+        sort.Orientation = Excel.XlSortOrientation.xlSortColumns;
+        sort.SortMethod = Excel.XlSortMethod.xlPinYin;
+        sort.Apply();
     }
 
     private void ReleaseObject(object obj)
@@ -75,10 +72,10 @@ class ExcelInteropExample
             System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
             obj = null;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             obj = null;
-            Console.WriteLine("Exception occurred while releasing object " + ex.ToString());
+            Console.WriteLine("Exception occurred while releasing object: " + ex.ToString());
         }
         finally
         {
