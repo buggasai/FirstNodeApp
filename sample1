@@ -22,6 +22,10 @@ class ExcelInteropExample
             workbook.Save();
             workbook.Close();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
         finally
         {
             // Clean up Excel objects
@@ -36,34 +40,15 @@ class ExcelInteropExample
         int columnIndex = GetColumnIndex(sheet, columnName);
         if (columnIndex > 0)
         {
-            // Check if column contains pivot table data
-            bool isPivotTableColumn = IsPivotTableColumn(sheet, columnIndex);
+            Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
+            Excel.Range columnRange = headerRow.EntireColumn;
+            
+            // Clear existing filters
+            columnRange.AutoFilter(Type.Missing);
 
-            if (!isPivotTableColumn)
-            {
-                // Clear filter for the entire column
-                Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
-                Excel.Range columnRange = headerRow.EntireColumn;
-                columnRange.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
-            }
-            else
-            {
-                Console.WriteLine("Column " + columnName + " contains pivot table data. Skipping filter clear.");
-            }
+            // Apply new filter if needed
+            // columnRange.AutoFilter(columnIndex, "FilterValue", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, Type.Missing);
         }
-    }
-
-    private bool IsPivotTableColumn(Excel.Worksheet sheet, int columnIndex)
-    {
-        // Check if any cell in the column is within a pivot table range
-        foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
-        {
-            if (pivotTable.TableRange1.Columns.Column <= columnIndex && columnIndex <= pivotTable.TableRange1.Columns.Column + pivotTable.TableRange1.Columns.Count - 1)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     private int GetColumnIndex(Excel.Worksheet sheet, string columnName)
