@@ -3,7 +3,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void SetFilterOnColumnG(string filePath, string sheetName)
+    public void ApplyFormula(string filePath, string sheetName)
     {
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
@@ -17,17 +17,12 @@ class ExcelInteropExample
             // Get the used range of the sheet
             Excel.Range usedRange = sheet.UsedRange;
 
-            // Assuming the header row is row 3
-            Excel.Range headerRow = sheet.Rows[3];
-
-            // Clear any existing filters
-            if (sheet.AutoFilter != null)
+            // Iterate through each row in the used range
+            for (int row = 2; row <= usedRange.Rows.Count; row++) // Assuming data starts from row 2
             {
-                sheet.AutoFilterMode = false;
+                Excel.Range cell = sheet.Cells[row, 1]; // Change column index if needed
+                cell.Formula = $"=\"pro\"&C{row}&\"|\"&D{row}";
             }
-
-            // Set the filter on column G (7th column)
-            headerRow.AutoFilter(7, "BOB", Excel.XlAutoFilterOperator.xlFilterValues, Type.Missing, true);
 
             // Save and close workbook
             workbook.Save();
@@ -70,6 +65,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelInteropExample example = new ExcelInteropExample();
-        example.SetFilterOnColumnG("path_to_your_excel_file.xlsx", "Sheet1");
+        example.ApplyFormula("path_to_your_excel_file.xlsx", "Sheet1");
     }
 }
