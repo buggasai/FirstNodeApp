@@ -15,8 +15,8 @@ class ExcelInteropExample
             sheet.Activate();
 
             // Clear filters in columns H and I
-            ClearColumnFilters(sheet, "H", 3);
-            ClearColumnFilters(sheet, "I", 3);
+            ClearColumnFilter(sheet, 8); // Column H is 8
+            ClearColumnFilter(sheet, 9); // Column I is 9
 
             // Save and close workbook
             workbook.Save();
@@ -31,20 +31,17 @@ class ExcelInteropExample
         }
     }
 
-    private void ClearColumnFilters(Excel.Worksheet sheet, string columnLetter, int headerRow)
+    private void ClearColumnFilter(Excel.Worksheet sheet, int columnIndex)
     {
         Excel.AutoFilter autoFilter = sheet.AutoFilter;
-        if (autoFilter != null && autoFilter.Range.Row == headerRow)
+        if (autoFilter != null)
         {
-            int columnNumber = GetColumnNumber(sheet, columnLetter);
-            autoFilter.Range.AutoFilter(columnNumber, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+            Excel.Filters filters = autoFilter.Filters;
+            if (filters != null && filters.Item[columnIndex].On)
+            {
+                autoFilter.Range.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+            }
         }
-    }
-
-    private int GetColumnNumber(Excel.Worksheet sheet, string columnLetter)
-    {
-        Excel.Range cell = sheet.Cells[1, columnLetter];
-        return cell.Column;
     }
 
     private void ReleaseObject(object obj)
