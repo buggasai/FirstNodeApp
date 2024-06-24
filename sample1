@@ -36,15 +36,11 @@ class ExcelInteropExample
         int columnIndex = GetColumnIndex(sheet, columnName);
         if (columnIndex > 0)
         {
-            Excel.AutoFilter autoFilter = sheet.AutoFilter;
-            if (autoFilter != null && autoFilter.Filters.Count >= columnIndex)
-            {
-                Excel.Filter filter = autoFilter.Filters[columnIndex];
-                if (filter != null && filter.On)
-                {
-                    filter.Clear();
-                }
-            }
+            Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
+            Excel.Range columnRange = headerRow.EntireColumn;
+
+            // Apply filter to the entire column range and clear it
+            columnRange.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
         }
     }
 
