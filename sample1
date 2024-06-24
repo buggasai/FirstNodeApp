@@ -14,7 +14,7 @@ class ExcelInteropExample
             // Activate the sheet
             sheet.Activate();
 
-            // Clear filters in columns H and I excluding pivot table areas
+            // Clear filters in columns H and I
             ClearColumnFilter(sheet, "H");
             ClearColumnFilter(sheet, "I");
 
@@ -36,13 +36,14 @@ class ExcelInteropExample
         int columnIndex = GetColumnIndex(sheet, columnName);
         if (columnIndex > 0)
         {
-            Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
-            Excel.Range columnRange = headerRow.EntireColumn;
+            // Check if column contains pivot table data
+            bool isPivotTableColumn = IsPivotTableColumn(sheet, columnIndex);
 
-            // Check if the column range intersects with pivot table range
-            if (!IntersectsPivotTableRange(sheet, columnRange))
+            if (!isPivotTableColumn)
             {
-                // Apply auto-filter to the entire column range and clear it
+                // Clear filter for the entire column
+                Excel.Range headerRow = sheet.Rows[3]; // Assuming filters start from row 3
+                Excel.Range columnRange = headerRow.EntireColumn;
                 columnRange.AutoFilter(columnIndex, Type.Missing, Excel.XlAutoFilterOperator.xlAnd, Type.Missing, Type.Missing);
             }
             else
@@ -52,11 +53,12 @@ class ExcelInteropExample
         }
     }
 
-    private bool IntersectsPivotTableRange(Excel.Worksheet sheet, Excel.Range range)
+    private bool IsPivotTableColumn(Excel.Worksheet sheet, int columnIndex)
     {
+        // Check if any cell in the column is within a pivot table range
         foreach (Excel.PivotTable pivotTable in sheet.PivotTables())
         {
-            if (pivotTable.TableRange1.Intersect(range) != null)
+            if (pivotTable.TableRange1.Columns.Column <= columnIndex && columnIndex <= pivotTable.TableRange1.Columns.Column + pivotTable.TableRange1.Columns.Count - 1)
             {
                 return true;
             }
