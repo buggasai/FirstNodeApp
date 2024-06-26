@@ -1,41 +1,92 @@
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
+
+class ExcelInteropExample
+{
+    public void ExtractDateForValue(string filePath, string sheetName, string searchValue)
+    {
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet sheet = workbook.Sheets[sheetName];
+
+        try
+        {
+            // Activate the sheet
+            sheet.Activate();
+
+            // Get the range to search in column A
+            Excel.Range searchRange = sheet.Columns[1]; // Column A
+
+            // Use the Find method to locate the search value
+            Excel.Range foundCell = searchRange.Find(
+                What: searchValue,
+                LookIn: Excel.XlFindLookIn.xlValues,
+                LookAt: Excel.XlLookAt.xlWhole,
+                SearchOrder: Excel.XlSearchOrder.xlByRows,
+                SearchDirection: Excel.XlSearchDirection.xlNext,
+                MatchCase: false,
+                SearchFormat: false
+            );
+
+            // Check if the value was found
+            if (foundCell != null)
+            {
+                Excel.Range cellB = sheet.Cells[foundCell.Row, 2]; // Column B
+                if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out DateTime extractedDate))
+                {
+                    Console.WriteLine($"The date for '{searchValue}' is: {extractedDate.ToShortDateString()}");
+                }
+                else
+                {
+                    Console.WriteLine("Date value not found or invalid.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"The value '{searchValue}' was not found.");
+            }
+
+            // Save and close workbook
+            workbook.Save();
+            workbook.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+        finally
+        {
+            // Clean up Excel objects
+            ReleaseObject(sheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
+
+    private void ReleaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (Exception ex)
+        {
+            obj = null;
+            Console.WriteLine("Exception occurred while releasing object: " + ex.ToString());
+        }
+        finally
+        {
+            GC.Collect();
+        }
+    }
+}
 
 class Program
 {
     static void Main(string[] args)
     {
-        // Read values from AppSettings
-        string valuesToDeleteStr = ConfigurationManager.AppSettings["ValuesToDelete"];
-        HashSet<int> valuesToDelete = new HashSet<int>(
-            valuesToDeleteStr.Split(',')
-                             .Select(int.Parse)
-        );
-
-        string filePath = @"C:\path\to\your\file.xlsx";
-        string sheetName = "Sheet1"; // The sheet where the operation will be performed
-
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = null;
-        Excel.Worksheet worksheet = null;
-
-        try
-        {
-            // Open the workbook
-            workbook = excelApp.Workbooks.Open(filePath);
-            worksheet = workbook.Sheets[sheetName] as Excel.Worksheet;
-
-            if (worksheet != null)
-            {
-                Excel.Range usedRange = worksheet.UsedRange;
-                int lastRow = usedRange.Rows.Count;
-                List<int> rowsToDelete = new List<int>();
-
-                // Collect all rows that need to be deleted
-                for (int row = 1; row <= lastRow; row++)
-                {
-                   
+        ExcelInteropExample example = new ExcelInteropExample();
+        example.ExtractDateForValue("path_to_your_excel_file.xlsx", "Sheet1", "edlihn ms (professional pay)");
+    }
+}
