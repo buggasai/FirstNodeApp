@@ -28,11 +28,14 @@ class ExcelInteropExample
                 SearchFormat: false
             );
 
+            // Initialize extractedDate to a default value
+            DateTime extractedDate = DateTime.MinValue;
+
             // Check if the value was found
             if (foundCell != null)
             {
                 Excel.Range cellB = sheet.Cells[foundCell.Row, 2]; // Column B
-                if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out DateTime extractedDate))
+                if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out extractedDate))
                 {
                     // Extract only the date part
                     DateTime dateOnly = extractedDate.Date;
