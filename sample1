@@ -34,7 +34,9 @@ class ExcelInteropExample
                 Excel.Range cellB = sheet.Cells[foundCell.Row, 2]; // Column B
                 if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out DateTime extractedDate))
                 {
-                    Console.WriteLine($"The date for '{searchValue}' is: {extractedDate.ToShortDateString()}");
+                    // Extract only the date part
+                    DateTime dateOnly = extractedDate.Date;
+                    Console.WriteLine($"The date for '{searchValue}' is: {dateOnly.ToShortDateString()}");
                 }
                 else
                 {
