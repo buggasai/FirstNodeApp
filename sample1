@@ -3,19 +3,19 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void ExtractAndCompareDate(string filePath, string sheetName, string searchValue)
+    public void ExtractAndAddDateToAnotherFile(string sourceFilePath, string sourceSheetName, string searchValue, string targetFilePath, string targetSheetName)
     {
         Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet sheet = workbook.Sheets[sheetName];
+        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
+        Excel.Worksheet sourceSheet = sourceWorkbook.Sheets[sourceSheetName];
 
         try
         {
-            // Activate the sheet
-            sheet.Activate();
+            // Activate the source sheet
+            sourceSheet.Activate();
 
             // Get the range to search in column A
-            Excel.Range searchRange = sheet.Columns[1]; // Column A
+            Excel.Range searchRange = sourceSheet.Columns[1]; // Column A
 
             // Use the Find method to locate the search value
             Excel.Range foundCell = searchRange.Find(
@@ -34,23 +34,28 @@ class ExcelInteropExample
             // Check if the value was found
             if (foundCell != null)
             {
-                Excel.Range cellB = sheet.Cells[foundCell.Row, 2]; // Column B
+                Excel.Range cellB = sourceSheet.Cells[foundCell.Row, 2]; // Column B
                 if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out extractedDate))
                 {
                     // Extract only the date part
                     DateTime dateOnly = extractedDate.Date;
                     Console.WriteLine($"The date for '{searchValue}' is: {dateOnly.ToShortDateString()}");
 
-                    // Check if the date is in the same month and year as the current date
-                    DateTime currentDate = DateTime.Now;
-                    if (dateOnly.Month == currentDate.Month && dateOnly.Year == currentDate.Year)
-                    {
-                        Console.WriteLine("The extracted date is in the same month and year as the current date.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("The extracted date is NOT in the same month and year as the current date.");
-                    }
+                    // Open the target workbook and sheet
+                    Excel.Workbook targetWorkbook = excelApp.Workbooks.Open(targetFilePath);
+                    Excel.Worksheet targetSheet = targetWorkbook.Sheets[targetSheetName];
+
+                    // Find the last used row in column A
+                    int lastRow = targetSheet.Cells[targetSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row + 1;
+
+                    // Add month, year, and date to the target sheet
+                    targetSheet.Cells[lastRow, 1].Value = dateOnly.Month; // Column A
+                    targetSheet.Cells[lastRow, 2].Value = dateOnly.Year;  // Column B
+                    targetSheet.Cells[lastRow, 3].Value = dateOnly.ToShortDateString(); // Column C
+
+                    // Save and close the target workbook
+                    targetWorkbook.Save();
+                    targetWorkbook.Close();
                 }
                 else
                 {
@@ -62,9 +67,9 @@ class ExcelInteropExample
                 Console.WriteLine($"The value '{searchValue}' was not found.");
             }
 
-            // Save and close workbook
-            workbook.Save();
-            workbook.Close();
+            // Save and close the source workbook
+            sourceWorkbook.Save();
+            sourceWorkbook.Close();
         }
         catch (Exception ex)
         {
@@ -73,8 +78,8 @@ class ExcelInteropExample
         finally
         {
             // Clean up Excel objects
-            ReleaseObject(sheet);
-            ReleaseObject(workbook);
+            ReleaseObject(sourceSheet);
+            ReleaseObject(sourceWorkbook);
             ReleaseObject(excelApp);
         }
     }
@@ -103,6 +108,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelInteropExample example = new ExcelInteropExample();
-        example.ExtractAndCompareDate("path_to_your_excel_file.xlsx", "Sheet1", "edlihn ms (professional pay)");
+        example.ExtractAndAddDateToAnotherFile("path_to_your_source_excel_file.xlsx", "SourceSheetName", "edlihn ms (professional pay)", "path_to_your_target_excel_file.xlsx", "TargetSheetName");
     }
 }
