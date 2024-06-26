@@ -3,7 +3,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 class ExcelInteropExample
 {
-    public void ExtractDateForValue(string filePath, string sheetName, string searchValue)
+    public void ExtractAndCompareDate(string filePath, string sheetName, string searchValue)
     {
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
@@ -40,6 +40,17 @@ class ExcelInteropExample
                     // Extract only the date part
                     DateTime dateOnly = extractedDate.Date;
                     Console.WriteLine($"The date for '{searchValue}' is: {dateOnly.ToShortDateString()}");
+
+                    // Check if the date is in the same month and year as the current date
+                    DateTime currentDate = DateTime.Now;
+                    if (dateOnly.Month == currentDate.Month && dateOnly.Year == currentDate.Year)
+                    {
+                        Console.WriteLine("The extracted date is in the same month and year as the current date.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The extracted date is NOT in the same month and year as the current date.");
+                    }
                 }
                 else
                 {
@@ -92,6 +103,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelInteropExample example = new ExcelInteropExample();
-        example.ExtractDateForValue("path_to_your_excel_file.xlsx", "Sheet1", "edlihn ms (professional pay)");
+        example.ExtractAndCompareDate("path_to_your_excel_file.xlsx", "Sheet1", "edlihn ms (professional pay)");
     }
 }
