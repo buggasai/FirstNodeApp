@@ -12,7 +12,7 @@ class HtmlParserExample
         try
         {
             // Define the XPath to locate the span element
-            string xpath = "//table[4]//tr[2]//td//div//span";
+            string xpath = "//div[@id='content']//table//tbody//tr[2]//td//div//span";
 
             // Select the span node
             var spanNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
@@ -40,6 +40,4 @@ class Program
     static void Main(string[] args)
     {
         HtmlParserExample example = new HtmlParserExample();
-        example.ExtractSpanText("path_to_your_html_file.html");
-    }
-}
+        example.ExtractSpanText("pat
