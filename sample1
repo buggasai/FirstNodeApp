@@ -1,104 +1,36 @@
 using System;
-using Excel = Microsoft.Office.Interop.Excel;
+using HtmlAgilityPack;
 
-class ExcelInteropExample
+class HtmlParserExample
 {
-    public void ExtractAndAddDateToAnotherFile(string sourceFilePath, string sourceSheetName, string searchValue, string targetFilePath, string targetSheetName)
+    public void ExtractSpanText(string htmlFilePath)
     {
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook sourceWorkbook = excelApp.Workbooks.Open(sourceFilePath);
-        Excel.Worksheet sourceSheet = sourceWorkbook.Sheets[sourceSheetName];
+        // Load the HTML document
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.Load(htmlFilePath);
 
         try
         {
-            // Activate the source sheet
-            sourceSheet.Activate();
+            // Define the XPath to locate the span element
+            string xpath = "//table[4]//tr[2]//td//div//span";
 
-            // Get the range to search in column A
-            Excel.Range searchRange = sourceSheet.Columns[1]; // Column A
+            // Select the span node
+            var spanNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
 
-            // Use the Find method to locate the search value
-            Excel.Range foundCell = searchRange.Find(
-                What: searchValue,
-                LookIn: Excel.XlFindLookIn.xlValues,
-                LookAt: Excel.XlLookAt.xlWhole,
-                SearchOrder: Excel.XlSearchOrder.xlByRows,
-                SearchDirection: Excel.XlSearchDirection.xlNext,
-                MatchCase: false,
-                SearchFormat: false
-            );
-
-            // Initialize extractedDate to a default value
-            DateTime extractedDate = DateTime.MinValue;
-
-            // Check if the value was found
-            if (foundCell != null)
+            // Check if the span node is found and get its inner text
+            if (spanNode != null)
             {
-                Excel.Range cellB = sourceSheet.Cells[foundCell.Row, 2]; // Column B
-                if (cellB.Value != null && DateTime.TryParse(cellB.Value.ToString(), out extractedDate))
-                {
-                    // Extract only the date part
-                    DateTime dateOnly = extractedDate.Date;
-                    Console.WriteLine($"The date for '{searchValue}' is: {dateOnly.ToShortDateString()}");
-
-                    // Open the target workbook and sheet
-                    Excel.Workbook targetWorkbook = excelApp.Workbooks.Open(targetFilePath);
-                    Excel.Worksheet targetSheet = targetWorkbook.Sheets[targetSheetName];
-
-                    // Find the last used row in column A
-                    int lastRow = targetSheet.Cells[targetSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row + 1;
-
-                    // Add month, year, and date to the target sheet
-                    targetSheet.Cells[lastRow, 1].Value = dateOnly.Month; // Column A
-                    targetSheet.Cells[lastRow, 2].Value = dateOnly.Year;  // Column B
-                    targetSheet.Cells[lastRow, 3].Value = dateOnly.ToShortDateString(); // Column C
-
-                    // Save and close the target workbook
-                    targetWorkbook.Save();
-                    targetWorkbook.Close();
-                }
-                else
-                {
-                    Console.WriteLine("Date value not found or invalid.");
-                }
+                string spanText = spanNode.InnerText;
+                Console.WriteLine("The text inside the span element is: " + spanText);
             }
             else
             {
-                Console.WriteLine($"The value '{searchValue}' was not found.");
+                Console.WriteLine("Span element not found.");
             }
-
-            // Save and close the source workbook
-            sourceWorkbook.Save();
-            sourceWorkbook.Close();
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error: " + ex.Message);
-        }
-        finally
-        {
-            // Clean up Excel objects
-            ReleaseObject(sourceSheet);
-            ReleaseObject(sourceWorkbook);
-            ReleaseObject(excelApp);
-        }
-    }
-
-    private void ReleaseObject(object obj)
-    {
-        try
-        {
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-            obj = null;
-        }
-        catch (Exception ex)
-        {
-            obj = null;
-            Console.WriteLine("Exception occurred while releasing object: " + ex.ToString());
-        }
-        finally
-        {
-            GC.Collect();
         }
     }
 }
@@ -107,7 +39,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        ExcelInteropExample example = new ExcelInteropExample();
-        example.ExtractAndAddDateToAnotherFile("path_to_your_source_excel_file.xlsx", "SourceSheetName", "edlihn ms (professional pay)", "path_to_your_target_excel_file.xlsx", "TargetSheetName");
+        HtmlParserExample example = new HtmlParserExample();
+        example.ExtractSpanText("path_to_your_html_file.html");
     }
 }
