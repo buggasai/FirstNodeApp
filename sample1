@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 
 class HtmlParserExample
 {
-    public void FindOptionInSelect(string htmlFilePath, string selectId, string optionText)
+    public void FindTdWithSpecificTexts(string htmlFilePath)
     {
         // Load the HTML document
         var htmlDoc = new HtmlDocument();
@@ -11,34 +11,21 @@ class HtmlParserExample
 
         try
         {
-            // Define the XPath to locate the <select> element with the specific id
-            string selectXpath = $"//select[@id='{selectId}']";
+            // Define the XPath to locate the <td> element containing "pro5199" and a <span> with "6310"
+            string xpath = "//td[contains(text(), 'pro5199') and .//span[contains(text(), '6310')]]";
 
-            // Find the <select> node
-            var selectNode = htmlDoc.DocumentNode.SelectSingleNode(selectXpath);
+            // Select the td node
+            var tdNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
 
-            if (selectNode != null)
+            // Check if the td node is found
+            if (tdNode != null)
             {
-                // Define the XPath to locate the <option> element with the specific text within the <select>
-                string optionXpath = $"//select[@id='{selectId}']//option[text()='{optionText}']";
-
-                // Find the <option> node
-                var optionNode = htmlDoc.DocumentNode.SelectSingleNode(optionXpath);
-
-                // Check if the <option> node is found and get its value or inner text
-                if (optionNode != null)
-                {
-                    string optionValue = optionNode.GetAttributeValue("value", string.Empty);
-                    Console.WriteLine($"The value of the option with text '{optionText}' is: {optionValue}");
-                }
-                else
-                {
-                    Console.WriteLine($"Option with text '{optionText}' not found.");
-                }
+                Console.WriteLine("Found td element:");
+                Console.WriteLine(tdNode.OuterHtml);
             }
             else
             {
-                Console.WriteLine($"Select element with id '{selectId}' not found.");
+                Console.WriteLine("td element with 'pro5199' and span containing '6310' not found.");
             }
         }
         catch (Exception ex)
@@ -53,6 +40,6 @@ class Program
     static void Main(string[] args)
     {
         HtmlParserExample example = new HtmlParserExample();
-        example.FindOptionInSelect("path_to_your_html_file.html", "your_select_id", "your_option_text");
+        example.FindTdWithSpecificTexts("path_to_your_html_file.html");
     }
 }
