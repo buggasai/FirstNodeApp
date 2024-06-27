@@ -1,63 +1,36 @@
 using System;
-using Excel = Microsoft.Office.Interop.Excel;
+using HtmlAgilityPack;
 
-class ExcelInteropExample
+class HtmlParserExample
 {
-    public void ProcessKundenSheet(string filePath)
+    public void FindAnchorTagWithText(string htmlFilePath)
     {
-        // Open the Excel application
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet kundenSheet = workbook.Sheets["kunden"];
+        // Load the HTML document
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.Load(htmlFilePath);
 
         try
         {
-            // Get the last used row in the "kunden" sheet
-            int lastRow = kundenSheet.Cells[kundenSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row;
+            // Define the XPath to locate the anchor tag with the text "Faktura"
+            string xpath = "//a[text()='Faktura']";
 
-            // Iterate through each row and get the value from column F
-            for (int row = 1; row <= lastRow; row++)
+            // Select the anchor node
+            var anchorNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+
+            // Check if the anchor node is found and get its attributes or inner text
+            if (anchorNode != null)
             {
-                Excel.Range rowRange = kundenSheet.Rows[row];
-                string rowValue = rowRange.Cells[1, 1].Text; // You can adjust the column index based on your needs
-                string fColumnValue = rowRange.Cells[1, 6].Text; // Column F (6th column)
-
-                Console.WriteLine($"Row {row}: Value = {rowValue}, Column F Value = {fColumnValue}");
+                string hrefValue = anchorNode.GetAttributeValue("href", string.Empty);
+                Console.WriteLine("The href attribute of the anchor tag is: " + hrefValue);
+            }
+            else
+            {
+                Console.WriteLine("Anchor tag with text 'Faktura' not found.");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error: " + ex.Message);
-        }
-        finally
-        {
-            // Save and close the workbook
-            workbook.Save();
-            workbook.Close();
-            excelApp.Quit();
-            
-            // Release COM objects to avoid memory leaks
-            ReleaseObject(kundenSheet);
-            ReleaseObject(workbook);
-            ReleaseObject(excelApp);
-        }
-    }
-
-    private void ReleaseObject(object obj)
-    {
-        try
-        {
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-            obj = null;
-        }
-        catch (Exception ex)
-        {
-            obj = null;
-            Console.WriteLine("Exception occurred while releasing object: " + ex.ToString());
-        }
-        finally
-        {
-            GC.Collect();
         }
     }
 }
@@ -66,7 +39,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        ExcelInteropExample example = new ExcelInteropExample();
-        example.ProcessKundenSheet("path_to_your_excel_file.xlsx");
+        HtmlParserExample example = new HtmlParserExample();
+        example.FindAnchorTagWithText("path_to_your_html_file.html");
     }
 }
