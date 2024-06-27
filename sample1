@@ -1,73 +1,63 @@
 using System;
-using System.Globalization;
 using Excel = Microsoft.Office.Interop.Excel;
-using HtmlAgilityPack;
 
 class ExcelInteropExample
 {
-    public void ExtractDateAndSaveToExcel(string htmlFilePath, string targetFilePath, string targetSheetName)
+    public void ProcessKundenSheet(string filePath)
     {
-        // Load the HTML document
-        var htmlDoc = new HtmlDocument();
-        htmlDoc.Load(htmlFilePath);
+        // Open the Excel application
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet kundenSheet = workbook.Sheets["kunden"];
 
         try
         {
-            // Define the XPath to locate the span elements with the date text
-            string xpath = "//div[@id='content']//table//tbody//tr[2]//td//div//span";
+            // Get the last used row in the "kunden" sheet
+            int lastRow = kundenSheet.Cells[kundenSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row;
 
-            // Select all matching span nodes
-            var spanNodes = htmlDoc.DocumentNode.SelectNodes(xpath);
-
-            // Check if span nodes are found and get the text of the first one
-            if (spanNodes != null && spanNodes.Count > 0)
+            // Iterate through each row and get the value from column F
+            for (int row = 1; row <= lastRow; row++)
             {
-                string dateText = spanNodes[0].InnerText.Trim();
-                Console.WriteLine("Extracted date text: " + dateText);
+                Excel.Range rowRange = kundenSheet.Rows[row];
+                string rowValue = rowRange.Cells[1, 1].Text; // You can adjust the column index based on your needs
+                string fColumnValue = rowRange.Cells[1, 6].Text; // Column F (6th column)
 
-                // Parse the German date format
-                DateTime parsedDate;
-                if (DateTime.TryParseExact(dateText, "dd. MMMM yyyy HH:mm", new CultureInfo("de-DE"), DateTimeStyles.None, out parsedDate))
-                {
-                    // Extract day, month, and year
-                    int day = parsedDate.Day;
-                    int month = parsedDate.Month;
-                    int year = parsedDate.Year;
-                    string formattedDate = parsedDate.ToString("dd.MM.yyyy");
-
-                    Console.WriteLine($"Day: {day}, Month: {month}, Year: {year}, Formatted Date: {formattedDate}");
-
-                    // Open the target Excel file
-                    Excel.Application excelApp = new Excel.Application();
-                    Excel.Workbook targetWorkbook = excelApp.Workbooks.Open(targetFilePath);
-                    Excel.Worksheet targetSheet = targetWorkbook.Sheets[targetSheetName];
-
-                    // Find the last used row in column A
-                    int lastRow = targetSheet.Cells[targetSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row + 1;
-
-                    // Add day, year, and formatted date to the target sheet
-                    targetSheet.Cells[lastRow, 1].Value = day; // Column A
-                    targetSheet.Cells[lastRow, 2].Value = year; // Column B
-                    targetSheet.Cells[lastRow, 3].Value = formattedDate; // Column C
-
-                    // Save and close the target workbook
-                    targetWorkbook.Save();
-                    targetWorkbook.Close();
-                    excelApp.Quit();
-                }
-                else
-                {
-                    Console.WriteLine("Failed to parse the date text.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Span element not found.");
+                Console.WriteLine($"Row {row}: Value = {rowValue}, Column F Value = {fColumnValue}");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error: " + ex.Message);
+        }
+        finally
+        {
+            // Save and close the workbook
+            workbook.Save();
+            workbook.Close();
+            excelApp.Quit();
+            
+            // Release COM objects to avoid memory leaks
+            ReleaseObject(kundenSheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
+
+    private void ReleaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (Exception ex)
+        {
+            obj = null;
+            Console.WriteLine("Exception occurred while releasing object: " + ex.ToString());
+        }
+        finally
+        {
+            GC.Collect();
         }
     }
 }
@@ -77,6 +67,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelInteropExample example = new ExcelInteropExample();
-        example.ExtractDateAndSaveToExcel("path_to_your_html_file.html", "path_to_your_target_excel_file.xlsx", "Sheet1");
+        example.ProcessKundenSheet("path_to_your_excel_file.xlsx");
     }
 }
