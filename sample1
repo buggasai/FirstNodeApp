@@ -11,8 +11,9 @@ class HtmlParserExample
 
         try
         {
-            // Define the XPath to locate the <td> element containing "pro5199" and a <span> with "6310"
-            string xpath = "//td[contains(text(), 'pro5199') and .//span[contains(text(), '6310')]]";
+            // Define the XPath to locate the <td> element containing "pro5199" directly (ignoring nested divs/spans)
+            // and a <span> with "6310"
+            string xpath = "//td[normalize-space(text()) = 'pro5199' and .//span[normalize-space(text()) = '6310']]";
 
             // Select the td node
             var tdNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
