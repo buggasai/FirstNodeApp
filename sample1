@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 
 class HtmlParserExample
 {
-    public void FindAnchorTagWithText(string htmlFilePath)
+    public void FindOptionInSelect(string htmlFilePath, string selectId, string optionText)
     {
         // Load the HTML document
         var htmlDoc = new HtmlDocument();
@@ -11,21 +11,34 @@ class HtmlParserExample
 
         try
         {
-            // Define the XPath to locate the anchor tag with the text "Faktura"
-            string xpath = "//a[text()='Faktura']";
+            // Define the XPath to locate the <select> element with the specific id
+            string selectXpath = $"//select[@id='{selectId}']";
 
-            // Select the anchor node
-            var anchorNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+            // Find the <select> node
+            var selectNode = htmlDoc.DocumentNode.SelectSingleNode(selectXpath);
 
-            // Check if the anchor node is found and get its attributes or inner text
-            if (anchorNode != null)
+            if (selectNode != null)
             {
-                string hrefValue = anchorNode.GetAttributeValue("href", string.Empty);
-                Console.WriteLine("The href attribute of the anchor tag is: " + hrefValue);
+                // Define the XPath to locate the <option> element with the specific text within the <select>
+                string optionXpath = $"//select[@id='{selectId}']//option[text()='{optionText}']";
+
+                // Find the <option> node
+                var optionNode = htmlDoc.DocumentNode.SelectSingleNode(optionXpath);
+
+                // Check if the <option> node is found and get its value or inner text
+                if (optionNode != null)
+                {
+                    string optionValue = optionNode.GetAttributeValue("value", string.Empty);
+                    Console.WriteLine($"The value of the option with text '{optionText}' is: {optionValue}");
+                }
+                else
+                {
+                    Console.WriteLine($"Option with text '{optionText}' not found.");
+                }
             }
             else
             {
-                Console.WriteLine("Anchor tag with text 'Faktura' not found.");
+                Console.WriteLine($"Select element with id '{selectId}' not found.");
             }
         }
         catch (Exception ex)
@@ -40,6 +53,6 @@ class Program
     static void Main(string[] args)
     {
         HtmlParserExample example = new HtmlParserExample();
-        example.FindAnchorTagWithText("path_to_your_html_file.html");
+        example.FindOptionInSelect("path_to_your_html_file.html", "your_select_id", "your_option_text");
     }
 }
