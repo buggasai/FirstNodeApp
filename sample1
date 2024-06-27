@@ -1,9 +1,11 @@
 using System;
+using System.Globalization;
+using Excel = Microsoft.Office.Interop.Excel;
 using HtmlAgilityPack;
 
-class HtmlParserExample
+class ExcelInteropExample
 {
-    public void ExtractSpanText(string htmlFilePath)
+    public void ExtractDateAndSaveToExcel(string htmlFilePath, string targetFilePath, string targetSheetName)
     {
         // Load the HTML document
         var htmlDoc = new HtmlDocument();
@@ -11,17 +13,52 @@ class HtmlParserExample
 
         try
         {
-            // Define the XPath to locate the span element
+            // Define the XPath to locate the span elements with the date text
             string xpath = "//div[@id='content']//table//tbody//tr[2]//td//div//span";
 
-            // Select the span node
-            var spanNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+            // Select all matching span nodes
+            var spanNodes = htmlDoc.DocumentNode.SelectNodes(xpath);
 
-            // Check if the span node is found and get its inner text
-            if (spanNode != null)
+            // Check if span nodes are found and get the text of the first one
+            if (spanNodes != null && spanNodes.Count > 0)
             {
-                string spanText = spanNode.InnerText;
-                Console.WriteLine("The text inside the span element is: " + spanText);
+                string dateText = spanNodes[0].InnerText.Trim();
+                Console.WriteLine("Extracted date text: " + dateText);
+
+                // Parse the German date format
+                DateTime parsedDate;
+                if (DateTime.TryParseExact(dateText, "dd. MMMM yyyy HH:mm", new CultureInfo("de-DE"), DateTimeStyles.None, out parsedDate))
+                {
+                    // Extract day, month, and year
+                    int day = parsedDate.Day;
+                    int month = parsedDate.Month;
+                    int year = parsedDate.Year;
+                    string formattedDate = parsedDate.ToString("dd.MM.yyyy");
+
+                    Console.WriteLine($"Day: {day}, Month: {month}, Year: {year}, Formatted Date: {formattedDate}");
+
+                    // Open the target Excel file
+                    Excel.Application excelApp = new Excel.Application();
+                    Excel.Workbook targetWorkbook = excelApp.Workbooks.Open(targetFilePath);
+                    Excel.Worksheet targetSheet = targetWorkbook.Sheets[targetSheetName];
+
+                    // Find the last used row in column A
+                    int lastRow = targetSheet.Cells[targetSheet.Rows.Count, 1].End(Excel.XlDirection.xlUp).Row + 1;
+
+                    // Add day, year, and formatted date to the target sheet
+                    targetSheet.Cells[lastRow, 1].Value = day; // Column A
+                    targetSheet.Cells[lastRow, 2].Value = year; // Column B
+                    targetSheet.Cells[lastRow, 3].Value = formattedDate; // Column C
+
+                    // Save and close the target workbook
+                    targetWorkbook.Save();
+                    targetWorkbook.Close();
+                    excelApp.Quit();
+                }
+                else
+                {
+                    Console.WriteLine("Failed to parse the date text.");
+                }
             }
             else
             {
@@ -39,5 +76,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        HtmlParserExample example = new HtmlParserExample();
-        example.ExtractSpanText("pat
+        ExcelInteropExample example = new ExcelInteropExample();
+        example.ExtractDateAndSaveToExcel("path_to_your_html_file.html", "path_to_your_target_excel_file.xlsx", "Sheet1");
+    }
+}
