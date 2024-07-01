@@ -1,76 +1,35 @@
-using System;
-using Microsoft.Office.Interop.Excel;
-using System.Runtime.InteropServices;
-
-class ExcelReader
-{
-    public void SearchAndReadValues(string worksheetName, string searchValue)
-    {
-        Application excelApp = null;
-        Workbook workbook = null;
-        Worksheet worksheet = null;
-        Range foundRange = null;
-
-        try
-        {
-            // Attach to the running instance of Excel
-            excelApp = (Application)Marshal.GetActiveObject("Excel.Application");
-
-            // Get the active workbook
-            workbook = excelApp.ActiveWorkbook;
-
-            // Get the specified worksheet by name
-            worksheet = workbook.Worksheets[worksheetName] as Worksheet;
-
-            if (worksheet == null)
-            {
-                Console.WriteLine($"Worksheet '{worksheetName}' not found.");
-                return;
-            }
-
-            // Get the range for column A
-            Range columnARange = worksheet.Columns["A:A"];
-
-            // Find the cell in column A with the search value
-            foundRange = columnARange.Find(searchValue, Type.Missing, XlFindLookIn.xlValues, XlLookAt.xlWhole, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
-
-            if (foundRange != null)
-            {
-                int foundRow = foundRange.Row;
-
-                // Read the values from the found row
-                for (int col = 1; col <= worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column; col++)
-                {
-                    Range cell = (Range)worksheet.Cells[foundRow, col];
-                    string cellValue = cell.Value2 != null ? cell.Value2.ToString() : string.Empty;
-                    Console.WriteLine($"Row {foundRow}, Column {col}: {cellValue}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Value '{searchValue}' not found in column A.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error: " + ex.Message);
-        }
-        finally
-        {
-            // Cleanup
-            if (foundRange != null) Marshal.ReleaseComObject(foundRange);
-            if (worksheet != null) Marshal.ReleaseComObject(worksheet);
-            if (workbook != null) Marshal.ReleaseComObject(workbook);
-            if (excelApp != null) Marshal.ReleaseComObject(excelApp);
-        }
-    }
-}
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        ExcelReader reader = new ExcelReader();
-        reader.SearchAndReadValues("YourWorksheetName", "your_search_value");
+        IWebDriver driver = new ChromeDriver();
+        driver.Navigate().GoToUrl("your_webpage_url");
+
+        try
+        {
+            // Find the input element using the constructed XPath
+            IWebElement inputElement = driver.FindElement(By.XPath("//div[@id='content']//table//tr//td//table//tr[td/span[text()='sasaza']]/td[last()]/input[@type='text']"));
+            if (inputElement != null)
+            {
+                Console.WriteLine("Input element found.");
+                // Perform actions on the input element
+                inputElement.SendKeys("Some text");
+            }
+            else
+            {
+                Console.WriteLine("Input element not found.");
+            }
+        }
+        catch (NoSuchElementException)
+        {
+            Console.WriteLine("Element not found.");
+        }
+        finally
+        {
+            driver.Quit();
+        }
     }
 }
