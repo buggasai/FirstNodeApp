@@ -1,1 +1,1 @@
-(//div[@id='content']//table//tr//td//table//tr[td[1]/span[text()='sasaza']])[2]/td[last()]/input[@type='text']
+//div[@id='content']//table//tr//td//table//tr[td/span[text()='sasaza']]/td[last()]/input[@type='text']
