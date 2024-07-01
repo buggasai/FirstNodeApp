@@ -1,37 +1,64 @@
 using System;
-using HtmlAgilityPack;
+using Microsoft.Office.Interop.Excel;
+using System.Runtime.InteropServices;
 
-class HtmlParserExample
+class ExcelReader
 {
-    public void FindTdWithSpecificTexts(string htmlFilePath)
+    public void SearchAndReadValues(string excelFilePath, string searchValue)
     {
-        // Load the HTML document
-        var htmlDoc = new HtmlDocument();
-        htmlDoc.Load(htmlFilePath);
+        Application excelApp = new Application();
+        Workbook workbook = null;
+        Worksheet worksheet = null;
+        Range foundRange = null;
 
         try
         {
-            // Define the XPath to locate the <td> element containing "pro5199" directly
-            // and a <span> with "6310"
-            string xpath = "//td[text()[normalize-space() = 'pro5199'] and .//span[normalize-space() = '6310']]";
+            // Open the Excel file
+            workbook = excelApp.Workbooks.Open(excelFilePath);
+            worksheet = (Worksheet)workbook.Sheets[1]; // Get the first worksheet
 
-            // Select the td node
-            var tdNode = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+            // Get the range for column A
+            Range columnARange = worksheet.Columns["A:A"];
 
-            // Check if the td node is found
-            if (tdNode != null)
+            // Find the cell in column A with the search value
+            foundRange = columnARange.Find(searchValue, Type.Missing, XlFindLookIn.xlValues, XlLookAt.xlWhole, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+
+            if (foundRange != null)
             {
-                Console.WriteLine("Found td element:");
-                Console.WriteLine(tdNode.OuterHtml);
+                int foundRow = foundRange.Row;
+
+                // Read the values from the found row
+                for (int col = 1; col <= worksheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell).Column; col++)
+                {
+                    Range cell = (Range)worksheet.Cells[foundRow, col];
+                    string cellValue = cell.Value2 != null ? cell.Value2.ToString() : string.Empty;
+                    Console.WriteLine($"Row {foundRow}, Column {col}: {cellValue}");
+                }
             }
             else
             {
-                Console.WriteLine("td element with 'pro5199' and span containing '6310' not found.");
+                Console.WriteLine($"Value '{searchValue}' not found in column A.");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error: " + ex.Message);
+        }
+        finally
+        {
+            // Cleanup
+            if (foundRange != null) Marshal.ReleaseComObject(foundRange);
+            if (worksheet != null) Marshal.ReleaseComObject(worksheet);
+            if (workbook != null)
+            {
+                workbook.Close(false);
+                Marshal.ReleaseComObject(workbook);
+            }
+            if (excelApp != null)
+            {
+                excelApp.Quit();
+                Marshal.ReleaseComObject(excelApp);
+            }
         }
     }
 }
@@ -40,7 +67,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        HtmlParserExample example = new HtmlParserExample();
-        example.FindTdWithSpecificTexts("path_to_your_html_file.html");
+        ExcelReader reader = new ExcelReader();
+        reader.SearchAndReadValues("path_to_your_excel_file.xlsx", "your_search_value");
     }
 }
