@@ -4,18 +4,29 @@ using System.Runtime.InteropServices;
 
 class ExcelReader
 {
-    public void SearchAndReadValues(string excelFilePath, string searchValue)
+    public void SearchAndReadValues(string worksheetName, string searchValue)
     {
-        Application excelApp = new Application();
+        Application excelApp = null;
         Workbook workbook = null;
         Worksheet worksheet = null;
         Range foundRange = null;
 
         try
         {
-            // Open the Excel file
-            workbook = excelApp.Workbooks.Open(excelFilePath);
-            worksheet = (Worksheet)workbook.Sheets[1]; // Get the first worksheet
+            // Attach to the running instance of Excel
+            excelApp = (Application)Marshal.GetActiveObject("Excel.Application");
+
+            // Get the active workbook
+            workbook = excelApp.ActiveWorkbook;
+
+            // Get the specified worksheet by name
+            worksheet = workbook.Worksheets[worksheetName] as Worksheet;
+
+            if (worksheet == null)
+            {
+                Console.WriteLine($"Worksheet '{worksheetName}' not found.");
+                return;
+            }
 
             // Get the range for column A
             Range columnARange = worksheet.Columns["A:A"];
@@ -49,16 +60,8 @@ class ExcelReader
             // Cleanup
             if (foundRange != null) Marshal.ReleaseComObject(foundRange);
             if (worksheet != null) Marshal.ReleaseComObject(worksheet);
-            if (workbook != null)
-            {
-                workbook.Close(false);
-                Marshal.ReleaseComObject(workbook);
-            }
-            if (excelApp != null)
-            {
-                excelApp.Quit();
-                Marshal.ReleaseComObject(excelApp);
-            }
+            if (workbook != null) Marshal.ReleaseComObject(workbook);
+            if (excelApp != null) Marshal.ReleaseComObject(excelApp);
         }
     }
 }
@@ -68,6 +71,6 @@ class Program
     static void Main(string[] args)
     {
         ExcelReader reader = new ExcelReader();
-        reader.SearchAndReadValues("path_to_your_excel_file.xlsx", "your_search_value");
+        reader.SearchAndReadValues("YourWorksheetName", "your_search_value");
     }
 }
