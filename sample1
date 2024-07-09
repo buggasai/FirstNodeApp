@@ -1,1 +1,25 @@
-//div[@id='content']//table//tr//td//table//tr[.//td[1]//span[text()='sasaza']]/td[last()]//input[@type='text']
+using System;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    static void Main()
+    {
+        string input = "26.07.2024 12:00 Uhr";
+        
+        // Define a regular expression to match the date part
+        string pattern = @"(\d{2}\.\d{2}\.\d{4})";
+        Match match = Regex.Match(input, pattern);
+        
+        if (match.Success)
+        {
+            // Extract the date part from the match
+            string datePart = match.Groups[1].Value;
+            Console.WriteLine("Extracted Date: " + datePart);
+        }
+        else
+        {
+            Console.WriteLine("Date not found in the input string.");
+        }
+    }
+}
