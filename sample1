@@ -1,8 +1,5 @@
-static int GetRowIndex(DataTable dataTable, string value)
+static DataRow GetDataRow(DataTable dataTable, string value)
     {
-        var row = dataTable.AsEnumerable()
-            .Select((r, index) => new { Row = r, Index = index })
-            .FirstOrDefault(x => x.Row.Field<string>("Column1") == value);
-
-        return row != null ? row.Index : -1;
+        return dataTable.AsEnumerable()
+            .FirstOrDefault(row => row.Field<string>("Column1") == value);
     }
