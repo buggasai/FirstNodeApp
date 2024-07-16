@@ -1,5 +1,60 @@
-static DataRow GetDataRow(DataTable dataTable, string value)
+using System;
+using System.Data;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
     {
-        return dataTable.AsEnumerable()
-            .FirstOrDefault(row => row.Field<string>("Column1") == value);
+        // Create a sample DataTable for demonstration
+        DataTable dataTable = new DataTable();
+        dataTable.Columns.Add("Column1");
+        dataTable.Columns.Add("Column2");
+        dataTable.Columns.Add("Column3");
+
+        DataRow row = dataTable.NewRow();
+        row["Column1"] = "Value1";
+        row["Column2"] = "Value2";
+        row["Column3"] = "Value3";
+        dataTable.Rows.Add(row);
+
+        row = dataTable.NewRow();
+        row["Column1"] = "Value4";
+        row["Column2"] = "Value5";
+        row["Column3"] = "Value6";
+        dataTable.Rows.Add(row);
+
+        // Specify the row number you want to check
+        int rowNumber = 1;
+
+        // Get the column names for the specified row
+        string[] columnNames = GetColumnNamesByRowNumber(dataTable, rowNumber);
+
+        // Print the column names
+        if (columnNames != null)
+        {
+            Console.WriteLine($"Column names for row {rowNumber}: {string.Join(", ", columnNames)}");
+        }
+        else
+        {
+            Console.WriteLine($"Row {rowNumber} is out of range.");
+        }
     }
+
+    static string[] GetColumnNamesByRowNumber(DataTable dataTable, int rowNumber)
+    {
+        // Check if the row number is within the valid range
+        if (rowNumber < 0 || rowNumber >= dataTable.Rows.Count)
+        {
+            return null; // Return null if the row number is out of range
+        }
+
+        // Use LINQ to get the column names
+        var columnNames = dataTable.Columns
+                                   .Cast<DataColumn>()
+                                   .Select(column => column.ColumnName)
+                                   .ToArray();
+
+        return columnNames;
+    }
+}
