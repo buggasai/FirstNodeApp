@@ -10,8 +10,8 @@ class Program
 
         try
         {
-            // Use the improved XPath to find the input element
-            IWebElement inputElement = driver.FindElement(By.XPath("//div[@id='pr']//tr[td[span[text()='versand']]]//td[last()]//input[@type='text']"));
+            // Use the simplified XPath to find the input element
+            IWebElement inputElement = driver.FindElement(By.XPath("//div[@id='pr']//tr[td[span[text()='versand']]]/td[last()]//input[@type='text']"));
             if (inputElement != null)
             {
                 Console.WriteLine("Input element found.");
