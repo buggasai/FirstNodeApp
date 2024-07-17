@@ -17,30 +17,8 @@ class Program
 
         try
         {
-            // Get the used range of the worksheet
-            Excel.Range usedRange = worksheet.UsedRange;
-
-            // Get the last row in Column F
-            int lastRow = usedRange.Rows.Count;
-
-            // Get the range of the pivot table
-            Excel.Range pivotRange = worksheet.Range["A:E"]; // Adjust as per your pivot table range
-
-            // Loop through each cell in Column F
-            for (int row = 1; row <= lastRow; row++)
-            {
-                // Read value from Column F
-                string valueF = worksheet.Cells[row, 6].Value as string;
-
-                // Check if the cell is outside of the pivot table area
-                if (!IsInPivotTableArea(worksheet.Cells[row, 4], pivotRange) &&
-                    !IsInPivotTableArea(worksheet.Cells[row, 5], pivotRange))
-                {
-                    // Update Columns D and E based on value from Column F
-                    worksheet.Cells[row, 4].Value = $"Updated D for {valueF}";
-                    worksheet.Cells[row, 5].Value = $"Updated E for {valueF}";
-                }
-            }
+            // Example: Update cells within Columns E and F, assuming they are part of the pivot table range
+            UpdatePivotTableCells(worksheet);
 
             Console.WriteLine("Update complete.");
         }
@@ -62,26 +40,16 @@ class Program
         }
     }
 
-    // Function to check if a cell is in a pivot table area
-    private static bool IsInPivotTableArea(Excel.Range cell, Excel.Range pivotRange)
+    // Example function to update cells within pivot table range
+    private static void UpdatePivotTableCells(Excel.Worksheet worksheet)
     {
-        try
+        // Example: Update cells within Columns E and F
+        for (int row = 2; row <= 10; row++) // Adjust row range as needed
         {
-            // Check if the cell intersects with the pivot table range
-            return IntersectsWith(cell, pivotRange);
+            // Example: Update cells E2 and F2 assuming they are part of the pivot table range
+            worksheet.Cells[row, 5].Value = $"Updated E{row}";
+            worksheet.Cells[row, 6].Value = $"Updated F{row}";
         }
-        catch
-        {
-            // If accessing PivotTable property throws an exception, assume it's not in pivot table area
-            return false;
-        }
-    }
-
-    // Function to check if a cell intersects with a range
-    private static bool IntersectsWith(Excel.Range cell, Excel.Range range)
-    {
-        Excel.Range intersection = cell.Application.Intersect(cell, range);
-        return (intersection != null);
     }
 
     private static void ReleaseObject(object obj)
