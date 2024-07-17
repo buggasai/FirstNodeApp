@@ -15,20 +15,73 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open("your_excel_file_path.xlsx");
         Excel.Worksheet worksheet = workbook.Sheets[1];
 
-        // Insert two new columns before column G
-        Excel.Range columnG = worksheet.Columns["G"];
-        columnG.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
-        columnG.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
+        try
+        {
+            // Get the used range of the worksheet
+            Excel.Range usedRange = worksheet.UsedRange;
 
-        // Save and close the workbook
-        workbook.Save();
-        workbook.Close();
-        excelApp.Quit();
+            // Get the last row in Column F
+            int lastRow = usedRange.Rows.Count;
 
-        // Release COM objects
-        ReleaseObject(worksheet);
-        ReleaseObject(workbook);
-        ReleaseObject(excelApp);
+            // Get the range of the pivot table
+            Excel.Range pivotRange = worksheet.Range["A:E"]; // Adjust as per your pivot table range
+
+            // Loop through each cell in Column F
+            for (int row = 1; row <= lastRow; row++)
+            {
+                // Read value from Column F
+                string valueF = worksheet.Cells[row, 6].Value as string;
+
+                // Check if the cell is outside of the pivot table area
+                if (!IsInPivotTableArea(worksheet.Cells[row, 4], pivotRange) &&
+                    !IsInPivotTableArea(worksheet.Cells[row, 5], pivotRange))
+                {
+                    // Update Columns D and E based on value from Column F
+                    worksheet.Cells[row, 4].Value = $"Updated D for {valueF}";
+                    worksheet.Cells[row, 5].Value = $"Updated E for {valueF}";
+                }
+            }
+
+            Console.WriteLine("Update complete.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+        finally
+        {
+            // Save and close the workbook
+            workbook.Save();
+            workbook.Close();
+            excelApp.Quit();
+
+            // Release COM objects
+            ReleaseObject(worksheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
+
+    // Function to check if a cell is in a pivot table area
+    private static bool IsInPivotTableArea(Excel.Range cell, Excel.Range pivotRange)
+    {
+        try
+        {
+            // Check if the cell intersects with the pivot table range
+            return IntersectsWith(cell, pivotRange);
+        }
+        catch
+        {
+            // If accessing PivotTable property throws an exception, assume it's not in pivot table area
+            return false;
+        }
+    }
+
+    // Function to check if a cell intersects with a range
+    private static bool IntersectsWith(Excel.Range cell, Excel.Range range)
+    {
+        Excel.Range intersection = cell.Application.Intersect(cell, range);
+        return (intersection != null);
     }
 
     private static void ReleaseObject(object obj)
