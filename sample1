@@ -1,16 +1,35 @@
-using System;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 class Program
 {
     static void Main()
     {
-        string template = "Hello, my name is {0} and I am {1} years old.";
-        string name = "John";
-        int age = 30;
-        
-        // Replace placeholders with dynamic values
-        string result = string.Format(template, name, age);
-        
-        Console.WriteLine(result);
+        IWebDriver driver = new ChromeDriver();
+        driver.Navigate().GoToUrl("your_webpage_url");
+
+        try
+        {
+            // Use the simplified XPath to find the input element
+            IWebElement inputElement = driver.FindElement(By.XPath("//div[@id='pr']//span[text()='versand']/ancestor::tr//td[last()]//input[@type='text']"));
+            if (inputElement != null)
+            {
+                Console.WriteLine("Input element found.");
+                // Perform actions on the input element, e.g., send keys
+                inputElement.SendKeys("Sample Text");
+            }
+            else
+            {
+                Console.WriteLine("Input element not found.");
+            }
+        }
+        catch (NoSuchElementException)
+        {
+            Console.WriteLine("Element not found.");
+        }
+        finally
+        {
+            driver.Quit();
+        }
     }
 }
