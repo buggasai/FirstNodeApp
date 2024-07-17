@@ -15,16 +15,10 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open("your_excel_file_path.xlsx");
         Excel.Worksheet worksheet = workbook.Sheets[1];
 
-        // Get the value of cell F2
-        string cellF2Value = worksheet.Cells[2, 6].Value as string;
-
-        // Check if the value is "Mandan"
-        if (string.Equals(cellF2Value, "Mandan", StringComparison.OrdinalIgnoreCase))
-        {
-            // Delete columns F to I
-            Excel.Range columnsToDelete = worksheet.Range["F:I"];
-            columnsToDelete.Delete(Excel.XlDeleteShiftDirection.xlShiftToLeft);
-        }
+        // Insert two new columns before column G
+        Excel.Range columnG = worksheet.Columns["G"];
+        columnG.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
+        columnG.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, Excel.XlInsertFormatOrigin.xlFormatFromLeftOrAbove);
 
         // Save and close the workbook
         workbook.Save();
