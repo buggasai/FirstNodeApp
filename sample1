@@ -1,35 +1,57 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using System;
+using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        IWebDriver driver = new ChromeDriver();
-        driver.Navigate().GoToUrl("your_webpage_url");
+        // Start Excel and get Application object.
+        Excel.Application excelApp = new Excel.Application
+        {
+            Visible = true // Set to true if you want to see Excel UI
+        };
 
+        // Open the existing workbook
+        Excel.Workbook workbook = excelApp.Workbooks.Open("your_excel_file_path.xlsx");
+        Excel.Worksheet worksheet = workbook.Sheets[1];
+
+        // Get the value of cell F2
+        string cellF2Value = worksheet.Cells[2, 6].Value as string;
+
+        // Check if the value is "Mandan"
+        if (string.Equals(cellF2Value, "Mandan", StringComparison.OrdinalIgnoreCase))
+        {
+            // Delete columns F to I
+            Excel.Range columnsToDelete = worksheet.Range["F:I"];
+            columnsToDelete.Delete(Excel.XlDeleteShiftDirection.xlShiftToLeft);
+        }
+
+        // Save and close the workbook
+        workbook.Save();
+        workbook.Close();
+        excelApp.Quit();
+
+        // Release COM objects
+        ReleaseObject(worksheet);
+        ReleaseObject(workbook);
+        ReleaseObject(excelApp);
+    }
+
+    private static void ReleaseObject(object obj)
+    {
         try
         {
-            // Use the simplified XPath to find the input element
-            IWebElement inputElement = driver.FindElement(By.XPath("//div[@id='pr']//tr[td//span[text()='versand']]/td[last()]//input[@type='text']"));
-            if (inputElement != null)
-            {
-                Console.WriteLine("Input element found.");
-                // Perform actions on the input element, e.g., send keys
-                inputElement.SendKeys("Sample Text");
-            }
-            else
-            {
-                Console.WriteLine("Input element not found.");
-            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
         }
-        catch (NoSuchElementException)
+        catch (Exception ex)
         {
-            Console.WriteLine("Element not found.");
+            obj = null;
+            Console.WriteLine("Exception occurred while releasing object " + ex.ToString());
         }
         finally
         {
-            driver.Quit();
+            GC.Collect();
         }
     }
 }
