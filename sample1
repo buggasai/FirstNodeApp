@@ -1,1 +1,51 @@
-//tr[td//span[normalize-space(text())='Sonstiges Porto']]/td[last()]//input
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Create a new instance of the Chrome driver
+        IWebDriver driver = new ChromeDriver();
+
+        try
+        {
+            // Navigate to the webpage
+            driver.Navigate().GoToUrl("http://example.com");
+
+            // Find all tr elements containing the text "Sonstiges Porto" inside a span within a td
+            var trElements = driver.FindElements(By.XPath("//tr[td//span[normalize-space(text())='Sonstiges Porto']]"));
+
+            // Filter the elements to get only the visible ones
+            var visibleTrElements = trElements.Where(e => e.Displayed).ToList();
+
+            // Check if any visible tr elements are found
+            if (visibleTrElements.Any())
+            {
+                // Find the input element (textbox) within the last td of the first visible tr
+                IWebElement inputElement = visibleTrElements.First().FindElement(By.XPath("td[last()]//input"));
+
+                // Retrieve the value of the input element
+                string inputValue = inputElement.GetAttribute("value");
+
+                // Print the value of the input element
+                Console.WriteLine($"Value of the input element: {inputValue}");
+            }
+            else
+            {
+                Console.WriteLine("No visible tr element with the text 'Sonstiges Porto' was found.");
+            }
+        }
+        catch (NoSuchElementException ex)
+        {
+            Console.WriteLine($"Element not found: {ex.Message}");
+        }
+        finally
+        {
+            // Close the browser
+            driver.Quit();
+        }
+    }
+}
