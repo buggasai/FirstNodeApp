@@ -1,51 +1,63 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using System;
-using System.Linq;
+using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        // Create a new instance of the Chrome driver
-        IWebDriver driver = new ChromeDriver();
+        // Initialize Excel application
+        Excel.Application excelApp = new Excel.Application();
+        
+        // Make Excel visible (optional)
+        excelApp.Visible = true;
+
+        // Open the existing workbook
+        string workbookPath = @"your_excel_file_path.xlsx";
+        Excel.Workbook workbook = excelApp.Workbooks.Open(workbookPath);
+
+        // Select the desired worksheet (1-based index, or by name)
+        Excel.Worksheet worksheet = workbook.Sheets[1];
 
         try
         {
-            // Navigate to the webpage
-            driver.Navigate().GoToUrl("http://example.com");
+            // Set the header text in cell F3
+            worksheet.Cells[3, 6].Value = "invoice"; // F is the 6th column
 
-            // Find all tr elements containing the text "Sonstiges Porto" inside a span within a td
-            var trElements = driver.FindElements(By.XPath("//tr[td//span[normalize-space(text())='Sonstiges Porto']]"));
-
-            // Filter the elements to get only the visible ones
-            var visibleTrElements = trElements.Where(e => e.Displayed).ToList();
-
-            // Check if any visible tr elements are found
-            if (visibleTrElements.Any())
-            {
-                // Find the input element (textbox) within the last td of the first visible tr
-                IWebElement inputElement = visibleTrElements.First().FindElement(By.XPath("td[last()]//input"));
-
-                // Retrieve the value of the input element
-                string inputValue = inputElement.GetAttribute("value");
-
-                // Print the value of the input element
-                Console.WriteLine($"Value of the input element: {inputValue}");
-            }
-            else
-            {
-                Console.WriteLine("No visible tr element with the text 'Sonstiges Porto' was found.");
-            }
+            // Save the workbook
+            workbook.Save();
         }
-        catch (NoSuchElementException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"Element not found: {ex.Message}");
+            Console.WriteLine("Error: " + ex.Message);
         }
         finally
         {
-            // Close the browser
-            driver.Quit();
+            // Close the workbook and quit Excel application
+            workbook.Close();
+            excelApp.Quit();
+
+            // Release COM objects
+            ReleaseObject(worksheet);
+            ReleaseObject(workbook);
+            ReleaseObject(excelApp);
+        }
+    }
+
+    private static void ReleaseObject(object obj)
+    {
+        try
+        {
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+            obj = null;
+        }
+        catch (Exception ex)
+        {
+            obj = null;
+            Console.WriteLine("Exception occurred while releasing object " + ex.ToString());
+        }
+        finally
+        {
+            GC.Collect();
         }
     }
 }
