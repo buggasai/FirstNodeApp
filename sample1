@@ -11,16 +11,17 @@ class Program
 
         try
         {
-            // Navigate to the URL containing the button
+            // Navigate to the URL containing the h5 tag
             driver.Navigate().GoToUrl("your_url_here");
 
-            // Locate the button by finding the span with the specific text
-            IWebElement button = driver.FindElement(By.XPath("//button[.//span[text()='Login by SSO']]"));
+            // Locate the parent div of the h5 tag with the text "Grant Access"
+            IWebElement parentDiv = driver.FindElement(By.XPath("//h5[text()='Grant Access']/parent::div"));
 
-            // Perform the click action on the button
-            button.Click();
+            // Perform actions on the parent div if needed
+            // Example: Print the text of the parent div
+            Console.WriteLine("Parent div text: " + parentDiv.Text);
 
-            Console.WriteLine("Button clicked successfully.");
+            Console.WriteLine("Parent div found successfully.");
         }
         catch (Exception ex)
         {
