@@ -14,14 +14,14 @@ class Program
             // Navigate to the URL containing the elements
             driver.Navigate().GoToUrl("your_url_here");
 
-            // Locate the button with a span containing the text "Action" within the div with class "Abc" and an h5 with the text "Grant Access"
-            IWebElement actionButton = driver.FindElement(By.XPath("//div[@class='Abc' and .//h5[text()='Grant Access']]//button[span[text()='Action']]"));
+            // Locate the 'adp-select' element based on its association with a div containing the text 'Celergo Stage'
+            IWebElement adpSelect = driver.FindElement(By.XPath("//div[text()='Celergo Stage']/following::adp-select"));
 
-            // Perform actions on the button if needed
-            // Example: Click the button
-            actionButton.Click();
+            // Perform actions on the 'adp-select' element if needed
+            // Example: Click the element or interact with it as needed
+            adpSelect.Click();
 
-            Console.WriteLine("Action button clicked successfully.");
+            Console.WriteLine("adp-select element interacted with successfully.");
         }
         catch (Exception ex)
         {
