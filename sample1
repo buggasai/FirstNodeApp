@@ -1,63 +1,35 @@
 using System;
-using Excel = Microsoft.Office.Interop.Excel;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 class Program
 {
     static void Main()
     {
-        // Initialize Excel application
-        Excel.Application excelApp = new Excel.Application();
-        
-        // Make Excel visible (optional)
-        excelApp.Visible = true;
-
-        // Open the existing workbook
-        string workbookPath = @"your_excel_file_path.xlsx";
-        Excel.Workbook workbook = excelApp.Workbooks.Open(workbookPath);
-
-        // Select the desired worksheet (1-based index, or by name)
-        Excel.Worksheet worksheet = workbook.Sheets[1];
+        // Initialize the Chrome WebDriver
+        IWebDriver driver = new ChromeDriver();
 
         try
         {
-            // Set the header text in cell F3
-            worksheet.Cells[3, 6].Value = "invoice"; // F is the 6th column
+            // Navigate to the URL containing the element
+            driver.Navigate().GoToUrl("your_url_here");
 
-            // Save the workbook
-            workbook.Save();
+            // Locate the element using its class name
+            IWebElement toggleElement = driver.FindElement(By.ClassName("your_class_name"));
+
+            // Perform the toggle action (e.g., click the element)
+            toggleElement.Click();
+
+            Console.WriteLine("Element toggled successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            Console.WriteLine("An error occurred: " + ex.Message);
         }
         finally
         {
-            // Close the workbook and quit Excel application
-            workbook.Close();
-            excelApp.Quit();
-
-            // Release COM objects
-            ReleaseObject(worksheet);
-            ReleaseObject(workbook);
-            ReleaseObject(excelApp);
-        }
-    }
-
-    private static void ReleaseObject(object obj)
-    {
-        try
-        {
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-            obj = null;
-        }
-        catch (Exception ex)
-        {
-            obj = null;
-            Console.WriteLine("Exception occurred while releasing object " + ex.ToString());
-        }
-        finally
-        {
-            GC.Collect();
+            // Close the browser
+            driver.Quit();
         }
     }
 }
