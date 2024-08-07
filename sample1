@@ -11,16 +11,16 @@ class Program
 
         try
         {
-            // Navigate to the URL containing the element
+            // Navigate to the URL containing the button
             driver.Navigate().GoToUrl("your_url_here");
 
-            // Locate the element using its class name
-            IWebElement toggleElement = driver.FindElement(By.ClassName("your_class_name"));
+            // Locate the button by finding the span with the specific text
+            IWebElement button = driver.FindElement(By.XPath("//button[.//span[text()='Login by SSO']]"));
 
-            // Perform the toggle action (e.g., click the element)
-            toggleElement.Click();
+            // Perform the click action on the button
+            button.Click();
 
-            Console.WriteLine("Element toggled successfully.");
+            Console.WriteLine("Button clicked successfully.");
         }
         catch (Exception ex)
         {
