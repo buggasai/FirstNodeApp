@@ -14,8 +14,8 @@ class Program
             // Navigate to the URL containing the h5 tag
             driver.Navigate().GoToUrl("your_url_here");
 
-            // Locate the parent div of the h5 tag with the text "Grant Access"
-            IWebElement parentDiv = driver.FindElement(By.XPath("//h5[text()='Grant Access']/parent::div"));
+            // Locate the parent div with class name "Abc" of the h5 tag with the text "Grant Access"
+            IWebElement parentDiv = driver.FindElement(By.XPath("//h5[text()='Grant Access']/ancestor::div[@class='Abc']"));
 
             // Perform actions on the parent div if needed
             // Example: Print the text of the parent div
