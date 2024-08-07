@@ -1,24 +1,62 @@
 using System;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 class Program
 {
     static void Main()
     {
-        string input = "This is a sample string with (some text) inside parentheses.";
+        // Initialize the Chrome WebDriver
+        IWebDriver driver = new ChromeDriver();
 
-        // Use a regular expression to find text within parentheses
-        string pattern = @"\(([^)]*)\)";
-        Match match = Regex.Match(input, pattern);
-
-        if (match.Success)
+        try
         {
-            string textWithinParentheses = match.Groups[1].Value;
-            Console.WriteLine("Text within parentheses: " + textWithinParentheses);
+            // Navigate to the URL containing the main page
+            driver.Navigate().GoToUrl("your_main_page_url_here");
+
+            // Assuming you click a link/button that opens a new window for SSO login
+            IWebElement ssoLoginButton = driver.FindElement(By.Id("ssoLoginButton"));
+            ssoLoginButton.Click();
+
+            // Store the current window handle
+            string mainWindowHandle = driver.CurrentWindowHandle;
+
+            // Get all window handles
+            ICollection<string> allWindowHandles = driver.WindowHandles;
+
+            // Switch to the SSO login window
+            foreach (string handle in allWindowHandles)
+            {
+                if (handle != mainWindowHandle)
+                {
+                    driver.SwitchTo().Window(handle);
+                    break;
+                }
+            }
+
+            // Now you're in the SSO login window, find and interact with elements here
+            IWebElement ssoUsername = driver.FindElement(By.Id("username"));
+            IWebElement ssoPassword = driver.FindElement(By.Id("password"));
+            IWebElement ssoLoginSubmit = driver.FindElement(By.Id("loginButton"));
+
+            ssoUsername.SendKeys("your_username");
+            ssoPassword.SendKeys("your_password");
+            ssoLoginSubmit.Click();
+
+            // Optionally, switch back to the main window after login
+            driver.SwitchTo().Window(mainWindowHandle);
+
+            Console.WriteLine("SSO login successful and switched back to the main window.");
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("No text found within parentheses.");
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+        finally
+        {
+            // Close the browser
+            driver.Quit();
         }
     }
 }
