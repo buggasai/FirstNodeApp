@@ -14,8 +14,8 @@ class Program
             // Navigate to the URL containing the elements
             driver.Navigate().GoToUrl("your_url_here");
 
-            // Locate the button with a span containing the text "Action" within the div with class "Abc" that has an h5 with the text "Grant Access"
-            IWebElement actionButton = driver.FindElement(By.XPath("//div[@class='Abc' and .//h5[text()='Grant Access']]//button[.//span[text()='Action']]"));
+            // Locate the button with a span containing the text "Action" within the div with class "Abc" and an h5 with the text "Grant Access"
+            IWebElement actionButton = driver.FindElement(By.XPath("//div[@class='Abc' and .//h5[text()='Grant Access']]//button[span[text()='Action']]"));
 
             // Perform actions on the button if needed
             // Example: Click the button
