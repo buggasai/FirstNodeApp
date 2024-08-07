@@ -1,36 +1,24 @@
 using System;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using System.Text.RegularExpressions;
 
 class Program
 {
     static void Main()
     {
-        // Initialize the Chrome WebDriver
-        IWebDriver driver = new ChromeDriver();
+        string input = "This is a sample string with (some text) inside parentheses.";
 
-        try
+        // Use a regular expression to find text within parentheses
+        string pattern = @"\(([^)]*)\)";
+        Match match = Regex.Match(input, pattern);
+
+        if (match.Success)
         {
-            // Navigate to the URL containing the elements
-            driver.Navigate().GoToUrl("your_url_here");
-
-            // Locate the 'adp-select' element based on its association with a div containing the text 'Celergo Stage'
-            IWebElement adpSelect = driver.FindElement(By.XPath("//div[text()='Celergo Stage']/following::adp-select"));
-
-            // Perform actions on the 'adp-select' element if needed
-            // Example: Click the element or interact with it as needed
-            adpSelect.Click();
-
-            Console.WriteLine("adp-select element interacted with successfully.");
+            string textWithinParentheses = match.Groups[1].Value;
+            Console.WriteLine("Text within parentheses: " + textWithinParentheses);
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine("An error occurred: " + ex.Message);
-        }
-        finally
-        {
-            // Close the browser
-            driver.Quit();
+            Console.WriteLine("No text found within parentheses.");
         }
     }
 }
