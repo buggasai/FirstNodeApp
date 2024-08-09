@@ -1,54 +1,13 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using System;
-
-class Program
+var app = Application.Attach("YourApplicationName");
+using (var automation = new UIA3Automation())
 {
-    static void Main()
+    var popUpWindow = app.GetAllTopLevelWindows(automation)
+                         .FirstOrDefault(w => w.Title.Contains("Sign In") || w.Name.Contains("Sign In"));
+    
+    if (popUpWindow == null)
     {
-        IWebDriver driver = new ChromeDriver();
-
-        try
-        {
-            // Navigate to your web application
-            driver.Navigate().GoToUrl("http://yourwebapplication.com");
-
-            // If the "Sign In" is in a different window, you may need to switch to it
-            // Store the main window handle
-            string mainWindowHandle = driver.CurrentWindowHandle;
-
-            // Switch to the new window if necessary
-            foreach (string handle in driver.WindowHandles)
-            {
-                if (handle != mainWindowHandle)
-                {
-                    driver.SwitchTo().Window(handle);
-                    break;
-                }
-            }
-
-            // Find the username input field and enter the username
-            IWebElement usernameInput = driver.FindElement(By.Id("usernameInputId"));
-            usernameInput.SendKeys("your_username");
-
-            // Find the password input field and enter the password
-            IWebElement passwordInput = driver.FindElement(By.Id("passwordInputId"));
-            passwordInput.SendKeys("your_password");
-
-            // Find and click the "Sign In" button
-            IWebElement signInButton = driver.FindElement(By.XPath("//button[text()='Sign In']"));
-            signInButton.Click();
-
-            // Optionally switch back to the main window
-            driver.SwitchTo().Window(mainWindowHandle);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("An error occurred: " + ex.Message);
-        }
-        finally
-        {
-            driver.Quit();
-        }
+        throw new Exception("Sign In window not found.");
     }
+
+    // Now you can interact with the pop-up window
 }
