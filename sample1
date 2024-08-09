@@ -1,36 +1,41 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.UIA3;
+using System;
 
 class Program
 {
     static void Main()
     {
-        IWebDriver driver = new ChromeDriver();
-
-        try
+        using (var app = Application.Launch("path_to_your_application.exe"))
         {
-            driver.Navigate().GoToUrl("http://example.com");
+            using (var automation = new UIA3Automation())
+            {
+                // Get the main window
+                var mainWindow = app.GetMainWindow(automation);
 
-            // Wait until the alert is present
-            IAlert alert = driver.SwitchTo().Alert();
+                // Find the custom "Sign In" pane
+                var signInPane = mainWindow.FindFirstDescendant(cf => cf.ByName("Sign In"))?.AsPanel();
 
-            // Enter the username and password (assuming it's a JavaScript prompt)
-            alert.SendKeys("your_username");
-            alert.Accept();
+                if (signInPane != null)
+                {
+                    // Find the username and password input fields
+                    var usernameInput = signInPane.FindFirstDescendant(cf => cf.ByAutomationId("usernameInputId"))?.AsTextBox();
+                    var passwordInput = signInPane.FindFirstDescendant(cf => cf.ByAutomationId("passwordInputId"))?.AsTextBox();
 
-            // If there's another prompt for password, repeat the process
-            IAlert passwordAlert = driver.SwitchTo().Alert();
-            passwordAlert.SendKeys("your_password");
-            passwordAlert.Accept();
+                    // Enter the username and password
+                    usernameInput?.Enter("your_username");
+                    passwordInput?.Enter("your_password");
 
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("An error occurred: " + ex.Message);
-        }
-        finally
-        {
-            driver.Quit();
+                    // Find and click the "Sign In" button
+                    var signInButton = signInPane.FindFirstDescendant(cf => cf.ByName("Sign In"))?.AsButton();
+                    signInButton?.Invoke();
+                }
+                else
+                {
+                    Console.WriteLine("Sign In pane not found.");
+                }
+            }
         }
     }
 }
