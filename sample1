@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Office.Interop.Excel;
 
 class Program
@@ -6,46 +7,45 @@ class Program
     static void Main()
     {
         Application excelApp = new Application();
-        Workbook targetWorkbook = excelApp.Workbooks.Open(@"C:\Path\To\Target.xlsx");
+        Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\YourFile.xlsx");
 
-        Worksheet targetWorksheet = targetWorkbook.Sheets[1];
+        Worksheet worksheet = workbook.Sheets[1];
 
-        // Add "Import Name" to all rows in the "Payroll" column without a loop
-        AddValueToPayrollColumn(targetWorksheet, "Payroll", "Import Name");
+        // Step 1: Track hidden columns
+        List<int> hiddenColumns = TrackHiddenColumns(worksheet);
+
+        // Step 2: Perform your Excel operations here...
+
+        // Step 3: Re-hide the previously hidden columns
+        RehideColumns(worksheet, hiddenColumns);
 
         // Save and close the workbook
-        targetWorkbook.Save();
-        targetWorkbook.Close(false);
+        workbook.Save();
+        workbook.Close(false);
         excelApp.Quit();
     }
 
-    static void AddValueToPayrollColumn(Worksheet worksheet, string columnName, string valueToAdd)
+    static List<int> TrackHiddenColumns(Worksheet worksheet)
     {
-        int columnIndex = FindColumnIndexByName(worksheet, columnName);
-
-        if (columnIndex != -1)
-        {
-            Range usedRange = worksheet.UsedRange;
-            int lastRow = usedRange.Rows.Count;
-
-            // Construct the range that includes all the cells in the "Payroll" column
-            Range payrollColumnRange = worksheet.Range[worksheet.Cells[2, columnIndex], worksheet.Cells[lastRow, columnIndex]];
-
-            // Set the value to the entire range at once
-            payrollColumnRange.Value = valueToAdd;
-        }
-    }
-
-    static int FindColumnIndexByName(Worksheet worksheet, string columnName)
-    {
+        List<int> hiddenColumns = new List<int>();
         Range usedRange = worksheet.UsedRange;
+
         for (int col = 1; col <= usedRange.Columns.Count; col++)
         {
-            if ((usedRange.Cells[1, col] as Range).Value?.ToString() == columnName)
+            if (worksheet.Columns[col].EntireColumn.Hidden)
             {
-                return col;
+                hiddenColumns.Add(col);
             }
         }
-        return -1;
+
+        return hiddenColumns;
+    }
+
+    static void RehideColumns(Worksheet worksheet, List<int> hiddenColumns)
+    {
+        foreach (int col in hiddenColumns)
+        {
+            worksheet.Columns[col].EntireColumn.Hidden = true;
+        }
     }
 }
