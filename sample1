@@ -6,68 +6,36 @@ class Program
     static void Main()
     {
         Application excelApp = new Application();
-        Workbook sourceWorkbook = excelApp.Workbooks.Open(@"C:\Path\To\Source.xlsx");
         Workbook targetWorkbook = excelApp.Workbooks.Open(@"C:\Path\To\Target.xlsx");
 
-        Worksheet sourceWorksheet = sourceWorkbook.Sheets[1];
         Worksheet targetWorksheet = targetWorkbook.Sheets[1];
 
-        // Copy "ADP" column
-        CopyColumnData(sourceWorksheet, targetWorksheet, "ADP");
+        // Add "Import Name" to all rows in the "Payroll" column without a loop
+        AddValueToPayrollColumn(targetWorksheet, "Payroll", "Import Name");
 
-        // Copy "Client Pay Element" column with modification
-        CopyClientPayElement(sourceWorksheet, targetWorksheet, "Client Pay Element");
-
-        // Save and close the workbooks
+        // Save and close the workbook
         targetWorkbook.Save();
         targetWorkbook.Close(false);
-        sourceWorkbook.Close(false);
         excelApp.Quit();
     }
 
-    // Helper function to copy data from a specific column
-    static void CopyColumnData(Worksheet sourceWorksheet, Worksheet targetWorksheet, string columnName)
+    static void AddValueToPayrollColumn(Worksheet worksheet, string columnName, string valueToAdd)
     {
-        int sourceColumnIndex = FindColumnIndexByName(sourceWorksheet, columnName);
-        int targetColumnIndex = FindColumnIndexByName(targetWorksheet, columnName);
+        int columnIndex = FindColumnIndexByName(worksheet, columnName);
 
-        if (sourceColumnIndex != -1 && targetColumnIndex != -1)
+        if (columnIndex != -1)
         {
-            Range sourceRange = sourceWorksheet.UsedRange.Columns[sourceColumnIndex];
-            Range targetRange = targetWorksheet.Columns[targetColumnIndex];
+            Range usedRange = worksheet.UsedRange;
+            int lastRow = usedRange.Rows.Count;
 
-            targetRange.ClearContents();
-            sourceRange.Copy();
-            targetRange.PasteSpecial(XlPasteType.xlPasteValues);
+            // Construct the range that includes all the cells in the "Payroll" column
+            Range payrollColumnRange = worksheet.Range[worksheet.Cells[2, columnIndex], worksheet.Cells[lastRow, columnIndex]];
+
+            // Set the value to the entire range at once
+            payrollColumnRange.Value = valueToAdd;
         }
     }
 
-    // Helper function to copy and modify "Client Pay Element" column
-    static void CopyClientPayElement(Worksheet sourceWorksheet, Worksheet targetWorksheet, string columnName)
-    {
-        int sourceColumnIndex = FindColumnIndexByName(sourceWorksheet, columnName);
-        int targetColumnIndex = FindColumnIndexByName(targetWorksheet, columnName);
-
-        if (sourceColumnIndex != -1 && targetColumnIndex != -1)
-        {
-            Range sourceRange = sourceWorksheet.UsedRange.Columns[sourceColumnIndex];
-            Range targetRange = targetWorksheet.Columns[targetColumnIndex];
-
-            targetRange.ClearContents();
-
-            int rowCount = sourceRange.Rows.Count;
-            for (int row = 2; row <= rowCount; row++) // Assuming first row is the header
-            {
-                string clientCode = "client code-"; // Modify as needed
-                string originalValue = (sourceRange.Cells[row, 1] as Range).Value?.ToString();
-                string newValue = clientCode + originalValue;
-
-                targetWorksheet.Cells[row, targetColumnIndex].Value = newValue;
-            }
-        }
-    }
-
-    // Helper function to find the column index by name
     static int FindColumnIndexByName(Worksheet worksheet, string columnName)
     {
         Range usedRange = worksheet.UsedRange;
