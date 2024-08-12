@@ -12,40 +12,72 @@ class Program
         Worksheet sourceWorksheet = sourceWorkbook.Sheets[1];
         Worksheet targetWorksheet = targetWorkbook.Sheets[1];
 
-        // Assume that data starts at row 2 (row 1 is headers)
-        int sourceRowCount = sourceWorksheet.UsedRange.Rows.Count;
-        int targetRowCount = targetWorksheet.UsedRange.Rows.Count;
+        // Copy "ADP" column
+        CopyColumnData(sourceWorksheet, targetWorksheet, "ADP");
 
-        // Loop through each row in the source worksheet
-        for (int i = 2; i <= sourceRowCount; i++)
-        {
-            // Read data from the source worksheet
-            string sourceValue = sourceWorksheet.Cells[i, 1].Value?.ToString(); // Column A in source
-            
-            // Find the corresponding column in the target worksheet (assuming the match is also in Column A)
-            for (int j = 2; j <= targetRowCount; j++)
-            {
-                string targetValue = targetWorksheet.Cells[j, 1].Value?.ToString(); // Column A in target
-
-                if (string.Equals(sourceValue, targetValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Copy data from source to target
-                    targetWorksheet.Cells[j, 2].Value = sourceWorksheet.Cells[i, 2].Value; // Example: copy value from column B
-
-                    // Apply formatting (e.g., bold and set background color)
-                    Range targetCell = targetWorksheet.Cells[j, 2];
-                    targetCell.Font.Bold = true;
-                    targetCell.Interior.Color = XlRgbColor.rgbLightYellow;
-                    
-                    // Add more formatting as needed
-                }
-            }
-        }
+        // Copy "Client Pay Element" column with modification
+        CopyClientPayElement(sourceWorksheet, targetWorksheet, "Client Pay Element");
 
         // Save and close the workbooks
         targetWorkbook.Save();
-        targetWorkbook.Close();
-        sourceWorkbook.Close();
+        targetWorkbook.Close(false);
+        sourceWorkbook.Close(false);
         excelApp.Quit();
+    }
+
+    // Helper function to copy data from a specific column
+    static void CopyColumnData(Worksheet sourceWorksheet, Worksheet targetWorksheet, string columnName)
+    {
+        int sourceColumnIndex = FindColumnIndexByName(sourceWorksheet, columnName);
+        int targetColumnIndex = FindColumnIndexByName(targetWorksheet, columnName);
+
+        if (sourceColumnIndex != -1 && targetColumnIndex != -1)
+        {
+            Range sourceRange = sourceWorksheet.UsedRange.Columns[sourceColumnIndex];
+            Range targetRange = targetWorksheet.Columns[targetColumnIndex];
+
+            targetRange.ClearContents();
+            sourceRange.Copy();
+            targetRange.PasteSpecial(XlPasteType.xlPasteValues);
+        }
+    }
+
+    // Helper function to copy and modify "Client Pay Element" column
+    static void CopyClientPayElement(Worksheet sourceWorksheet, Worksheet targetWorksheet, string columnName)
+    {
+        int sourceColumnIndex = FindColumnIndexByName(sourceWorksheet, columnName);
+        int targetColumnIndex = FindColumnIndexByName(targetWorksheet, columnName);
+
+        if (sourceColumnIndex != -1 && targetColumnIndex != -1)
+        {
+            Range sourceRange = sourceWorksheet.UsedRange.Columns[sourceColumnIndex];
+            Range targetRange = targetWorksheet.Columns[targetColumnIndex];
+
+            targetRange.ClearContents();
+
+            int rowCount = sourceRange.Rows.Count;
+            for (int row = 2; row <= rowCount; row++) // Assuming first row is the header
+            {
+                string clientCode = "client code-"; // Modify as needed
+                string originalValue = (sourceRange.Cells[row, 1] as Range).Value?.ToString();
+                string newValue = clientCode + originalValue;
+
+                targetWorksheet.Cells[row, targetColumnIndex].Value = newValue;
+            }
+        }
+    }
+
+    // Helper function to find the column index by name
+    static int FindColumnIndexByName(Worksheet worksheet, string columnName)
+    {
+        Range usedRange = worksheet.UsedRange;
+        for (int col = 1; col <= usedRange.Columns.Count; col++)
+        {
+            if ((usedRange.Cells[1, col] as Range).Value?.ToString() == columnName)
+            {
+                return col;
+            }
+        }
+        return -1;
     }
 }
