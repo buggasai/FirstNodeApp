@@ -1,13 +1,51 @@
-var app = Application.Attach("YourApplicationName");
-using (var automation = new UIA3Automation())
-{
-    var popUpWindow = app.GetAllTopLevelWindows(automation)
-                         .FirstOrDefault(w => w.Title.Contains("Sign In") || w.Name.Contains("Sign In"));
-    
-    if (popUpWindow == null)
-    {
-        throw new Exception("Sign In window not found.");
-    }
+using System;
+using Microsoft.Office.Interop.Excel;
 
-    // Now you can interact with the pop-up window
+class Program
+{
+    static void Main()
+    {
+        Application excelApp = new Application();
+        Workbook sourceWorkbook = excelApp.Workbooks.Open(@"C:\Path\To\Source.xlsx");
+        Workbook targetWorkbook = excelApp.Workbooks.Open(@"C:\Path\To\Target.xlsx");
+
+        Worksheet sourceWorksheet = sourceWorkbook.Sheets[1];
+        Worksheet targetWorksheet = targetWorkbook.Sheets[1];
+
+        // Assume that data starts at row 2 (row 1 is headers)
+        int sourceRowCount = sourceWorksheet.UsedRange.Rows.Count;
+        int targetRowCount = targetWorksheet.UsedRange.Rows.Count;
+
+        // Loop through each row in the source worksheet
+        for (int i = 2; i <= sourceRowCount; i++)
+        {
+            // Read data from the source worksheet
+            string sourceValue = sourceWorksheet.Cells[i, 1].Value?.ToString(); // Column A in source
+            
+            // Find the corresponding column in the target worksheet (assuming the match is also in Column A)
+            for (int j = 2; j <= targetRowCount; j++)
+            {
+                string targetValue = targetWorksheet.Cells[j, 1].Value?.ToString(); // Column A in target
+
+                if (string.Equals(sourceValue, targetValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Copy data from source to target
+                    targetWorksheet.Cells[j, 2].Value = sourceWorksheet.Cells[i, 2].Value; // Example: copy value from column B
+
+                    // Apply formatting (e.g., bold and set background color)
+                    Range targetCell = targetWorksheet.Cells[j, 2];
+                    targetCell.Font.Bold = true;
+                    targetCell.Interior.Color = XlRgbColor.rgbLightYellow;
+                    
+                    // Add more formatting as needed
+                }
+            }
+        }
+
+        // Save and close the workbooks
+        targetWorkbook.Save();
+        targetWorkbook.Close();
+        sourceWorkbook.Close();
+        excelApp.Quit();
+    }
 }
