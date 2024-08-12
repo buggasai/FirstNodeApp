@@ -28,9 +28,16 @@ class Program
     static List<int> TrackHiddenColumns(Worksheet worksheet)
     {
         List<int> hiddenColumns = new List<int>();
-        Range usedRange = worksheet.UsedRange;
 
-        for (int col = 1; col <= usedRange.Columns.Count; col++)
+        // Get the last used column in the worksheet
+        int lastUsedColumn = worksheet.UsedRange.Columns.Count + worksheet.UsedRange.Column - 1;
+
+        // Define a reasonable buffer to include columns just outside the used range
+        int bufferColumns = 10; // Adjust as needed
+        int maxColumnToCheck = Math.Min(lastUsedColumn + bufferColumns, 16384);
+
+        // Iterate over the range of columns
+        for (int col = 1; col <= maxColumnToCheck; col++)
         {
             if (worksheet.Columns[col].EntireColumn.Hidden)
             {
