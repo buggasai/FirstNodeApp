@@ -1,58 +1,8 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Office.Interop.Excel;
+// Switch to the iframe using its name or ID
+driver.SwitchTo().Frame("webresource");
 
-class Program
-{
-    static void Main()
-    {
-        Application excelApp = new Application();
-        Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\YourFile.xlsx");
+// Now you can find the select element within the iframe
+var selectElement = driver.FindElement(By.CssSelector("select"));
 
-        Worksheet worksheet = workbook.Sheets[1];
-
-        // Step 1: Track hidden columns
-        List<int> hiddenColumns = TrackHiddenColumns(worksheet);
-
-        // Step 2: Perform your Excel operations here...
-
-        // Step 3: Re-hide the previously hidden columns
-        RehideColumns(worksheet, hiddenColumns);
-
-        // Save and close the workbook
-        workbook.Save();
-        workbook.Close(false);
-        excelApp.Quit();
-    }
-
-    static List<int> TrackHiddenColumns(Worksheet worksheet)
-    {
-        List<int> hiddenColumns = new List<int>();
-
-        // Get the last used column in the worksheet
-        int lastUsedColumn = worksheet.UsedRange.Columns.Count + worksheet.UsedRange.Column - 1;
-
-        // Define a reasonable buffer to include columns just outside the used range
-        int bufferColumns = 10; // Adjust as needed
-        int maxColumnToCheck = Math.Min(lastUsedColumn + bufferColumns, 16384);
-
-        // Iterate over the range of columns
-        for (int col = 1; col <= maxColumnToCheck; col++)
-        {
-            if (worksheet.Columns[col].EntireColumn.Hidden)
-            {
-                hiddenColumns.Add(col);
-            }
-        }
-
-        return hiddenColumns;
-    }
-
-    static void RehideColumns(Worksheet worksheet, List<int> hiddenColumns)
-    {
-        foreach (int col in hiddenColumns)
-        {
-            worksheet.Columns[col].EntireColumn.Hidden = true;
-        }
-    }
-}
+// Perform actions on the select element
+selectElement.Click();
