@@ -1,2 +1,18 @@
-var iframeElement = driver.FindElement(By.XPath("//iframe[@id='webresource']"));
-driver.SwitchTo().Frame(iframeElement);
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+
+// Assuming 'driver' is your WebDriver instance
+
+// Wait for the parent iframe and switch to it
+var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+wait.Until(ExpectedConditions.FrameToBeAvailableAndSwitchToIt(By.Id("parentFrameId")));
+
+// Switch to the nested iframe
+driver.SwitchTo().Frame("nestedFrameId");
+
+// Interact with an element within the nested iframe
+var element = driver.FindElement(By.Id("elementId"));
+element.Click(); // Example interaction
+
+// Switch back to the default content
+driver.SwitchTo().DefaultContent();
