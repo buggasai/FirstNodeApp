@@ -1,8 +1,2 @@
-// Switch to the iframe using its name or ID
-driver.SwitchTo().Frame("webresource");
-
-// Now you can find the select element within the iframe
-var selectElement = driver.FindElement(By.CssSelector("select"));
-
-// Perform actions on the select element
-selectElement.Click();
+var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+wait.Until(ExpectedConditions.FrameToBeAvailableAndSwitchToIt(By.Id("webresource")));
