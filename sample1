@@ -1,2 +1,2 @@
-var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-wait.Until(ExpectedConditions.FrameToBeAvailableAndSwitchToIt(By.Id("webresource")));
+var iframeElement = driver.FindElement(By.XPath("//iframe[@id='webresource']"));
+driver.SwitchTo().Frame(iframeElement);
