@@ -1,1 +1,11 @@
-//span[text()='morocco local monthly']/ancestor::span[contains(@class, 'navbartoplevelitem')]//span[a][last()]
+// Assuming 'driver' is your instance of IWebDriver
+
+// Get the current window size
+var currentSize = driver.Manage().Window.Size;
+
+// Increase the width by a specific amount, e.g., 200 pixels
+int newWidth = currentSize.Width + 200;
+int newHeight = currentSize.Height; // Keeping the height same
+
+// Set the new window size
+driver.Manage().Window.Size = new System.Drawing.Size(newWidth, newHeight);
