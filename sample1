@@ -1,7 +1,5 @@
-// Switch to the outer iframe
-driver.SwitchTo().Frame(driver.FindElement(By.XPath("//iframe[@id='outerIframeId']")));
+// Find the nested span with the specific text
+IWebElement nestedSpan = driver.FindElement(By.XPath("//span[text()='morocco local monthly']"));
 
-// Switch to the first inner iframe at any depth
-driver.SwitchTo().Frame(driver.FindElement(By.XPath(".//iframe")));
-
-// Now you can interact with elements inside the first inner iframe found
+// Find the root span from the nested span
+IWebElement rootSpan = driver.FindElement(By.XPath("//span[text()='morocco local monthly']/ancestor::span[1]"));
