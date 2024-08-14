@@ -1,5 +1,1 @@
-// Find the nested span with the specific text
-IWebElement nestedSpan = driver.FindElement(By.XPath("//span[text()='morocco local monthly']"));
-
-// Find the root span from the nested span
-IWebElement rootSpan = driver.FindElement(By.XPath("//span[text()='morocco local monthly']/ancestor::span[1]"));
+//span[text()='morocco local monthly']/ancestor::span[contains(@class, 'navbartoplevelitem')]//span[a][last()]
