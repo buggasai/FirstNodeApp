@@ -1,11 +1,20 @@
-// Assuming 'driver' is your instance of IWebDriver
+using System;
+using System.IO;
+using System.Linq;
 
-// Get the current window size
-var currentSize = driver.Manage().Window.Size;
+class Program
+{
+    static void Main()
+    {
+        string directoryPath = @"C:\Your\Directory\Path";
+        string fileName = "exactFileName.ext";
 
-// Increase the width by a specific amount, e.g., 200 pixels
-int newWidth = currentSize.Width + 200;
-int newHeight = currentSize.Height; // Keeping the height same
+        var matchingFiles = Directory.GetFiles(directoryPath)
+                                     .Where(file => Path.GetFileName(file).Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
-// Set the new window size
-driver.Manage().Window.Size = new System.Drawing.Size(newWidth, newHeight);
+        foreach (var file in matchingFiles)
+        {
+            Console.WriteLine(file);
+        }
+    }
+}
