@@ -1,33 +1,20 @@
-using System;
-using System.IO;
+import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
-class Program
-{
-    static void Main()
-    {
-        string downloadPath = @"C:\Your\Download\Folder\Path"; // Replace with your actual download folder path
+# Assuming you're using Chrome
+driver = webdriver.Chrome()
 
-        // Search for files with single quotes at the beginning and end of the filename
-        var files = Directory.GetFiles(downloadPath, "'*'");
+# Navigate to the page with the file upload input
+driver.get("https://example.com/upload")
 
-        foreach (var filePath in files)
-        {
-            string fileName = Path.GetFileName(filePath);
+# Locate the file input element (change the selector as per your web page)
+file_input = driver.find_element(By.ID, "file-upload-input")
 
-            // Check if the file name starts and ends with a single quote
-            if (fileName.StartsWith("'") && fileName.EndsWith("'"))
-            {
-                // Remove the single quotes
-                string newFileName = fileName.Trim('\'');
+# Construct the file path to the Temp folder on the desktop
+desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+temp_folder_path = os.path.join(desktop_path, "Temp")
+file_to_upload = os.path.join(temp_folder_path, "yourfile.txt")  # Change the file name as needed
 
-                // Create the new full path with the updated file name
-                string newFilePath = Path.Combine(downloadPath, newFileName);
-
-                // Rename the file
-                File.Move(filePath, newFilePath);
-
-                Console.WriteLine($"Renamed: {fileName} to {newFileName}");
-            }
-        }
-    }
-}
+# Upload the file
+file_input.send_keys(file_to_upload)
