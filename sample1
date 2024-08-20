@@ -1,20 +1,33 @@
 using System;
 using System.IO;
-using System.Linq;
 
 class Program
 {
     static void Main()
     {
-        string directoryPath = @"C:\Your\Directory\Path";
-        string fileName = "exactFileName.ext";
+        string downloadPath = @"C:\Your\Download\Folder\Path"; // Replace with your actual download folder path
 
-        var matchingFiles = Directory.GetFiles(directoryPath)
-                                     .Where(file => Path.GetFileName(file).Equals(fileName, StringComparison.OrdinalIgnoreCase));
+        // Search for files with single quotes at the beginning and end of the filename
+        var files = Directory.GetFiles(downloadPath, "'*'");
 
-        foreach (var file in matchingFiles)
+        foreach (var filePath in files)
         {
-            Console.WriteLine(file);
+            string fileName = Path.GetFileName(filePath);
+
+            // Check if the file name starts and ends with a single quote
+            if (fileName.StartsWith("'") && fileName.EndsWith("'"))
+            {
+                // Remove the single quotes
+                string newFileName = fileName.Trim('\'');
+
+                // Create the new full path with the updated file name
+                string newFilePath = Path.Combine(downloadPath, newFileName);
+
+                // Rename the file
+                File.Move(filePath, newFilePath);
+
+                Console.WriteLine($"Renamed: {fileName} to {newFileName}");
+            }
         }
     }
 }
