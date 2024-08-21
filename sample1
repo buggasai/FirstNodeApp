@@ -1,18 +1,29 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+using Excel = Microsoft.Office.Interop.Excel;
 
-# Setup WebDriver (example using Chrome)
-driver = webdriver.Chrome()
+public void GetHiddenColumns(Excel.Worksheet worksheet)
+{
+    Excel.Range usedRange = worksheet.UsedRange;
+    List<int> hiddenColumns = new List<int>();
 
-# Navigate to the target webpage
-driver.get("https://example.com/upload")
+    for (int col = 1; col <= usedRange.Columns.Count; col++)
+    {
+        Excel.Range column = usedRange.Columns[col];
+        if (column.EntireColumn.Hidden)
+        {
+            hiddenColumns.Add(col);
+        }
+    }
 
-# Locate the file input element
-file_input = driver.find_element(By.XPATH, "//input[@type='file']")
-
-# Send the file path to the input element
-file_input.send_keys("C:/Users/YourUsername/Desktop/Temp/yourfile.txt")
-
-# Optionally, locate and click the upload button if required
-upload_button = driver.find_element(By.XPATH, "//button[text()='Upload']")
-upload_button.click()
+    if (hiddenColumns.Count > 0)
+    {
+        Console.WriteLine("Hidden columns:");
+        foreach (int colIndex in hiddenColumns)
+        {
+            Console.WriteLine("Column " + colIndex);
+        }
+    }
+    else
+    {
+        Console.WriteLine("No hidden columns found.");
+    }
+}
