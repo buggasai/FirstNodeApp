@@ -1,29 +1,57 @@
 using Excel = Microsoft.Office.Interop.Excel;
 
-public void GetHiddenColumns(Excel.Worksheet worksheet)
+public void CheckHiddenColumns(string filePath)
 {
-    Excel.Range usedRange = worksheet.UsedRange;
-    List<int> hiddenColumns = new List<int>();
+    Excel.Application excelApp = new Excel.Application();
+    Excel.Workbook workbook = null;
+    Excel.Worksheet worksheet = null;
 
-    for (int col = 1; col <= usedRange.Columns.Count; col++)
+    try
     {
-        Excel.Range column = usedRange.Columns[col];
-        if (column.EntireColumn.Hidden)
+        // Open workbook without alerts and calculations
+        excelApp.DisplayAlerts = false;
+        excelApp.ScreenUpdating = false;
+        excelApp.Calculation = Excel.XlCalculation.xlCalculationManual;
+
+        // Open the workbook in read-only mode
+        workbook = excelApp.Workbooks.Open(filePath, ReadOnly: true);
+        worksheet = workbook.Sheets[1];
+
+        List<int> hiddenColumns = new List<int>();
+
+        // Iterate through each column
+        for (int col = 1; col <= worksheet.Columns.Count; col++)
         {
-            hiddenColumns.Add(col);
+            Excel.Range column = worksheet.Columns[col];
+            if (column.Hidden)
+            {
+                hiddenColumns.Add(col);
+            }
+        }
+
+        if (hiddenColumns.Count > 0)
+        {
+            Console.WriteLine("Hidden columns:");
+            foreach (int colIndex in hiddenColumns)
+            {
+                Console.WriteLine("Column " + colIndex);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No hidden columns found.");
         }
     }
+    finally
+    {
+        // Restore settings
+        excelApp.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
+        excelApp.ScreenUpdating = true;
+        excelApp.DisplayAlerts = true;
 
-    if (hiddenColumns.Count > 0)
-    {
-        Console.WriteLine("Hidden columns:");
-        foreach (int colIndex in hiddenColumns)
-        {
-            Console.WriteLine("Column " + colIndex);
-        }
-    }
-    else
-    {
-        Console.WriteLine("No hidden columns found.");
+        // Clean up
+        workbook?.Close(false);
+        excelApp.Quit();
+        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
     }
 }
