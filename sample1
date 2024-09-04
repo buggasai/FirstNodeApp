@@ -1,57 +1,61 @@
 using Excel = Microsoft.Office.Interop.Excel;
 
-public void CheckHiddenColumns(string filePath)
+class Program
 {
-    Excel.Application excelApp = new Excel.Application();
-    Excel.Workbook workbook = null;
-    Excel.Worksheet worksheet = null;
-
-    try
+    static void Main()
     {
-        // Open workbook without alerts and calculations
-        excelApp.DisplayAlerts = false;
-        excelApp.ScreenUpdating = false;
-        excelApp.Calculation = Excel.XlCalculation.xlCalculationManual;
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\workbook.xlsx");
+        Excel.Worksheet worksheet = workbook.Sheets[1];
 
-        // Open the workbook in read-only mode
-        workbook = excelApp.Workbooks.Open(filePath, ReadOnly: true);
-        worksheet = workbook.Sheets[1];
+        // Specify the range you want to sort
+        Excel.Range sortRange = worksheet.UsedRange;
 
-        List<int> hiddenColumns = new List<int>();
+        // Set the row with headers
+        int headerRow = 8;
 
-        // Iterate through each column
-        for (int col = 1; col <= worksheet.Columns.Count; col++)
-        {
-            Excel.Range column = worksheet.Columns[col];
-            if (column.Hidden)
-            {
-                hiddenColumns.Add(col);
-            }
-        }
+        // Sort by Column B (smallest to largest)
+        sortRange.Sort(
+            sortRange.Columns[2], // Column B
+            Excel.XlSortOrder.xlAscending,
+            Type.Missing, Type.Missing, Excel.XlSortOrder.xlAscending,
+            Type.Missing, Excel.XlSortOrder.xlAscending,
+            Excel.XlYesNoGuess.xlYes,
+            Type.Missing, Type.Missing,
+            Excel.XlSortOrientation.xlSortColumns,
+            Excel.XlSortMethod.xlPinYin,
+            Excel.XlSortDataOption.xlSortNormal
+        );
 
-        if (hiddenColumns.Count > 0)
-        {
-            Console.WriteLine("Hidden columns:");
-            foreach (int colIndex in hiddenColumns)
-            {
-                Console.WriteLine("Column " + colIndex);
-            }
-        }
-        else
-        {
-            Console.WriteLine("No hidden columns found.");
-        }
-    }
-    finally
-    {
-        // Restore settings
-        excelApp.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
-        excelApp.ScreenUpdating = true;
-        excelApp.DisplayAlerts = true;
+        // Sort by Column H (smallest to largest)
+        sortRange.Sort(
+            sortRange.Columns[8], // Column H
+            Excel.XlSortOrder.xlAscending,
+            Type.Missing, Type.Missing, Excel.XlSortOrder.xlAscending,
+            Type.Missing, Excel.XlSortOrder.xlAscending,
+            Excel.XlYesNoGuess.xlYes,
+            Type.Missing, Type.Missing,
+            Excel.XlSortOrientation.xlSortColumns,
+            Excel.XlSortMethod.xlPinYin,
+            Excel.XlSortDataOption.xlSortNormal
+        );
 
-        // Clean up
-        workbook?.Close(false);
+        // Sort by Column E (oldest to newest)
+        sortRange.Sort(
+            sortRange.Columns[5], // Column E
+            Excel.XlSortOrder.xlAscending,
+            Type.Missing, Type.Missing, Excel.XlSortOrder.xlAscending,
+            Type.Missing, Excel.XlSortOrder.xlAscending,
+            Excel.XlYesNoGuess.xlYes,
+            Type.Missing, Type.Missing,
+            Excel.XlSortOrientation.xlSortColumns,
+            Excel.XlSortMethod.xlPinYin,
+            Excel.XlSortDataOption.xlSortNormal
+        );
+
+        // Save and close the workbook
+        workbook.Save();
+        workbook.Close();
         excelApp.Quit();
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
     }
 }
