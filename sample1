@@ -8,8 +8,8 @@ class Program
         Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\workbook.xlsx");
         Excel.Worksheet worksheet = workbook.Sheets[1];
 
-        // Define the range starting from row 9 downwards, assuming the columns extend to at least column H
-        Excel.Range sortRange = worksheet.Range["A9", worksheet.Cells[worksheet.Rows.Count, "H"].End(Excel.XlDirection.xlUp)];
+        // Define the range starting from row 9 downwards, extending to the last used column in your data
+        Excel.Range sortRange = worksheet.Range["A9", worksheet.Cells[worksheet.Rows.Count, worksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
 
         // Sort by Column B (smallest to largest)
         sortRange.Sort(
