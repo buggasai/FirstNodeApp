@@ -1,6 +1,6 @@
 using Excel = Microsoft.Office.Interop.Excel;
 
-public void SortExcelWorksheet(string filePath)
+public void SortExcelWithFilters(string filePath)
 {
     // Create a new Excel application
     Excel.Application excelApp = new Excel.Application();
@@ -9,44 +9,45 @@ public void SortExcelWorksheet(string filePath)
     Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
     Excel.Worksheet worksheet = workbook.Sheets[1];
 
-    // Get the used range
-    Excel.Range usedRange = worksheet.UsedRange;
+    // Turn on AutoFilter if it's not already enabled (header in the 8th row)
+    Excel.Range headerRange = worksheet.Range["A8:H8"];  // Adjust range to include the necessary columns
+    if (!worksheet.AutoFilterMode)
+    {
+        headerRange.AutoFilter();
+    }
 
-    // Set the sorting range (from row 9 onwards since headers are in row 8)
-    Excel.Range sortRange = worksheet.Range["A9", usedRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
-
-    // Initialize the sort object
-    Excel.Sort sort = worksheet.Sort;
-    sort.SetRange(sortRange);
-    sort.Header = Excel.XlYesNoGuess.xlYes; // Specifies that there is a header row
-
-    // First, sort by Column E (Oldest to Newest)
-    sort.SortFields.Clear();
-    sort.SortFields.Add(
+    // Sort by Column E (Oldest to Newest)
+    worksheet.AutoFilter.Sort.SortFields.Clear();
+    worksheet.AutoFilter.Sort.SortFields.Add(
         Key: worksheet.Columns["E"],
         SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending,
-        DataOption: Excel.XlSortDataOption.xlSortNormal
+        Order: Excel.XlSortOrder.xlAscending // Oldest to Newest
     );
+    
+    // Apply the sort for Column E
+    worksheet.AutoFilter.ApplyFilter();
 
-    // Then, sort by Column H (Smallest to Largest)
-    sort.SortFields.Add(
+    // Sort by Column H (Smallest to Largest)
+    worksheet.AutoFilter.Sort.SortFields.Clear();
+    worksheet.AutoFilter.Sort.SortFields.Add(
         Key: worksheet.Columns["H"],
         SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending,
-        DataOption: Excel.XlSortDataOption.xlSortNormal
+        Order: Excel.XlSortOrder.xlAscending
     );
+    
+    // Apply the sort for Column H
+    worksheet.AutoFilter.ApplyFilter();
 
-    // Finally, sort by Column B (Smallest to Largest)
-    sort.SortFields.Add(
+    // Sort by Column B (Smallest to Largest)
+    worksheet.AutoFilter.Sort.SortFields.Clear();
+    worksheet.AutoFilter.Sort.SortFields.Add(
         Key: worksheet.Columns["B"],
         SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending,
-        DataOption: Excel.XlSortDataOption.xlSortNormal
+        Order: Excel.XlSortOrder.xlAscending
     );
 
-    // Apply the sorting
-    sort.Apply();
+    // Apply the sort for Column B
+    worksheet.AutoFilter.ApplyFilter();
 
     // Save and close the workbook
     workbook.Save();
