@@ -1,40 +1,65 @@
+
+Conversation with Gemini
+
+Excel sorting c#,interop.excel.. header is on the 8th row, sort column B smallest to largest, sort column H smallest to largest, sort column E oldest to newest 
+
+
+Show drafts
+
+I'd be glad to help you with sorting in Excel using C# and Interop.Excel. Here's the code that incorporates the best aspects of the provided responses and addresses the specific requirements:
+
+C#
+using System;
+using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
-class Program
+namespace ExcelSorting
 {
-    static void Main()
+    class Program
     {
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\workbook.xlsx");
-        Excel.Worksheet worksheet = workbook.Sheets[1];
+        static void Main(string[] args)
+        {
+            try
+            {
+                // Create an Excel application object
+                Excel.Application excelApp = new Excel.Application();
+                excelApp.Visible = true;
 
-        // Define the range starting from row 9 downwards, extending to the last used column in your data
-        Excel.Range sortRange = worksheet.Range["A9", worksheet.Cells[worksheet.Rows.Count, worksheet.Columns.Count].End(Excel.XlDirection.xlUp)];
+                // Open the Excel workbook
+                Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\Your\Excel\File.xlsx");
 
-        // Sort by Column B (smallest to largest)
-        sortRange.Sort(
-            Key1: sortRange.Columns[2],
-            Order1: Excel.XlSortOrder.xlAscending,
-            Header: Excel.XlYesNoGuess.xlNo
-        );
+                // Get the active worksheet
+                Excel.Worksheet worksheet = workbook.ActiveSheet;
 
-        // Sort by Column H (smallest to largest)
-        sortRange.Sort(
-            Key1: sortRange.Columns[8],
-            Order1: Excel.XlSortOrder.xlAscending,
-            Header: Excel.XlYesNoGuess.xlNo
-        );
+                // Specify the header row (starting from 1)
+                int headerRow = 8;
 
-        // Sort by Column E (oldest to newest)
-        sortRange.Sort(
-            Key1: sortRange.Columns[5],
-            Order1: Excel.XlSortOrder.xlAscending,
-            Header: Excel.XlYesNoGuess.xlNo
-        );
+                // Sort column B (smallest to largest)
+                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 2], worksheet.Cells[worksheet.UsedRange.Rows.Count, 2]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
+                worksheet.Sort.SortFields.Item(1).Order = Excel.XlSortOrder.xlAscending;
 
-        // Save and close the workbook
-        workbook.Save();
-        workbook.Close();
-        excelApp.Quit();
-    }
-}
+                // Sort column H (smallest to largest)
+                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 8], worksheet.Cells[worksheet.UsedRange.Rows.Count, 8]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
+                worksheet.Sort.SortFields.Item(2).Order = Excel.XlSortOrder.xlAscending;
+
+                // Sort column E (oldest to newest)
+                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 5], worksheet.Cells[worksheet.UsedRange.Rows.Count, 5]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
+                worksheet.Sort.SortFields.Item(3).Order = Excel.XlSortOrder.xlDescending;
+
+                // Specify the header row as the header
+                worksheet.Sort.Header = Excel.XlSortHeader.xlSortHeaderRows;
+
+                // Sort the range
+                worksheet.Sort.Apply();
+
+                // Save the workbook
+                workbook.Save();
+
+                // Quit the Excel application
+                excelApp.Quit();
+
+                Marshal.ReleaseComObject(worksheet);
+                Marshal.ReleaseComObject(workbook);
+                Marshal.ReleaseComObject(excelApp);
+            }
+            catch 1    
