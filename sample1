@@ -1,65 +1,60 @@
-
-Conversation with Gemini
-
-Excel sorting c#,interop.excel.. header is on the 8th row, sort column B smallest to largest, sort column H smallest to largest, sort column E oldest to newest 
-
-
-Show drafts
-
-I'd be glad to help you with sorting in Excel using C# and Interop.Excel. Here's the code that incorporates the best aspects of the provided responses and addresses the specific requirements:
-
-C#
-using System;
-using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
-namespace ExcelSorting
+public void SortExcelWorksheet(string filePath)
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            try
-            {
-                // Create an Excel application object
-                Excel.Application excelApp = new Excel.Application();
-                excelApp.Visible = true;
+    // Create a new Excel application
+    Excel.Application excelApp = new Excel.Application();
+    
+    // Open the workbook
+    Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+    Excel.Worksheet worksheet = workbook.Sheets[1];
 
-                // Open the Excel workbook
-                Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\Path\To\Your\Excel\File.xlsx");
+    // Get the used range
+    Excel.Range usedRange = worksheet.UsedRange;
 
-                // Get the active worksheet
-                Excel.Worksheet worksheet = workbook.ActiveSheet;
+    // Set the sorting range (from row 9 onwards since headers are in row 8)
+    Excel.Range sortRange = worksheet.Range["A9", usedRange.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)];
 
-                // Specify the header row (starting from 1)
-                int headerRow = 8;
+    // Initialize the sort object
+    Excel.Sort sort = worksheet.Sort;
+    sort.SetRange(sortRange);
+    sort.Header = Excel.XlYesNoGuess.xlYes; // Specifies that there is a header row
 
-                // Sort column B (smallest to largest)
-                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 2], worksheet.Cells[worksheet.UsedRange.Rows.Count, 2]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
-                worksheet.Sort.SortFields.Item(1).Order = Excel.XlSortOrder.xlAscending;
+    // First, sort by Column E (Oldest to Newest)
+    sort.SortFields.Clear();
+    sort.SortFields.Add(
+        Key: worksheet.Columns["E"],
+        SortOn: Excel.XlSortOn.xlSortOnValues,
+        Order: Excel.XlSortOrder.xlAscending,
+        DataOption: Excel.XlSortDataOption.xlSortNormal
+    );
 
-                // Sort column H (smallest to largest)
-                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 8], worksheet.Cells[worksheet.UsedRange.Rows.Count, 8]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
-                worksheet.Sort.SortFields.Item(2).Order = Excel.XlSortOrder.xlAscending;
+    // Then, sort by Column H (Smallest to Largest)
+    sort.SortFields.Add(
+        Key: worksheet.Columns["H"],
+        SortOn: Excel.XlSortOn.xlSortOnValues,
+        Order: Excel.XlSortOrder.xlAscending,
+        DataOption: Excel.XlSortDataOption.xlSortNormal
+    );
 
-                // Sort column E (oldest to newest)
-                worksheet.Sort.SortFields.Add(worksheet.Range[worksheet.Cells[headerRow, 5], worksheet.Cells[worksheet.UsedRange.Rows.Count, 5]]).SortOnValue.DataOption = Excel.XlSortOnValue.xlSortOnValue;
-                worksheet.Sort.SortFields.Item(3).Order = Excel.XlSortOrder.xlDescending;
+    // Finally, sort by Column B (Smallest to Largest)
+    sort.SortFields.Add(
+        Key: worksheet.Columns["B"],
+        SortOn: Excel.XlSortOn.xlSortOnValues,
+        Order: Excel.XlSortOrder.xlAscending,
+        DataOption: Excel.XlSortDataOption.xlSortNormal
+    );
 
-                // Specify the header row as the header
-                worksheet.Sort.Header = Excel.XlSortHeader.xlSortHeaderRows;
+    // Apply the sorting
+    sort.Apply();
 
-                // Sort the range
-                worksheet.Sort.Apply();
+    // Save and close the workbook
+    workbook.Save();
+    workbook.Close();
+    excelApp.Quit();
 
-                // Save the workbook
-                workbook.Save();
-
-                // Quit the Excel application
-                excelApp.Quit();
-
-                Marshal.ReleaseComObject(worksheet);
-                Marshal.ReleaseComObject(workbook);
-                Marshal.ReleaseComObject(excelApp);
-            }
-            catch 1    
+    // Release COM objects to avoid memory leaks
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+}
