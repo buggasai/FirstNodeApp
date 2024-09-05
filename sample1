@@ -29,4 +29,33 @@ public void SortExcelWithFilters(string filePath)
 
     // Sort by Column H (Smallest to Largest)
     worksheet.AutoFilter.Sort.SortFields.Clear();
-    worksheet.AutoFilter.Sort
+    worksheet.AutoFilter.Sort.SortFields.Add(
+        Key: worksheet.Columns["H"],
+        SortOn: Excel.XlSortOn.xlSortOnValues,
+        Order: Excel.XlSortOrder.xlAscending // Smallest to Largest
+    );
+    
+    // Apply the sort for Column H
+    worksheet.AutoFilter.ApplyFilter();
+
+    // Sort by Column B (Smallest to Largest)
+    worksheet.AutoFilter.Sort.SortFields.Clear();
+    worksheet.AutoFilter.Sort.SortFields.Add(
+        Key: worksheet.Columns["B"],
+        SortOn: Excel.XlSortOn.xlSortOnValues,
+        Order: Excel.XlSortOrder.xlAscending // Smallest to Largest
+    );
+
+    // Apply the sort for Column B
+    worksheet.AutoFilter.ApplyFilter();
+
+    // Save and close the workbook
+    workbook.Save();
+    workbook.Close();
+    excelApp.Quit();
+
+    // Release COM objects to avoid memory leaks
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+}
