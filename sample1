@@ -1,61 +1,84 @@
-using Excel = Microsoft.Office.Interop.Excel;
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-public void SortExcelWithFilters(string filePath)
+namespace JsonExample
 {
-    // Create a new Excel application
-    Excel.Application excelApp = new Excel.Application();
-    
-    // Open the workbook
-    Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-    Excel.Worksheet worksheet = workbook.Sheets[1];
-
-    // Turn on AutoFilter if it's not already enabled (header in the 8th row)
-    Excel.Range headerRange = worksheet.Range["A8:AJ8"];  // Adjusted range to include columns up to AJ
-    if (!worksheet.AutoFilterMode)
+    class Program
     {
-        headerRange.AutoFilter();
+        static void Main(string[] args)
+        {
+            // Your JSON string
+            string jsonString = @"
+            {
+                'trigger payload': {
+                    'trigger Inputs': {
+                        'project_name': 'AdditionalEntityForSameClient',
+                        'project_id': 483,
+                        'oubynoligar code': 'CSLIMP',
+                        'country_id': 'CSLIMP',
+                        'company_number': 'AdditionalEntity',
+                        'run name': 'AdditionalEntityForSameClient',
+                        'xref': 'CSLIMP999',
+                        'bpa unor mail id': '',
+                        'additional Properties': 1,
+                        'tools': [
+                            {
+                                'name': 'p_id',
+                                'value': 3200001
+                            },
+                            {
+                                'name': 'sequence_id',
+                                'value': 1
+                            },
+                            {
+                                'name': 'param',
+                                'value': [
+                                    {
+                                        'param_name': 'CelergoEnvironment',
+                                        'param value': 'Delaro Stage (51)'
+                                    },
+                                    {
+                                        'param_name': 'ClientName',
+                                        'param value': 'TestN001'
+                                    },
+                                    {
+                                        'param_name': 'PayrollasList',
+                                        'param value': 'TestPN'
+                                    },
+                                    {
+                                        'param_name': 'ClientCode',
+                                        'param value': 'TestCcodialPropectin'
+                                    }
+                                ]
+                            }
+                        ],
+                        'additional Properties': 1
+                    },
+                    'run name': 'AdditionalEntityForSameClient',
+                    'subject': 'Trigger CSLIMP',
+                    'description': 'WATT,'
+                }
+            }";
+
+            // Parse JSON
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            // Navigate to the 'param' list
+            var tools = jsonObject["trigger payload"]["trigger Inputs"]["tools"];
+            foreach (var tool in tools)
+            {
+                if (tool["name"].ToString() == "param")
+                {
+                    var paramArray = tool["value"];
+                    foreach (var param in paramArray)
+                    {
+                        string paramName = param["param_name"].ToString();
+                        Console.WriteLine("Param Name: " + paramName);
+                    }
+                }
+            }
+        }
     }
-
-    // Sort by Column E (Oldest to Newest)
-    worksheet.AutoFilter.Sort.SortFields.Clear();
-    worksheet.AutoFilter.Sort.SortFields.Add(
-        Key: worksheet.Columns["E"],
-        SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending // Oldest to Newest
-    );
-    
-    // Apply the sort for Column E
-    worksheet.AutoFilter.ApplyFilter();
-
-    // Sort by Column H (Smallest to Largest)
-    worksheet.AutoFilter.Sort.SortFields.Clear();
-    worksheet.AutoFilter.Sort.SortFields.Add(
-        Key: worksheet.Columns["H"],
-        SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending // Smallest to Largest
-    );
-    
-    // Apply the sort for Column H
-    worksheet.AutoFilter.ApplyFilter();
-
-    // Sort by Column B (Smallest to Largest)
-    worksheet.AutoFilter.Sort.SortFields.Clear();
-    worksheet.AutoFilter.Sort.SortFields.Add(
-        Key: worksheet.Columns["B"],
-        SortOn: Excel.XlSortOn.xlSortOnValues,
-        Order: Excel.XlSortOrder.xlAscending // Smallest to Largest
-    );
-
-    // Apply the sort for Column B
-    worksheet.AutoFilter.ApplyFilter();
-
-    // Save and close the workbook
-    workbook.Save();
-    workbook.Close();
-    excelApp.Quit();
-
-    // Release COM objects to avoid memory leaks
-    System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
 }
