@@ -6,27 +6,44 @@ JObject payload = JObject.Parse(yourJsonString);
 // Function to get param value for a given param name
 string GetParamValue(JObject payload, string paramName)
 {
-    // Access the tools array
-    var toolsArray = payload["triggerInputs"]["tools"];
+    // Attempt to access the 'triggerInputs' object
+    var triggerInputs = payload["triggerInputs"];
     
-    // Iterate through each tool in tools array
-    foreach (var tool in toolsArray)
+    if (triggerInputs != null)
     {
-        // Access the paramlist in each tool
-        var paramList = tool["paramlist"];
+        // Try to access the 'tools' array
+        var toolsArray = triggerInputs["tools"];
         
-        // Check if paramlist exists
-        if (paramList != null)
+        if (toolsArray != null)
         {
-            // Iterate through the paramlist to find the param_name
-            foreach (var param in paramList)
+            // Iterate through each tool in tools array
+            foreach (var tool in toolsArray)
             {
-                if (param["param_name"].ToString() == paramName)
+                // Access the paramlist in each tool
+                var paramList = tool["paramlist"];
+                
+                // Check if paramlist exists
+                if (paramList != null)
                 {
-                    return param["param_value"].ToString();
+                    // Iterate through the paramlist to find the param_name
+                    foreach (var param in paramList)
+                    {
+                        if (param["param_name"].ToString() == paramName)
+                        {
+                            return param["param_value"].ToString();
+                        }
+                    }
                 }
             }
         }
+        else
+        {
+            Console.WriteLine("'tools' is null inside triggerInputs.");
+        }
+    }
+    else
+    {
+        Console.WriteLine("'triggerInputs' is null.");
     }
     
     return null; // If the param_name is not found
@@ -36,4 +53,11 @@ string GetParamValue(JObject payload, string paramName)
 string paramNameToFind = "ClientName";
 string paramValue = GetParamValue(payload, paramNameToFind);
 
-Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
+if (paramValue != null)
+{
+    Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
+}
+else
+{
+    Console.WriteLine($"The param_name '{paramNameToFind}' was not found.");
+}
