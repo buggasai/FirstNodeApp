@@ -1,84 +1,67 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace JsonExample
+public class Param
 {
-    class Program
+    public string param_name { get; set; }
+    public string param_value { get; set; }
+}
+
+public class TriggerInputs
+{
+    public List<Param> paramlist { get; set; }
+}
+
+public class RootObject
+{
+    public TriggerInputs triggerInputs { get; set; }
+}
+
+class Program
+{
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        // Replace this JSON string with the actual JSON content from the image
+        string json = @"{
+           'triggerInputs': {
+               'paramlist': [
+                   { 'param_name': 'CelergoEnvironment', 'param_value': 'Celergo Stage' },
+                   { 'param_name': 'ClientName', 'param_value': 'TestCNO01' },
+                   { 'param_name': 'PayrollIdList', 'param_value': '701,702' },
+                   { 'param_name': 'PayrollName', 'param_value': 'TestPN' },
+                   { 'param_name': 'ClientCode', 'param_value': 'TestCC001' }
+               ]
+           }
+        }";
+
+        // Deserialize JSON
+        RootObject obj = JsonConvert.DeserializeObject<RootObject>(json);
+
+        // Function to get param_value by param_name
+        string GetParamValue(string paramName, List<Param> paramList)
         {
-            // Your JSON string
-            string jsonString = @"
+            foreach (var param in paramList)
             {
-                'trigger payload': {
-                    'trigger Inputs': {
-                        'project_name': 'AdditionalEntityForSameClient',
-                        'project_id': 483,
-                        'oubynoligar code': 'CSLIMP',
-                        'country_id': 'CSLIMP',
-                        'company_number': 'AdditionalEntity',
-                        'run name': 'AdditionalEntityForSameClient',
-                        'xref': 'CSLIMP999',
-                        'bpa unor mail id': '',
-                        'additional Properties': 1,
-                        'tools': [
-                            {
-                                'name': 'p_id',
-                                'value': 3200001
-                            },
-                            {
-                                'name': 'sequence_id',
-                                'value': 1
-                            },
-                            {
-                                'name': 'param',
-                                'value': [
-                                    {
-                                        'param_name': 'CelergoEnvironment',
-                                        'param value': 'Delaro Stage (51)'
-                                    },
-                                    {
-                                        'param_name': 'ClientName',
-                                        'param value': 'TestN001'
-                                    },
-                                    {
-                                        'param_name': 'PayrollasList',
-                                        'param value': 'TestPN'
-                                    },
-                                    {
-                                        'param_name': 'ClientCode',
-                                        'param value': 'TestCcodialPropectin'
-                                    }
-                                ]
-                            }
-                        ],
-                        'additional Properties': 1
-                    },
-                    'run name': 'AdditionalEntityForSameClient',
-                    'subject': 'Trigger CSLIMP',
-                    'description': 'WATT,'
-                }
-            }";
-
-            // Parse JSON
-            JObject jsonObject = JObject.Parse(jsonString);
-
-            // Navigate to the 'param' list
-            var tools = jsonObject["trigger payload"]["trigger Inputs"]["tools"];
-            foreach (var tool in tools)
-            {
-                if (tool["name"].ToString() == "param")
+                if (param.param_name == paramName)
                 {
-                    var paramArray = tool["value"];
-                    foreach (var param in paramArray)
-                    {
-                        string paramName = param["param_name"].ToString();
-                        Console.WriteLine("Param Name: " + paramName);
-                    }
+                    return param.param_value;
                 }
             }
+            return null; // Return null if param_name not found
+        }
+
+        // Example usage: Get param_value for 'ClientName'
+        string paramNameToFind = "ClientName";
+        string paramValue = GetParamValue(paramNameToFind, obj.triggerInputs.paramlist);
+
+        if (paramValue != null)
+        {
+            Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
+        }
+        else
+        {
+            Console.WriteLine($"'{paramNameToFind}' not found in the paramlist.");
         }
     }
 }
