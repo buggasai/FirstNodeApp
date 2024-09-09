@@ -1,67 +1,27 @@
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq; // Assuming you are using Newtonsoft.Json
 
-public class Param
-{
-    public string param_name { get; set; }
-    public string param_value { get; set; }
-}
+// Assuming 'payload' is your parsed JObject
+JObject payload = JObject.Parse(yourJsonString);
 
-public class TriggerInputs
+// Function to get param value for a given param name
+string GetParamValue(JObject payload, string paramName)
 {
-    public List<Param> paramlist { get; set; }
-}
+    // Access the paramlist
+    var paramList = payload["triggerInputs"]["paramlist"];
 
-public class RootObject
-{
-    public TriggerInputs triggerInputs { get; set; }
-}
-
-class Program
-{
-    static void Main(string[] args)
+    // Iterate through the paramlist to find the param_name
+    foreach (var param in paramList)
     {
-        // Replace this JSON string with the actual JSON content from the image
-        string json = @"{
-           'triggerInputs': {
-               'paramlist': [
-                   { 'param_name': 'CelergoEnvironment', 'param_value': 'Celergo Stage' },
-                   { 'param_name': 'ClientName', 'param_value': 'TestCNO01' },
-                   { 'param_name': 'PayrollIdList', 'param_value': '701,702' },
-                   { 'param_name': 'PayrollName', 'param_value': 'TestPN' },
-                   { 'param_name': 'ClientCode', 'param_value': 'TestCC001' }
-               ]
-           }
-        }";
-
-        // Deserialize JSON
-        RootObject obj = JsonConvert.DeserializeObject<RootObject>(json);
-
-        // Function to get param_value by param_name
-        string GetParamValue(string paramName, List<Param> paramList)
+        if (param["param_name"].ToString() == paramName)
         {
-            foreach (var param in paramList)
-            {
-                if (param.param_name == paramName)
-                {
-                    return param.param_value;
-                }
-            }
-            return null; // Return null if param_name not found
-        }
-
-        // Example usage: Get param_value for 'ClientName'
-        string paramNameToFind = "ClientName";
-        string paramValue = GetParamValue(paramNameToFind, obj.triggerInputs.paramlist);
-
-        if (paramValue != null)
-        {
-            Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
-        }
-        else
-        {
-            Console.WriteLine($"'{paramNameToFind}' not found in the paramlist.");
+            return param["param_value"].ToString();
         }
     }
+    return null; // If the param_name is not found
 }
+
+// Example usage
+string paramNameToFind = "ClientName";
+string paramValue = GetParamValue(payload, paramNameToFind);
+
+Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
