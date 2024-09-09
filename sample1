@@ -1,27 +1,12 @@
-using Newtonsoft.Json.Linq; // Assuming you are using Newtonsoft.Json
+Console.WriteLine(payload.ToString()); // Print the entire JSON object
 
-// Assuming 'payload' is your parsed JObject
-JObject payload = JObject.Parse(yourJsonString);
-
-// Function to get param value for a given param name
-string GetParamValue(JObject payload, string paramName)
+var triggerInputs = payload["triggerInputs"];
+if (triggerInputs != null)
 {
-    // Access the paramlist
-    var paramList = payload["triggerInputs"]["paramlist"];
-
-    // Iterate through the paramlist to find the param_name
-    foreach (var param in paramList)
-    {
-        if (param["param_name"].ToString() == paramName)
-        {
-            return param["param_value"].ToString();
-        }
-    }
-    return null; // If the param_name is not found
+    Console.WriteLine("triggerInputs found");
+    Console.WriteLine(triggerInputs.ToString());
 }
-
-// Example usage
-string paramNameToFind = "ClientName";
-string paramValue = GetParamValue(payload, paramNameToFind);
-
-Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
+else
+{
+    Console.WriteLine("triggerInputs not found");
+}
