@@ -1,63 +1,20 @@
-using Newtonsoft.Json.Linq; // Assuming you are using Newtonsoft.Json
+; Give time for the application to start
+Sleep(5000)
 
-// Assuming 'payload' is your parsed JObject
-JObject payload = JObject.Parse(yourJsonString);
+; Focus on the window with the file dialog
+WinActivate("Open") ; Adjust window title as needed
 
-// Function to get param value for a given param name
-string GetParamValue(JObject payload, string paramName)
-{
-    // Attempt to access the 'triggerInputs' object
-    var triggerInputs = payload["triggerInputs"];
-    
-    if (triggerInputs != null)
-    {
-        // Try to access the 'tools' array
-        var toolsArray = triggerInputs["tools"];
-        
-        if (toolsArray != null)
-        {
-            // Iterate through each tool in tools array
-            foreach (var tool in toolsArray)
-            {
-                // Access the paramlist in each tool
-                var paramList = tool["paramlist"];
-                
-                // Check if paramlist exists
-                if (paramList != null)
-                {
-                    // Iterate through the paramlist to find the param_name
-                    foreach (var param in paramList)
-                    {
-                        if (param["param_name"].ToString() == paramName)
-                        {
-                            return param["param_value"].ToString();
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("'tools' is null inside triggerInputs.");
-        }
-    }
-    else
-    {
-        Console.WriteLine("'triggerInputs' is null.");
-    }
-    
-    return null; // If the param_name is not found
-}
+; Click on the 'File name:' input field
+ControlClick("Open", "", "[CLASS:Edit; INSTANCE:1]")
 
-// Example usage
-string paramNameToFind = "ClientName";
-string paramValue = GetParamValue(payload, paramNameToFind);
+; Wait a bit before typing the file path
+Sleep(5000)
 
-if (paramValue != null)
-{
-    Console.WriteLine($"The value for '{paramNameToFind}' is: {paramValue}");
-}
-else
-{
-    Console.WriteLine($"The param_name '{paramNameToFind}' was not found.");
-}
+; Type the file path into the 'File name:' field
+Send($desktopPath & "\\Temp\\Payroll Pay Element.xlsx")
+
+; Wait again before sending Enter
+Sleep(5000)
+
+; Press Enter to confirm
+Send("{ENTER}")
