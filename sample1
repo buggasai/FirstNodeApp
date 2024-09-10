@@ -1,20 +1,29 @@
-; Give time for the application to start
-Sleep(5000)
+using AutoItX3Lib;
 
-; Focus on the window with the file dialog
-WinActivate("Open") ; Adjust window title as needed
+class Program
+{
+    static void Main(string[] args)
+    {
+        AutoItX3 autoIt = new AutoItX3();
 
-; Click on the 'File name:' input field
-ControlClick("Open", "", "[CLASS:Edit; INSTANCE:1]")
+        // Activate the login window (make sure to replace "LoginWindowTitle" with the actual title)
+        autoIt.WinActivate("LoginWindowTitle");
 
-; Wait a bit before typing the file path
-Sleep(5000)
+        // Wait for the login window to appear (timeout in seconds)
+        autoIt.WinWaitActive("LoginWindowTitle", "", 10);
 
-; Type the file path into the 'File name:' field
-Send($desktopPath & "\\Temp\\Payroll Pay Element.xlsx")
+        // Set the username (replace ControlID with the control identifier, such as control name or class)
+        autoIt.ControlFocus("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:1]");
+        autoIt.ControlSetText("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:1]", "YourUsername");
 
-; Wait again before sending Enter
-Sleep(5000)
+        // Set the password
+        autoIt.ControlFocus("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:2]");
+        autoIt.ControlSetText("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:2]", "YourPassword");
 
-; Press Enter to confirm
-Send("{ENTER}")
+        // Click the Sign In button (replace ControlID with the control identifier)
+        autoIt.ControlClick("LoginWindowTitle", "", "[CLASS:Button; INSTANCE:1]");
+
+        // Optionally, wait for the next window or operation
+        autoIt.WinWaitActive("NextWindowTitle", "", 10);
+    }
+}
