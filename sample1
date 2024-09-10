@@ -6,24 +6,25 @@ class Program
     {
         AutoItX3 autoIt = new AutoItX3();
 
-        // Activate the login window (make sure to replace "LoginWindowTitle" with the actual title)
-        autoIt.WinActivate("LoginWindowTitle");
+        // Get the handle of the "Sign In" window (assuming it's custom with no title)
+        string windowHandle = autoIt.WinGetHandle("[CLASS:Custom; TEXT:Sign in]");
 
-        // Wait for the login window to appear (timeout in seconds)
-        autoIt.WinWaitActive("LoginWindowTitle", "", 10);
+        // Activate the window using the handle
+        autoIt.WinActivate(windowHandle);
 
-        // Set the username (replace ControlID with the control identifier, such as control name or class)
-        autoIt.ControlFocus("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:1]");
-        autoIt.ControlSetText("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:1]", "YourUsername");
+        // Wait until the custom "Sign In" window is active
+        autoIt.WinWaitActive(windowHandle, "", 10);
 
-        // Set the password
-        autoIt.ControlFocus("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:2]");
-        autoIt.ControlSetText("LoginWindowTitle", "", "[CLASS:Edit; INSTANCE:2]", "YourPassword");
+        // Set the username (replace [NAME:Username] with correct identifier if found, or use position)
+        autoIt.ControlSetText(windowHandle, "", "[NAME:Username]", "YourUsername");
 
-        // Click the Sign In button (replace ControlID with the control identifier)
-        autoIt.ControlClick("LoginWindowTitle", "", "[CLASS:Button; INSTANCE:1]");
+        // Set the password (replace [NAME:Password] with correct identifier if found, or use position)
+        autoIt.ControlSetText(windowHandle, "", "[NAME:Password]", "YourPassword");
 
-        // Optionally, wait for the next window or operation
+        // Click the "Sign In" button (use a control identifier or the button's text if available)
+        autoIt.ControlClick(windowHandle, "", "[TEXT:Sign in]");
+
+        // Optionally wait for the next window or some feedback
         autoIt.WinWaitActive("NextWindowTitle", "", 10);
     }
 }
