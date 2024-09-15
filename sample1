@@ -1,14 +1,29 @@
-; Activate the parent Pane window (replace with actual top-level window name or handle)
-WinActivate("[NAME:ParentPane]")
+using Excel = Microsoft.Office.Interop.Excel;
 
-; Wait for the parent Pane window to be active
-WinWaitActive("[NAME:ParentPane]", "", 10)
-
-; Now attempt to set the username, assuming [NAME:Username] works inside the Pane
-ControlSetText("[NAME:ParentPane]", "", "[NAME:Username]", "YourUsername")
-
-; Set the password inside the Pane
-ControlSetText("[NAME:ParentPane]", "", "[NAME:Password]", "YourPassword")
-
-; Click the Sign In button inside the Pane
-ControlClick("[NAME:ParentPane]", "", "[NAME:Sign in]")
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Initialize Excel application
+        Excel.Application excelApp = new Excel.Application();
+        
+        // Open workbook (replace with your file path)
+        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\excel.xlsx");
+        
+        // Access the worksheet named "fakturadaten"
+        Excel.Worksheet worksheet = workbook.Sheets["fakturadaten"];
+        
+        // Find the last non-empty row in column C
+        Excel.Range lastCell = worksheet.Cells[worksheet.Rows.Count, 3].End(Excel.XlDirection.xlUp);
+        
+        // Get the value in that cell (assuming it's a date)
+        DateTime lastDate = Convert.ToDateTime(lastCell.Value);
+        
+        // Output the date (or do something with it)
+        Console.WriteLine("The last date in column C is: " + lastDate.ToShortDateString());
+        
+        // Cleanup
+        workbook.Close(false);
+        excelApp.Quit();
+    }
+}
