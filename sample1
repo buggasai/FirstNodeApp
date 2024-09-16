@@ -7,21 +7,28 @@ class Program
         // Start Excel and open the workbook
         Excel.Application excelApp = new Excel.Application();
         Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
-        Excel.Worksheet worksheet = workbook.Sheets["fakturadaten"];
+        Excel.Worksheet worksheet = workbook.Sheets["kden"];
 
-        // Get the used range of the sheet
-        Excel.Range usedRange = worksheet.UsedRange;
+        // Get the last non-empty cell in Column C (column index 3)
+        Excel.Range lastCell = worksheet.Cells[worksheet.Rows.Count, 3].End(Excel.XlDirection.xlUp);
 
-        // Get the last row number in the used range of Column C (3rd column)
-        int lastRow = usedRange.Rows.Count;
+        // Get the row number of the last non-empty cell
+        int lastRow = lastCell.Row;
 
-        // Get the last two records from Column C
-        string secondLastRecord = usedRange.Cells[lastRow - 1, 3].Value.ToString();
-        string lastRecord = usedRange.Cells[lastRow, 3].Value.ToString();
+        // Get the value of the last non-empty cell
+        var lastValue = lastCell.Value;
 
-        // Display the values
-        Console.WriteLine("Second Last Record: " + secondLastRecord);
-        Console.WriteLine("Last Record: " + lastRecord);
+        // Get the value of the previous cell (one row above)
+        if (lastRow > 1) // Ensure there is a row above
+        {
+            var previousCellValue = worksheet.Cells[lastRow - 1, 3].Value;
+            Console.WriteLine("Last Cell Value: " + lastValue);
+            Console.WriteLine("Previous Cell Value: " + previousCellValue);
+        }
+        else
+        {
+            Console.WriteLine("No previous row found.");
+        }
 
         // Clean up
         workbook.Close(false);
