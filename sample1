@@ -1,3 +1,17 @@
-// Manually focus on the button before clicking
-jsExecutor.ExecuteScript("arguments[0].focus();", button);
-button.Click();  // Regular click or use JS click as mentioned above
+IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+
+// Access the shadow root of the sdf-button
+IWebElement shadowHost = driver.FindElement(By.CssSelector("sdf-button"));
+IWebElement shadowRoot = (IWebElement)jsExecutor.ExecuteScript("return arguments[0].shadowRoot", shadowHost);
+
+// Enter value in sdf-input (username)
+IWebElement usernameInput = shadowRoot.FindElement(By.CssSelector("sdf-input"));
+usernameInput.SendKeys("your-username");
+
+// Use JavaScript to force click on the button
+IWebElement button = shadowRoot.FindElement(By.CssSelector("button"));
+jsExecutor.ExecuteScript("arguments[0].click();", button);
+
+// Optionally, wait for the password input to become visible
+WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+IWebElement passwordInput = wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("sdf-input[type='password']")));
