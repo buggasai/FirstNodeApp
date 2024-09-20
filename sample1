@@ -1,12 +1,3 @@
-// Locate the shadow root
-IWebElement shadowHost = driver.FindElement(By.CssSelector("sdf-button"));
-IWebElement shadowRoot = (IWebElement)((IJavaScriptExecutor)driver).ExecuteScript("return arguments[0].shadowRoot", shadowHost);
-
-// Enter value in the username input inside shadow DOM
-IWebElement usernameInput = shadowRoot.FindElement(By.CssSelector("sdf-input"));
-usernameInput.SendKeys("your-username");
-
-// Use Actions to simulate the button click
-IWebElement button = shadowRoot.FindElement(By.CssSelector("button"));
-Actions actions = new Actions(driver);
-actions.MoveToElement(button).Click().Perform();
+// Manually focus on the button before clicking
+jsExecutor.ExecuteScript("arguments[0].focus();", button);
+button.Click();  // Regular click or use JS click as mentioned above
