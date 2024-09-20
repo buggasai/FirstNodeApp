@@ -1,37 +1,12 @@
-using Excel = Microsoft.Office.Interop.Excel;
+// Locate the shadow root
+IWebElement shadowHost = driver.FindElement(By.CssSelector("sdf-button"));
+IWebElement shadowRoot = (IWebElement)((IJavaScriptExecutor)driver).ExecuteScript("return arguments[0].shadowRoot", shadowHost);
 
-class Program
-{
-    static void Main()
-    {
-        // Start Excel and open the workbook
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
-        Excel.Worksheet worksheet = workbook.Sheets["kden"];
+// Enter value in the username input inside shadow DOM
+IWebElement usernameInput = shadowRoot.FindElement(By.CssSelector("sdf-input"));
+usernameInput.SendKeys("your-username");
 
-        // Get the last non-empty cell in Column C (column index 3)
-        Excel.Range lastCell = worksheet.Cells[worksheet.Rows.Count, 3].End(Excel.XlDirection.xlUp);
-
-        // Get the row number of the last non-empty cell
-        int lastRow = lastCell.Row;
-
-        // Get the value of the last non-empty cell
-        var lastValue = lastCell.Value;
-
-        // Get the value of the previous cell (one row above)
-        if (lastRow > 1) // Ensure there is a row above
-        {
-            var previousCellValue = worksheet.Cells[lastRow - 1, 3].Value;
-            Console.WriteLine("Last Cell Value: " + lastValue);
-            Console.WriteLine("Previous Cell Value: " + previousCellValue);
-        }
-        else
-        {
-            Console.WriteLine("No previous row found.");
-        }
-
-        // Clean up
-        workbook.Close(false);
-        excelApp.Quit();
-    }
-}
+// Use Actions to simulate the button click
+IWebElement button = shadowRoot.FindElement(By.CssSelector("button"));
+Actions actions = new Actions(driver);
+actions.MoveToElement(button).Click().Perform();
