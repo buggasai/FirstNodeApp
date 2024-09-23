@@ -1,17 +1,26 @@
-IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+; Wait for the browser window to load (replace with your actual browser window title)
+If Not WinWait("Browser Window Title", "", 10) Then
+    ThrowException("The browser did not load. Possibly wrong URL.")
+EndIf
 
-// Access the shadow root of the sdf-button
-IWebElement shadowHost = driver.FindElement(By.CssSelector("sdf-button"));
-IWebElement shadowRoot = (IWebElement)jsExecutor.ExecuteScript("return arguments[0].shadowRoot", shadowHost);
+; Check if the login window is available
+If Not WinExists("Login Window Title") Then
+    ThrowException("The login window did not appear. Check the URL or if the application is ready.")
+EndIf
 
-// Enter value in sdf-input (username)
-IWebElement usernameInput = shadowRoot.FindElement(By.CssSelector("sdf-input"));
-usernameInput.SendKeys("your-username");
+; Check if the username field is available
+If Not ControlFocus("Login Window Title", "", "Edit1") Then
+    ThrowException("The username field is not found. The login window might not be present.")
+EndIf
 
-// Use JavaScript to force click on the button
-IWebElement button = shadowRoot.FindElement(By.CssSelector("button"));
-jsExecutor.ExecuteScript("arguments[0].click();", button);
+; Function to send exception messages
+Func ThrowException($message)
+    ; Log the exception message (can also be logged to a file or sent back to another script)
+    MsgBox(0, "Exception", $message)
+    Exit
+EndFunc
 
-// Optionally, wait for the password input to become visible
-WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-IWebElement passwordInput = wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("sdf-input[type='password']")));
+; If all checks pass, continue with login automation
+ControlSetText("Login Window Title", "", "Edit1", "your_username")
+ControlSetText("Login Window Title", "", "Edit2", "your_password")
+ControlClick("Login Window Title", "", "Button1")
