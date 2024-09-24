@@ -1,26 +1,14 @@
-; Wait for the browser window to load (replace with your actual browser window title)
-If Not WinWait("Browser Window Title", "", 10) Then
-    ThrowException("The browser did not load. Possibly wrong URL.")
-EndIf
+AutoItX3 autoIt = new AutoItX3();
 
-; Check if the login window is available
-If Not WinExists("Login Window Title") Then
-    ThrowException("The login window did not appear. Check the URL or if the application is ready.")
-EndIf
+// Use WinWaitActive to wait for a window to appear with a timeout (e.g., 5 seconds)
+int waitTime = 5; // seconds
+int windowFound = autoIt.WinWaitActive("[REGEXPTITLE:.*Sign in.*]", "", waitTime);
 
-; Check if the username field is available
-If Not ControlFocus("Login Window Title", "", "Edit1") Then
-    ThrowException("The username field is not found. The login window might not be present.")
-EndIf
-
-; Function to send exception messages
-Func ThrowException($message)
-    ; Log the exception message (can also be logged to a file or sent back to another script)
-    MsgBox(0, "Exception", $message)
-    Exit
-EndFunc
-
-; If all checks pass, continue with login automation
-ControlSetText("Login Window Title", "", "Edit1", "your_username")
-ControlSetText("Login Window Title", "", "Edit2", "your_password")
-ControlClick("Login Window Title", "", "Button1")
+if (windowFound == 0)
+{
+    throw new Exception("Sign in window not found. Please check the URL or the application.");
+}
+else
+{
+    Console.WriteLine("Sign in window detected.");
+}
