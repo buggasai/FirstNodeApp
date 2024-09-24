@@ -1,14 +1,36 @@
 AutoItX3 autoIt = new AutoItX3();
 
-// Use WinWaitActive to wait for a window to appear with a timeout (e.g., 5 seconds)
-int waitTime = 5; // seconds
-int windowFound = autoIt.WinWaitActive("[REGEXPTITLE:.*Sign in.*]", "", waitTime);
-
-if (windowFound == 0)
+// Check if the window exists
+if (autoIt.WinExists("[CLASS:YourClassName]") != 0)
 {
-    throw new Exception("Sign in window not found. Please check the URL or the application.");
+    // Check if the window is active
+    if (autoIt.WinActive("[CLASS:YourClassName]") != 0)
+    {
+        // Check if the window is visible and not minimized
+        int state = autoIt.WinGetState("[CLASS:YourClassName]");
+        
+        if ((state & 2) != 0) // 2: Visible
+        {
+            if ((state & 16) == 0) // 16: Minimized (0 if not minimized)
+            {
+                Console.WriteLine("Window is active, visible, and not minimized.");
+            }
+            else
+            {
+                throw new Exception("Window is minimized.");
+            }
+        }
+        else
+        {
+            throw new Exception("Window is not visible.");
+        }
+    }
+    else
+    {
+        throw new Exception("Window exists but is not active.");
+    }
 }
 else
 {
-    Console.WriteLine("Sign in window detected.");
+    throw new Exception("Window not found.");
 }
