@@ -1,36 +1,54 @@
-AutoItX3 autoIt = new AutoItX3();
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
+using System;
 
-// Check if the window exists
-if (autoIt.WinExists("[CLASS:YourClassName]") != 0)
+class Program
 {
-    // Check if the window is active
-    if (autoIt.WinActive("[CLASS:YourClassName]") != 0)
+    static void Main()
     {
-        // Check if the window is visible and not minimized
-        int state = autoIt.WinGetState("[CLASS:YourClassName]");
-        
-        if ((state & 2) != 0) // 2: Visible
+        // Start a new Chrome instance
+        IWebDriver driver = new ChromeDriver();
+        driver.Navigate().GoToUrl("http://your-wrong-url.com");
+
+        try
         {
-            if ((state & 16) == 0) // 16: Minimized (0 if not minimized)
+            // Wait for the page to load
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            wait.Until(d => d.Title.Length > 0); // Wait for page to load by checking the title
+
+            // Get the page title
+            string pageTitle = driver.Title;
+            Console.WriteLine("Page Title: " + pageTitle);
+
+            // Check if the page title contains an error message
+            if (pageTitle.Contains("Server Error") || pageTitle.Contains("Error"))
             {
-                Console.WriteLine("Window is active, visible, and not minimized.");
+                Console.WriteLine("Server Error detected based on page title.");
             }
             else
             {
-                throw new Exception("Window is minimized.");
+                // Optionally, check the page body text for specific error messages
+                string pageSource = driver.PageSource;
+
+                if (pageSource.Contains("500 Internal Server Error") || pageSource.Contains("404 Not Found"))
+                {
+                    Console.WriteLine("Server Error detected based on page content.");
+                }
+                else
+                {
+                    Console.WriteLine("No server error detected.");
+                }
             }
         }
-        else
+        catch (WebDriverTimeoutException)
         {
-            throw new Exception("Window is not visible.");
+            Console.WriteLine("Page load timed out.");
+        }
+        finally
+        {
+            // Close the browser
+            driver.Quit();
         }
     }
-    else
-    {
-        throw new Exception("Window exists but is not active.");
-    }
-}
-else
-{
-    throw new Exception("Window not found.");
 }
