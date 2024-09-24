@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
@@ -12,35 +13,15 @@ class Program
             "Column1", "Column2", "Column3", "Column4"
         };
 
-        // Create a list to store missing columns
+        // Load Excel file and convert the worksheet data to DataTable
+        DataTable dataTable = ConvertExcelToDataTable(@"C:\path\to\your\file.xlsx");
+
+        // Check for missing columns
         List<string> missingColumns = new List<string>();
 
-        // Initialize Excel application
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
-        Excel.Worksheet worksheet = workbook.Sheets[1];
-
-        // Read the first row (assuming it's the header row) to get column names
-        Excel.Range headerRow = worksheet.Rows[1];
-        int lastColumn = headerRow.Columns.Count;
-
-        // Create a list to store the actual columns found in the worksheet
-        List<string> actualColumns = new List<string>();
-
-        // Loop through the header row and store column names
-        for (int col = 1; col <= lastColumn; col++)
-        {
-            Excel.Range cell = headerRow.Cells[1, col] as Excel.Range;
-            if (cell != null && cell.Value2 != null)
-            {
-                actualColumns.Add(cell.Value2.ToString());
-            }
-        }
-
-        // Compare expected columns with actual columns
         foreach (var expectedColumn in expectedColumns)
         {
-            if (!actualColumns.Contains(expectedColumn))
+            if (!dataTable.Columns.Contains(expectedColumn))
             {
                 missingColumns.Add(expectedColumn);
             }
@@ -59,9 +40,42 @@ class Program
         {
             Console.WriteLine("All expected columns are present.");
         }
+    }
+
+    // Function to convert Excel worksheet to DataTable
+    static DataTable ConvertExcelToDataTable(string filePath)
+    {
+        // Initialize Excel application
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
+        Excel.Worksheet worksheet = workbook.Sheets[1];
+        Excel.Range usedRange = worksheet.UsedRange;
+
+        // Create a new DataTable
+        DataTable dataTable = new DataTable();
+
+        // Read the first row (assuming it's the header row) to create columns in DataTable
+        for (int col = 1; col <= usedRange.Columns.Count; col++)
+        {
+            string columnName = usedRange.Cells[1, col].Value2?.ToString() ?? $"Column{col}";
+            dataTable.Columns.Add(columnName);
+        }
+
+        // Read the rest of the rows and add to DataTable
+        for (int row = 2; row <= usedRange.Rows.Count; row++) // Start from row 2 (data rows)
+        {
+            DataRow dataRow = dataTable.NewRow();
+            for (int col = 1; col <= usedRange.Columns.Count; col++)
+            {
+                dataRow[col - 1] = usedRange.Cells[row, col].Value2?.ToString() ?? string.Empty;
+            }
+            dataTable.Rows.Add(dataRow);
+        }
 
         // Clean up
         workbook.Close(false);
         excelApp.Quit();
+
+        return dataTable;
     }
 }
