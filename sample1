@@ -1,54 +1,67 @@
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
 using System;
+using System.Collections.Generic;
+using Excel = Microsoft.Office.Interop.Excel;
 
 class Program
 {
     static void Main()
     {
-        // Start a new Chrome instance
-        IWebDriver driver = new ChromeDriver();
-        driver.Navigate().GoToUrl("http://your-wrong-url.com");
-
-        try
+        // Define the list of expected column names
+        List<string> expectedColumns = new List<string>
         {
-            // Wait for the page to load
-            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-            wait.Until(d => d.Title.Length > 0); // Wait for page to load by checking the title
+            "Column1", "Column2", "Column3", "Column4"
+        };
 
-            // Get the page title
-            string pageTitle = driver.Title;
-            Console.WriteLine("Page Title: " + pageTitle);
+        // Create a list to store missing columns
+        List<string> missingColumns = new List<string>();
 
-            // Check if the page title contains an error message
-            if (pageTitle.Contains("Server Error") || pageTitle.Contains("Error"))
+        // Initialize Excel application
+        Excel.Application excelApp = new Excel.Application();
+        Excel.Workbook workbook = excelApp.Workbooks.Open(@"C:\path\to\your\file.xlsx");
+        Excel.Worksheet worksheet = workbook.Sheets[1];
+
+        // Read the first row (assuming it's the header row) to get column names
+        Excel.Range headerRow = worksheet.Rows[1];
+        int lastColumn = headerRow.Columns.Count;
+
+        // Create a list to store the actual columns found in the worksheet
+        List<string> actualColumns = new List<string>();
+
+        // Loop through the header row and store column names
+        for (int col = 1; col <= lastColumn; col++)
+        {
+            Excel.Range cell = headerRow.Cells[1, col] as Excel.Range;
+            if (cell != null && cell.Value2 != null)
             {
-                Console.WriteLine("Server Error detected based on page title.");
-            }
-            else
-            {
-                // Optionally, check the page body text for specific error messages
-                string pageSource = driver.PageSource;
-
-                if (pageSource.Contains("500 Internal Server Error") || pageSource.Contains("404 Not Found"))
-                {
-                    Console.WriteLine("Server Error detected based on page content.");
-                }
-                else
-                {
-                    Console.WriteLine("No server error detected.");
-                }
+                actualColumns.Add(cell.Value2.ToString());
             }
         }
-        catch (WebDriverTimeoutException)
+
+        // Compare expected columns with actual columns
+        foreach (var expectedColumn in expectedColumns)
         {
-            Console.WriteLine("Page load timed out.");
+            if (!actualColumns.Contains(expectedColumn))
+            {
+                missingColumns.Add(expectedColumn);
+            }
         }
-        finally
+
+        // Display missing columns
+        if (missingColumns.Count > 0)
         {
-            // Close the browser
-            driver.Quit();
+            Console.WriteLine("Missing columns:");
+            foreach (var column in missingColumns)
+            {
+                Console.WriteLine(column);
+            }
         }
+        else
+        {
+            Console.WriteLine("All expected columns are present.");
+        }
+
+        // Clean up
+        workbook.Close(false);
+        excelApp.Quit();
     }
 }
