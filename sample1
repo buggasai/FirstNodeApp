@@ -1,81 +1,76 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
-using Excel = Microsoft.Office.Interop.Excel;
 
-class Program
+public class Program
 {
-    static void Main()
+    public static void Main()
     {
-        // Define the list of expected column names
-        List<string> expectedColumns = new List<string>
+        // Sample source and target DataTables
+        DataTable sourceTable = GetSourceDataTable();
+        DataTable targetTable = GetTargetDataTable();
+
+        // Find the starting column index of "Client Specific" in the source table
+        int startColumnIndex = sourceTable.Columns.IndexOf("Client Specific");
+
+        if (startColumnIndex == -1)
         {
-            "Column1", "Column2", "Column3", "Column4"
-        };
+            Console.WriteLine("Column 'Client Specific' not found.");
+            return;
+        }
 
-        // Load Excel file and convert the worksheet data to DataTable
-        DataTable dataTable = ConvertExcelToDataTable(@"C:\path\to\your\file.xlsx");
-
-        // Check for missing columns
-        List<string> missingColumns = new List<string>();
-
-        foreach (var expectedColumn in expectedColumns)
+        // Append new columns from the source table to the target table after the last column
+        foreach (DataColumn col in sourceTable.Columns)
         {
-            if (!dataTable.Columns.Contains(expectedColumn))
+            if (sourceTable.Columns.IndexOf(col) >= startColumnIndex)
             {
-                missingColumns.Add(expectedColumn);
+                // Add columns to target with the same name and type
+                targetTable.Columns.Add(col.ColumnName, col.DataType);
             }
         }
 
-        // Display missing columns
-        if (missingColumns.Count > 0)
+        // Ensure targetTable has at least as many rows as sourceTable
+        while (targetTable.Rows.Count < sourceTable.Rows.Count)
         {
-            Console.WriteLine("Missing columns:");
-            foreach (var column in missingColumns)
+            targetTable.Rows.Add();
+        }
+
+        // Copy the data from the source to the target table
+        for (int i = 0; i < sourceTable.Rows.Count; i++)
+        {
+            for (int j = startColumnIndex; j < sourceTable.Columns.Count; j++)
             {
-                Console.WriteLine(column);
+                // Add data to the correct column in the target table
+                targetTable.Rows[i][j + targetTable.Columns.Count - sourceTable.Columns.Count] = sourceTable.Rows[i][j];
             }
         }
-        else
-        {
-            Console.WriteLine("All expected columns are present.");
-        }
+
+        // Output the results (for demo purposes)
+        Console.WriteLine("Data successfully copied to target table.");
     }
 
-    // Function to convert Excel worksheet to DataTable
-    static DataTable ConvertExcelToDataTable(string filePath)
+    // Example method for creating a sample source DataTable
+    public static DataTable GetSourceDataTable()
     {
-        // Initialize Excel application
-        Excel.Application excelApp = new Excel.Application();
-        Excel.Workbook workbook = excelApp.Workbooks.Open(filePath);
-        Excel.Worksheet worksheet = workbook.Sheets[1];
-        Excel.Range usedRange = worksheet.UsedRange;
+        DataTable dt = new DataTable();
+        dt.Columns.Add("ID", typeof(int));
+        dt.Columns.Add("Client Specific", typeof(string));
+        dt.Columns.Add("Data1", typeof(string));
+        dt.Columns.Add("Data2", typeof(string));
 
-        // Create a new DataTable
-        DataTable dataTable = new DataTable();
+        dt.Rows.Add(1, "Client1", "A", "B");
+        dt.Rows.Add(2, "Client2", "C", "D");
+        return dt;
+    }
 
-        // Read the first row (assuming it's the header row) to create columns in DataTable
-        for (int col = 1; col <= usedRange.Columns.Count; col++)
-        {
-            string columnName = usedRange.Cells[1, col].Value2?.ToString() ?? $"Column{col}";
-            dataTable.Columns.Add(columnName);
-        }
+    // Example method for creating a sample target DataTable
+    public static DataTable GetTargetDataTable()
+    {
+        DataTable dt = new DataTable();
+        dt.Columns.Add("Existing1", typeof(string));
+        dt.Columns.Add("Existing2", typeof(string));
 
-        // Read the rest of the rows and add to DataTable
-        for (int row = 2; row <= usedRange.Rows.Count; row++) // Start from row 2 (data rows)
-        {
-            DataRow dataRow = dataTable.NewRow();
-            for (int col = 1; col <= usedRange.Columns.Count; col++)
-            {
-                dataRow[col - 1] = usedRange.Cells[row, col].Value2?.ToString() ?? string.Empty;
-            }
-            dataTable.Rows.Add(dataRow);
-        }
-
-        // Clean up
-        workbook.Close(false);
-        excelApp.Quit();
-
-        return dataTable;
+        dt.Rows.Add("X", "Y");
+        dt.Rows.Add("Z", "W");
+        return dt;
     }
 }
