@@ -1,76 +1,14 @@
-using System;
-using System.Data;
+Subject: Request for Leave Due to Family Medical Emergency
 
-public class Program
-{
-    public static void Main()
-    {
-        // Sample source and target DataTables
-        DataTable sourceTable = GetSourceDataTable();
-        DataTable targetTable = GetTargetDataTable();
+Dear [Team Lead's Name],
 
-        // Find the starting column index of "Client Specific" in the source table
-        int startColumnIndex = sourceTable.Columns.IndexOf("Client Specific");
+I hope this message finds you well. I am writing to inform you that my daughter has recently been diagnosed with Type 1 diabetes, and we are in the process of managing her treatment and care. This sudden change has required immediate medical attention and adjustments to her daily routine, which will need my full attention over the next few weeks.
 
-        if (startColumnIndex == -1)
-        {
-            Console.WriteLine("Column 'Client Specific' not found.");
-            return;
-        }
+In light of this, I would like to request a leave of absence for two weeks, starting from [start date] to [end date], to ensure that I can provide the necessary care and support during this critical period. I understand the impact my absence may have on the team's work, and I will do my best to ensure a smooth handover of my current tasks before my leave begins. Please let me know how best to facilitate this transition.
 
-        // Append new columns from the source table to the target table after the last column
-        foreach (DataColumn col in sourceTable.Columns)
-        {
-            if (sourceTable.Columns.IndexOf(col) >= startColumnIndex)
-            {
-                // Add columns to target with the same name and type
-                targetTable.Columns.Add(col.ColumnName, col.DataType);
-            }
-        }
+I greatly appreciate your understanding and support during this time. If needed, I am happy to provide any documentation required for this request.
 
-        // Ensure targetTable has at least as many rows as sourceTable
-        while (targetTable.Rows.Count < sourceTable.Rows.Count)
-        {
-            targetTable.Rows.Add();
-        }
+Thank you for your consideration.
 
-        // Copy the data from the source to the target table
-        for (int i = 0; i < sourceTable.Rows.Count; i++)
-        {
-            for (int j = startColumnIndex; j < sourceTable.Columns.Count; j++)
-            {
-                // Add data to the correct column in the target table
-                targetTable.Rows[i][j + targetTable.Columns.Count - sourceTable.Columns.Count] = sourceTable.Rows[i][j];
-            }
-        }
-
-        // Output the results (for demo purposes)
-        Console.WriteLine("Data successfully copied to target table.");
-    }
-
-    // Example method for creating a sample source DataTable
-    public static DataTable GetSourceDataTable()
-    {
-        DataTable dt = new DataTable();
-        dt.Columns.Add("ID", typeof(int));
-        dt.Columns.Add("Client Specific", typeof(string));
-        dt.Columns.Add("Data1", typeof(string));
-        dt.Columns.Add("Data2", typeof(string));
-
-        dt.Rows.Add(1, "Client1", "A", "B");
-        dt.Rows.Add(2, "Client2", "C", "D");
-        return dt;
-    }
-
-    // Example method for creating a sample target DataTable
-    public static DataTable GetTargetDataTable()
-    {
-        DataTable dt = new DataTable();
-        dt.Columns.Add("Existing1", typeof(string));
-        dt.Columns.Add("Existing2", typeof(string));
-
-        dt.Rows.Add("X", "Y");
-        dt.Rows.Add("Z", "W");
-        return dt;
-    }
-}
+Best regards,
+[Your Name]
