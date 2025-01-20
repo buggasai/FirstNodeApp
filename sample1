@@ -1,8 +1,90 @@
-Hi Perpetual,
+Primary Skills (Core Competencies)
+These are the essential skills every .NET developer must have to perform their role effectively:
 
-Thank you for sharing the details. I confirm that I am comfortable with the offered CTC and the current Temporary Visa situation. Please proceed further as required.
+Programming Languages:
 
-Looking forward to the next steps.
+C#: Core language for .NET development.
+VB.NET: Optional, but still relevant in legacy systems.
+Frameworks and Platforms:
 
-Best regards,
-Sai
+.NET Core / .NET 6/7: For building cross-platform, modern applications.
+ASP.NET Core: For web development, including MVC and Razor Pages.
+Entity Framework Core: For database access and ORM (Object-Relational Mapping).
+Front-End Technologies:
+
+HTML, CSS, JavaScript: Basic front-end skills.
+Frameworks: React, Angular, or Blazor for modern web applications.
+Database Management:
+
+SQL Server: Writing queries, stored procedures, and performance tuning.
+LINQ (Language-Integrated Query): For querying collections and databases.
+APIs and Integrations:
+
+RESTful Services: Designing and consuming REST APIs.
+Web APIs: Developing APIs with ASP.NET Core.
+Authentication and Authorization:
+
+JWT (JSON Web Token): For secure API authentication.
+OAuth/OpenID: For third-party authentication.
+Version Control:
+
+Git: Managing source code and collaborating with teams.
+Software Development Practices:
+
+Agile/Scrum: Familiarity with agile methodologies.
+TDD/Unit Testing: Using frameworks like NUnit, xUnit, or MSTest.
+Secondary Skills (Complementary Skills)
+These are additional skills that enhance a .NET developer's capabilities and make them versatile:
+
+Cloud Platforms:
+
+Azure: App Services, Azure Functions, Azure DevOps, and other cloud services.
+AWS: Basic knowledge for hosting .NET applications.
+Containerization and DevOps:
+
+Docker: For containerizing .NET applications.
+Kubernetes: Managing containerized applications.
+CI/CD: Setting up pipelines using Azure DevOps, Jenkins, or GitHub Actions.
+Microservices:
+
+Service-Oriented Architecture: Breaking applications into smaller services.
+gRPC: For high-performance communication.
+Front-End Frameworks:
+
+jQuery: Still useful in legacy systems.
+Bootstrap/Tailwind: For responsive UI design.
+Performance Optimization:
+
+Profiling tools like dotTrace or dotMemory.
+Understanding caching mechanisms (e.g., Redis, MemoryCache).
+Big Data & Analytics (Optional):
+
+Integrating with data processing systems like Apache Kafka or Azure Data Factory.
+Testing Frameworks:
+
+Selenium: For UI testing.
+Postman or Swagger: For API testing.
+Soft Skills:
+
+Problem-solving and analytical thinking.
+Communication for interacting with stakeholders.
+Team collaboration and time management.
+Skill Breakdown by Experience Level
+Entry-Level Developer:
+Core C# and .NET knowledge.
+Basic SQL and database design.
+REST API basics.
+HTML, CSS, and JavaScript.
+Mid-Level Developer:
+ASP.NET Core with MVC and Web API.
+EF Core for ORM.
+Git for version control.
+Unit testing frameworks.
+CI/CD and basic DevOps knowledge.
+Senior Developer:
+Cloud platforms (Azure/AWS).
+Designing microservices architecture.
+Performance optimization.
+Advanced security practices (e.g., OAuth, OpenID).
+Mentorship and team leadership skills.
+Let me know if you'd like further details about any of these skills!
